@@ -2,7 +2,7 @@
 
 An all-in-one Discord bot with invite tracking, server backups, XP leveling, advanced moderation, automod, automation, tickets, and a full web dashboard.
 
-# Discord Server: 
+## Discord Server: 
 
 https://discord.gg/aknYkaKN85
 
