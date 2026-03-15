@@ -106,3 +106,4 @@ DASHBOARD_URL=http://localhost:5173
 ## License
 
 ISC
+# vapiano-s-discord-bot-server
