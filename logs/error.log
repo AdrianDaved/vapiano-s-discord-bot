@@ -1,0 +1,307 @@
+[2026-03-14 11:59:53] ERROR: Failed to deploy commands: DiscordAPIError[0]: 401: Unauthorized
+[2026-03-14 11:59:53] ERROR: Failed to start bot: Error [TokenInvalid]: An invalid token was provided.
+[2026-03-14 12:23:35] ERROR: OAuth2 token exchange failed: 401
+[2026-03-14 12:23:41] ERROR: OAuth2 token exchange failed: 401
+[2026-03-14 12:23:53] ERROR: OAuth2 token exchange failed: 401
+[2026-03-14 12:24:51] ERROR: OAuth2 token exchange failed: 401
+[2026-03-14 12:25:15] ERROR: OAuth2 token exchange failed: 401
+[2026-03-14 12:31:12] ERROR: OAuth2 token exchange failed: 401
+[2026-03-14 12:36:59] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.981, "global": false}
+[2026-03-14 12:36:59] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.578, "global": false}
+[2026-03-14 12:36:59] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.563, "global": false}
+[2026-03-14 12:37:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.985, "global": false}
+[2026-03-14 12:37:01] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.616, "global": false}
+[2026-03-14 12:37:02] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:02] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:03] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.62, "global": false}
+[2026-03-14 12:37:03] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:04] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.382, "global": false}
+[2026-03-14 12:37:04] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.378, "global": false}
+[2026-03-14 12:37:05] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:08] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.992, "global": false}
+[2026-03-14 12:37:08] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.552, "global": false}
+[2026-03-14 12:37:17] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.95, "global": false}
+[2026-03-14 12:37:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.56, "global": false}
+[2026-03-14 12:37:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.401, "global": false}
+[2026-03-14 12:37:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.391, "global": false}
+[2026-03-14 12:37:21] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:21] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:21] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.441, "global": false}
+[2026-03-14 12:37:22] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:22] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:37:25] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.985, "global": false}
+[2026-03-14 12:37:25] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.588, "global": false}
+[2026-03-14 12:37:26] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:40:16] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.962, "global": false}
+[2026-03-14 12:40:16] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.514, "global": false}
+[2026-03-14 12:40:37] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:40:38] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.63, "global": false}
+[2026-03-14 12:40:47] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:40:47] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.996, "global": false}
+[2026-03-14 12:40:48] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.63, "global": false}
+[2026-03-14 12:40:49] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.364, "global": false}
+[2026-03-14 12:40:49] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.308, "global": false}
+[2026-03-14 12:40:50] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.98, "global": false}
+[2026-03-14 12:40:50] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.378, "global": false}
+[2026-03-14 12:40:50] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.347, "global": false}
+[2026-03-14 12:40:51] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:40:57] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.971, "global": false}
+[2026-03-14 12:40:58] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.577, "global": false}
+[2026-03-14 12:40:58] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:41:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.995, "global": false}
+[2026-03-14 12:41:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.533, "global": false}
+[2026-03-14 12:41:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:41:07] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.565, "global": false}
+[2026-03-14 12:41:07] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.558, "global": false}
+[2026-03-14 12:41:07] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:41:07] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:44:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.986, "global": false}
+[2026-03-14 12:44:01] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.601, "global": false}
+[2026-03-14 12:44:05] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.919, "global": false}
+[2026-03-14 12:44:06] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.544, "global": false}
+[2026-03-14 12:44:06] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:44:06] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:44:08] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.986, "global": false}
+[2026-03-14 12:44:08] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.627, "global": false}
+[2026-03-14 12:44:08] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.611, "global": false}
+[2026-03-14 12:44:08] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.557, "global": false}
+[2026-03-14 12:44:08] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:44:08] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:44:09] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:44:12] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.957, "global": false}
+[2026-03-14 12:44:12] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.588, "global": false}
+[2026-03-14 12:44:13] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:50:24] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.956, "global": false}
+[2026-03-14 12:50:24] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.582, "global": false}
+[2026-03-14 12:50:24] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:50:29] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:50:42] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.847, "global": false}
+[2026-03-14 12:50:42] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.637, "global": false}
+[2026-03-14 12:50:42] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.461, "global": false}
+[2026-03-14 12:50:42] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:50:45] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 12:51:06] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.965, "global": false}
+[2026-03-14 12:51:07] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.576, "global": false}
+[2026-03-14 12:51:07] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:01:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.997, "global": false}
+[2026-03-14 13:01:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.98, "global": false}
+[2026-03-14 13:01:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.962, "global": false}
+[2026-03-14 13:01:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.606, "global": false}
+[2026-03-14 13:01:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.577, "global": false}
+[2026-03-14 13:01:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.565, "global": false}
+[2026-03-14 13:01:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:01:32] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:01:32] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.786, "global": false}
+[2026-03-14 13:01:32] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.386, "global": false}
+[2026-03-14 13:03:03] ERROR: Failed to deploy commands: DiscordAPIError[0]: 401: Unauthorized
+[2026-03-14 13:03:04] ERROR: Failed to start bot: Error [TokenInvalid]: An invalid token was provided.
+[2026-03-14 13:23:01] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.894, "global": false}
+[2026-03-14 13:23:02] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.504, "global": false}
+[2026-03-14 13:25:01] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.671, "global": false}
+[2026-03-14 13:25:01] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:25:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.958, "global": false}
+[2026-03-14 13:25:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.954, "global": false}
+[2026-03-14 13:25:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.584, "global": false}
+[2026-03-14 13:25:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.529, "global": false}
+[2026-03-14 13:25:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.376, "global": false}
+[2026-03-14 13:25:21] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.369, "global": false}
+[2026-03-14 13:25:21] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:25:22] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:25:22] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:25:22] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.934, "global": false}
+[2026-03-14 13:25:23] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.348, "global": false}
+[2026-03-14 13:25:23] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:25:23] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.859, "global": false}
+[2026-03-14 13:25:24] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:25:24] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:25:24] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.982, "global": false}
+[2026-03-14 13:25:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.976, "global": false}
+[2026-03-14 13:25:34] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.57, "global": false}
+[2026-03-14 13:29:39] ERROR: [Tickets] Error creating ticket: DiscordAPIError[50035]: Invalid Form Body
+parent_id[CHANNEL_PARENT_INVALID_TYPE]: Not a category
+[2026-03-14 13:30:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.996, "global": false}
+[2026-03-14 13:30:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.607, "global": false}
+[2026-03-14 13:30:34] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 13:38:30] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.686, "global": false}
+[2026-03-14 13:38:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.315, "global": false}
+[2026-03-14 13:54:37] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.947, "global": false}
+[2026-03-14 13:54:37] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.568, "global": false}
+[2026-03-14 14:01:28] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.532, "global": false}
+[2026-03-14 14:01:29] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.622, "global": false}
+[2026-03-14 14:01:36] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:01:36] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.971, "global": false}
+[2026-03-14 14:01:37] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.439, "global": false}
+[2026-03-14 14:01:39] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.41, "global": false}
+[2026-03-14 14:01:40] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:01:42] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.522, "global": false}
+[2026-03-14 14:01:42] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.429, "global": false}
+[2026-03-14 14:01:42] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:01:43] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:01:44] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.717, "global": false}
+[2026-03-14 14:01:44] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.339, "global": false}
+[2026-03-14 14:01:45] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.964, "global": false}
+[2026-03-14 14:01:45] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.801, "global": false}
+[2026-03-14 14:01:46] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:01:46] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.872, "global": false}
+[2026-03-14 14:01:47] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.979, "global": false}
+[2026-03-14 14:02:27] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:02:40] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.995, "global": false}
+[2026-03-14 14:02:41] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.611, "global": false}
+[2026-03-14 14:02:41] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:06:13] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.987, "global": false}
+[2026-03-14 14:06:13] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.605, "global": false}
+[2026-03-14 14:06:32] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.979, "global": false}
+[2026-03-14 14:06:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.528, "global": false}
+[2026-03-14 14:06:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:07:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:07:01] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.953, "global": false}
+[2026-03-14 14:07:01] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.575, "global": false}
+[2026-03-14 14:07:02] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:12:04] ERROR: [Leveling] Error processing XP for acosta.07: PrismaClientKnownRequestError: 
+Invalid `prisma.userLevel.create()` invocation in
+/Users/adrian/Documents/vapiano's-bot-discord/src/bot/modules/leveling/xpProcessor.ts:21:42
+
+  18 });
+  19 
+  20 if (!userLevel) {
+→ 21   userLevel = await prisma.userLevel.create(
+Unique constraint failed on the fields: (`guildId`,`userId`)
+[2026-03-14 14:39:27] ERROR: [Leveling] Error processing XP for lafundita: PrismaClientKnownRequestError: 
+Invalid `prisma.userLevel.create()` invocation in
+/Users/adrian/Documents/vapiano's-bot-discord/src/bot/modules/leveling/xpProcessor.ts:21:42
+
+  18 });
+  19 
+  20 if (!userLevel) {
+→ 21   userLevel = await prisma.userLevel.create(
+Unique constraint failed on the fields: (`guildId`,`userId`)
+[2026-03-14 14:39:27] ERROR: [Leveling] Error processing XP for lafundita: PrismaClientKnownRequestError: 
+Invalid `prisma.userLevel.create()` invocation in
+/Users/adrian/Documents/vapiano's-bot-discord/src/bot/modules/leveling/xpProcessor.ts:21:42
+
+  18 });
+  19 
+  20 if (!userLevel) {
+→ 21   userLevel = await prisma.userLevel.create(
+Unique constraint failed on the fields: (`guildId`,`userId`)
+[2026-03-14 14:48:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.995, "global": false}
+[2026-03-14 14:48:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.988, "global": false}
+[2026-03-14 14:48:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.977, "global": false}
+[2026-03-14 14:48:55] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.597, "global": false}
+[2026-03-14 14:48:55] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.589, "global": false}
+[2026-03-14 14:48:55] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.547, "global": false}
+[2026-03-14 14:49:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.931, "global": false}
+[2026-03-14 14:49:00] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.554, "global": false}
+[2026-03-14 14:49:03] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.944, "global": false}
+[2026-03-14 14:49:03] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.56, "global": false}
+[2026-03-14 14:52:03] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.978, "global": false}
+[2026-03-14 14:52:03] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.725, "global": false}
+[2026-03-14 14:52:03] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.623, "global": false}
+[2026-03-14 14:52:04] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.598, "global": false}
+[2026-03-14 14:52:04] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.338, "global": false}
+[2026-03-14 14:52:04] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:52:06] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:52:20] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.965, "global": false}
+[2026-03-14 14:52:21] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.586, "global": false}
+[2026-03-14 14:52:21] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:52:37] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.998, "global": false}
+[2026-03-14 14:52:38] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.612, "global": false}
+[2026-03-14 14:52:43] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.948, "global": false}
+[2026-03-14 14:52:43] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.442, "global": false}
+[2026-03-14 14:52:43] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:52:47] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.979, "global": false}
+[2026-03-14 14:52:48] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.612, "global": false}
+[2026-03-14 14:52:48] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:52:52] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.985, "global": false}
+[2026-03-14 14:52:52] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.606, "global": false}
+[2026-03-14 14:52:53] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:52:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.987, "global": false}
+[2026-03-14 14:52:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.618, "global": false}
+[2026-03-14 14:52:55] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 14:59:09] ERROR: [Leveling] Error processing XP for xdxdxdd1111: PrismaClientKnownRequestError: 
+Invalid `prisma.userLevel.create()` invocation in
+/Users/adrian/Documents/vapiano's-bot-discord/src/bot/modules/leveling/xpProcessor.ts:21:42
+
+  18 });
+  19 
+  20 if (!userLevel) {
+→ 21   userLevel = await prisma.userLevel.create(
+Unique constraint failed on the fields: (`guildId`,`userId`)
+[2026-03-14 14:59:09] ERROR: [Leveling] Error processing XP for xdxdxdd1111: PrismaClientKnownRequestError: 
+Invalid `prisma.userLevel.create()` invocation in
+/Users/adrian/Documents/vapiano's-bot-discord/src/bot/modules/leveling/xpProcessor.ts:21:42
+
+  18 });
+  19 
+  20 if (!userLevel) {
+→ 21   userLevel = await prisma.userLevel.create(
+Unique constraint failed on the fields: (`guildId`,`userId`)
+[2026-03-14 15:03:15] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.997, "global": false}
+[2026-03-14 15:03:15] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.98, "global": false}
+[2026-03-14 15:03:15] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.972, "global": false}
+[2026-03-14 15:03:16] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.596, "global": false}
+[2026-03-14 15:03:16] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.556, "global": false}
+[2026-03-14 15:03:16] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.488, "global": false}
+[2026-03-14 15:03:17] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:03:17] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.971, "global": false}
+[2026-03-14 15:03:17] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.953, "global": false}
+[2026-03-14 15:03:18] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.653, "global": false}
+[2026-03-14 15:03:18] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.577, "global": false}
+[2026-03-14 15:03:18] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.576, "global": false}
+[2026-03-14 15:03:18] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:03:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.979, "global": false}
+[2026-03-14 15:03:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.974, "global": false}
+[2026-03-14 15:03:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.855, "global": false}
+[2026-03-14 15:03:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.577, "global": false}
+[2026-03-14 15:03:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.547, "global": false}
+[2026-03-14 15:03:33] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.413, "global": false}
+[2026-03-14 15:03:34] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:03:36] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.984, "global": false}
+[2026-03-14 15:03:36] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.967, "global": false}
+[2026-03-14 15:03:36] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.925, "global": false}
+[2026-03-14 15:03:36] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.6, "global": false}
+[2026-03-14 15:03:36] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.489, "global": false}
+[2026-03-14 15:03:36] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.481, "global": false}
+[2026-03-14 15:04:34] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.995, "global": false}
+[2026-03-14 15:04:34] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.989, "global": false}
+[2026-03-14 15:04:34] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.948, "global": false}
+[2026-03-14 15:04:35] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.609, "global": false}
+[2026-03-14 15:04:35] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.601, "global": false}
+[2026-03-14 15:04:35] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.559, "global": false}
+[2026-03-14 15:11:12] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.984, "global": false}
+[2026-03-14 15:11:17] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.872, "global": false}
+[2026-03-14 15:11:17] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.474, "global": false}
+[2026-03-14 15:11:18] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:11:22] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.602, "global": false}
+[2026-03-14 15:11:25] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.629, "global": false}
+[2026-03-14 15:11:26] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.964, "global": false}
+[2026-03-14 15:11:31] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.949, "global": false}
+[2026-03-14 15:16:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.977, "global": false}
+[2026-03-14 15:16:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.601, "global": false}
+[2026-03-14 15:16:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:16:57] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.988, "global": false}
+[2026-03-14 15:16:57] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.611, "global": false}
+[2026-03-14 15:16:57] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:34:38] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.909, "global": false}
+[2026-03-14 15:34:38] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.525, "global": false}
+[2026-03-14 15:34:39] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:34:39] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:34:39] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.88, "global": false}
+[2026-03-14 15:34:47] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.951, "global": false}
+[2026-03-14 15:34:47] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.545, "global": false}
+[2026-03-14 15:34:52] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:34:53] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.979, "global": false}
+[2026-03-14 15:34:53] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.584, "global": false}
+[2026-03-14 15:34:54] ERROR: Guild access check: Discord API returned 429: {"message": "You are being rate limited.", "retry_after": 0.3, "global": false}
+[2026-03-14 15:39:09] ERROR: [Leveling] Error processing XP for luchitossj9: PrismaClientKnownRequestError: 
+Invalid `prisma.userLevel.create()` invocation in
+/Users/adrian/Documents/vapiano's-bot-discord/src/bot/modules/leveling/xpProcessor.ts:21:42
+
+  18 });
+  19 
+  20 if (!userLevel) {
+→ 21   userLevel = await prisma.userLevel.create(
+Unique constraint failed on the fields: (`guildId`,`userId`)
