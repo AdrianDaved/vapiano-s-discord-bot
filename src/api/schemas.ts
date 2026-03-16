@@ -77,7 +77,7 @@ export const configUpdateSchema = z.object({
   blacklistedWords: z.array(z.string().max(100)).optional(),
   automodExemptRoleIds: snowflakeArray,
   automodExemptChannelIds: snowflakeArray,
-  moduleAllowedRoles: z.record(z.array(z.string().regex(/^\d{17,20}$/))).optional(),
+  moduleAllowedRoles: z.record(z.string(), z.array(z.string().regex(/^\d{17,20}$/))).optional(),
 }).strict();
 
 // ─── Welcome ─────────────────────────────────────────────
