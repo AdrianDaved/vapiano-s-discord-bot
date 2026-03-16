@@ -1428,8 +1428,9 @@ async function runAutoClose(client: Client): Promise<void> {
  * Initialize the auto-close timer. Checks every 15 minutes.
  */
 export function initAutoClose(client: Client): void {
+  const { registerInterval } = require('../timerRegistry');
   const INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
-  setInterval(() => runAutoClose(client), INTERVAL_MS);
+  registerInterval(() => runAutoClose(client), INTERVAL_MS);
   logger.info('[Tickets] Auto-close timer initialized (15 min interval)');
 }
 

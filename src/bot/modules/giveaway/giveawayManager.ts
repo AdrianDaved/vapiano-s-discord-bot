@@ -1,12 +1,13 @@
 import { Client, TextChannel, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import prisma from '../../../database/client';
 import logger from '../../../shared/logger';
+import { registerInterval } from '../timerRegistry';
 
 /**
  * Initialize the giveaway timer that checks for ended giveaways every 15 seconds.
  */
 export function initGiveawayTimer(client: Client) {
-  setInterval(async () => {
+  registerInterval(async () => {
     try {
       const now = new Date();
       const expiredGiveaways = await prisma.giveaway.findMany({
@@ -97,43 +98,43 @@ export async function handleGiveawayButton(
   if (customId === 'giveaway_enter') {
     const messageId = interaction.message.id;
 
-    const giveaway = await prisma.giveaway.findFirst({
-      where: { messageId, ended: false },
+    const userId = interaction.user.id;
+
+    // Use a transaction to prevent race conditions
+    const result = await prisma.$transaction(async (tx) => {
+      const giveaway = await tx.giveaway.findFirst({
+        where: { messageId, ended: false },
+      });
+
+      if (!giveaway) return { error: 'ended' as const };
+
+      const entries = [...giveaway.entries];
+      const alreadyEntered = entries.includes(userId);
+
+      if (alreadyEntered) {
+        const idx = entries.indexOf(userId);
+        entries.splice(idx, 1);
+      } else {
+        entries.push(userId);
+      }
+
+      await tx.giveaway.update({
+        where: { id: giveaway.id },
+        data: { entries },
+      });
+
+      return { alreadyEntered, count: entries.length };
     });
 
-    if (!giveaway) {
+    if ('error' in result) {
       await interaction.reply({ content: 'Este sorteo ya termino.', ephemeral: true });
       return;
     }
 
-    // Toggle entry
-    const userId = interaction.user.id;
-    const entries = [...giveaway.entries];
-    const alreadyEntered = entries.includes(userId);
-
-    if (alreadyEntered) {
-      // Remove entry
-      const idx = entries.indexOf(userId);
-      entries.splice(idx, 1);
-
-      await prisma.giveaway.update({
-        where: { id: giveaway.id },
-        data: { entries },
-      });
-
-      // Update button count
-      await updateEntryCount(interaction, entries.length);
+    await updateEntryCount(interaction, result.count);
+    if (result.alreadyEntered) {
       await interaction.reply({ content: 'Has salido del sorteo.', ephemeral: true });
     } else {
-      // Add entry
-      entries.push(userId);
-
-      await prisma.giveaway.update({
-        where: { id: giveaway.id },
-        data: { entries },
-      });
-
-      await updateEntryCount(interaction, entries.length);
       await interaction.reply({ content: '🎉 Te has unido al sorteo! Buena suerte!', ephemeral: true });
     }
   }

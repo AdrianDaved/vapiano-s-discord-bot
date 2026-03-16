@@ -2,13 +2,14 @@ import { Client, EmbedBuilder, TextChannel } from 'discord.js';
 import prisma from '../../../database/client';
 import logger from '../../../shared/logger';
 import { getGuildConfig } from '../../utils';
+import { registerInterval } from '../timerRegistry';
 
 /**
  * Periodically check for expired temp mutes/bans and reverse them.
  */
 export function initTempActions(client: Client): void {
   // Check every 30 seconds
-  setInterval(async () => {
+  registerInterval(async () => {
     try {
       const expired = await prisma.modAction.findMany({
         where: {

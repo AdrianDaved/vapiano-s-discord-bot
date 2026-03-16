@@ -6,8 +6,7 @@ import {
   TextChannel,
 } from 'discord.js';
 import prisma from '../../../database/client';
-
-const ANNOUNCE_CHANNEL = '1482938839084306482';
+import { getGuildConfig } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
@@ -76,12 +75,15 @@ export default {
     // Respuesta pública donde se ejecutó el comando
     await interaction.reply({ embeds: [embed] });
 
-    // Cartel en el canal de bans
-    try {
-      const announceChannel = await interaction.guild!.channels.fetch(ANNOUNCE_CHANNEL) as TextChannel;
-      if (announceChannel?.isTextBased()) {
-        await announceChannel.send({ embeds: [embed] });
-      }
-    } catch { /* canal no encontrado o sin permisos */ }
+    // Cartel en el canal de mod log
+    const config = await getGuildConfig(guildId);
+    if (config.modLogChannelId) {
+      try {
+        const logChannel = interaction.guild!.channels.cache.get(config.modLogChannelId) as TextChannel;
+        if (logChannel?.isTextBased()) {
+          await logChannel.send({ embeds: [embed] });
+        }
+      } catch { /* canal no encontrado o sin permisos */ }
+    }
   },
 };

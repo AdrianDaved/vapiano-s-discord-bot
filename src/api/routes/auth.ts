@@ -76,7 +76,7 @@ authRouter.get('/callback', async (req: Request, res: Response) => {
         avatar: user.avatar,
         accessToken: tokens.access_token,
       },
-      process.env.API_SECRET || 'change-me',
+      process.env.API_SECRET!,
       { expiresIn: '7d' }
     );
 
@@ -109,7 +109,7 @@ authRouter.get('/me', async (req: Request, res: Response) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.API_SECRET || 'change-me') as any;
+    const decoded = jwt.verify(token, process.env.API_SECRET!) as any;
     res.json({
       id: decoded.id,
       username: decoded.username,

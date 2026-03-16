@@ -2,6 +2,7 @@ import { Client, TextChannel } from 'discord.js';
 import * as cron from 'node-cron';
 import prisma from '../../../database/client';
 import logger from '../../../shared/logger';
+import { registerInterval } from '../timerRegistry';
 
 const scheduledJobs = new Map<string, cron.ScheduledTask>();
 
@@ -13,7 +14,7 @@ export function initScheduler(client: Client): void {
   loadAllScheduledMessages(client);
 
   // Re-sync every 5 minutes to pick up dashboard changes
-  setInterval(() => {
+  registerInterval(() => {
     loadAllScheduledMessages(client);
   }, 5 * 60_000);
 

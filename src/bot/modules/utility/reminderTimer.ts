@@ -5,6 +5,7 @@ import { Client, TextChannel, EmbedBuilder } from 'discord.js';
 import prisma from '../../../database/client';
 import logger from '../../../shared/logger';
 import { moduleColor } from '../../utils';
+import { registerInterval } from '../timerRegistry';
 
 let timerRunning = false;
 
@@ -12,7 +13,7 @@ export function initReminderTimer(client: Client) {
   if (timerRunning) return;
   timerRunning = true;
 
-  setInterval(async () => {
+  registerInterval(async () => {
     try {
       const dueReminders = await prisma.reminder.findMany({
         where: {

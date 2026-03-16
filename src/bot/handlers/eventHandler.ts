@@ -8,8 +8,9 @@ import logger from '../../shared/logger';
  */
 export async function loadEvents(client: BotClient): Promise<void> {
   const eventsPath = join(__dirname, '..', 'events');
+  const runtimeExt = __filename.endsWith('.ts') ? '.ts' : '.js';
   const eventFiles = readdirSync(eventsPath).filter(
-    (f) => f.endsWith('.ts') || f.endsWith('.js')
+    (f) => f.endsWith(runtimeExt)
   );
 
   for (const file of eventFiles) {

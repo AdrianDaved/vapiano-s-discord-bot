@@ -62,15 +62,25 @@ async function main() {
 }
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+async function shutdown() {
   logger.info('Shutting down...');
+  // Clear all timers
+  const { clearAllTimers } = await import('./modules/timerRegistry');
+  clearAllTimers();
   await prisma.$disconnect();
   client.destroy();
   process.exit(0);
-});
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
 process.on('unhandledRejection', (err) => {
   logger.error(`Unhandled rejection: ${err}`);
+});
+
+process.on('uncaughtException', (err) => {
+  logger.error(`Uncaught exception: ${err}`);
 });
 
 main();

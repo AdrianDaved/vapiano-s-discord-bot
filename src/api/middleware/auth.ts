@@ -94,7 +94,7 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.API_SECRET || 'change-me') as any;
+    const decoded = jwt.verify(token, process.env.API_SECRET!) as any;
     req.user = {
       id: decoded.id,
       username: decoded.username,

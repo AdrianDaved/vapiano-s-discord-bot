@@ -27,11 +27,35 @@ import { loggingRouter } from './routes/logging';
 
 dotenv.config();
 
+// Validate required env vars
+const requiredEnv = ['API_SECRET', 'SESSION_SECRET', 'CLIENT_ID', 'CLIENT_SECRET'];
+for (const key of requiredEnv) {
+  if (!process.env[key]) {
+    logger.error(`Missing required environment variable: ${key}`);
+    process.exit(1);
+  }
+}
+
 const app = express();
 const PORT = parseInt(process.env.API_PORT || '3001', 10);
 
 // ─── Security Middleware ─────────────────────────────────
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:', 'http:'],
+      connectSrc: ["'self'", 'https:', 'http:'],
+      fontSrc: ["'self'", 'https:', 'data:'],
+      objectSrc: ["'none'"],
+      frameSrc: ["'self'"],
+      upgradeInsecureRequests: null,
+    },
+  },
+  hsts: false,
+}));
 app.use(cors({
   origin: process.env.DASHBOARD_URL || 'http://localhost:5173',
   credentials: true,
@@ -39,14 +63,14 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'change-me-in-production',
+  secret: process.env.SESSION_SECRET!,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: 'lax',
   },
 }));
 

@@ -7,6 +7,22 @@ const messageTimestamps = new Map<string, number[]>();
 // Flood tracking: channelId -> timestamps (all users combined)
 const channelFloodTimestamps = new Map<string, number[]>();
 
+// Periodic cleanup of stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  const MAX_AGE = 60_000; // 1 minute
+  for (const [key, timestamps] of messageTimestamps) {
+    const filtered = timestamps.filter((t) => now - t < MAX_AGE);
+    if (filtered.length === 0) messageTimestamps.delete(key);
+    else messageTimestamps.set(key, filtered);
+  }
+  for (const [key, timestamps] of channelFloodTimestamps) {
+    const filtered = timestamps.filter((t) => now - t < MAX_AGE);
+    if (filtered.length === 0) channelFloodTimestamps.delete(key);
+    else channelFloodTimestamps.set(key, filtered);
+  }
+}, 5 * 60_000);
+
 /**
  * Run all automod checks on a message. Returns true if the message was blocked/deleted.
  */

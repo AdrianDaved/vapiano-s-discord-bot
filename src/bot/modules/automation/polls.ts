@@ -1,12 +1,13 @@
 import { ButtonInteraction, EmbedBuilder, Client, TextChannel } from 'discord.js';
 import prisma from '../../../database/client';
 import logger from '../../../shared/logger';
+import { registerInterval } from '../timerRegistry';
 
 /**
  * Initialize the poll auto-end timer. Checks every 30 seconds for expired polls.
  */
 export function initPollTimer(client: Client) {
-  setInterval(async () => {
+  registerInterval(async () => {
     try {
       const now = new Date();
       const expiredPolls = await prisma.poll.findMany({

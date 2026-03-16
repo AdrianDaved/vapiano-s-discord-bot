@@ -15,9 +15,7 @@ import {
 } from 'discord.js';
 import logger from '../../../shared/logger';
 import { fetchChannelMessages, generateHtmlTranscript } from '../../modules/tickets/ticketManager';
-
-const VERIFIED_ROLE_ID = '1474523764397179103';
-const VERIFICATION_LOG_CHANNEL_ID = '1449265811624820797';
+import { getGuildConfig } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
@@ -32,6 +30,7 @@ export default {
     await interaction.deferReply();
 
     const guild = interaction.guild!;
+    const config = await getGuildConfig(guild.id);
     const target = interaction.options.getMember('usuario');
 
     if (!target || typeof target === 'object' && !('roles' in target)) {
@@ -41,10 +40,16 @@ export default {
 
     const member = target as import('discord.js').GuildMember;
 
-    // Give verified role
-    const role = guild.roles.cache.get(VERIFIED_ROLE_ID);
+    // Give verified role — use provided role, or first joinRoleId from config
+    const roleOption = interaction.options.getRole('rol');
+    const verifiedRoleId = roleOption?.id || config.joinRoleIds?.[0];
+    if (!verifiedRoleId) {
+      await interaction.editReply({ content: 'No se ha configurado un rol de verificación. Usa la opción `rol` o configura `joinRoleIds` en `/configuracion`.' });
+      return;
+    }
+    const role = guild.roles.cache.get(verifiedRoleId);
     if (!role) {
-      await interaction.editReply({ content: `No se encontró el rol de verificación (${VERIFIED_ROLE_ID}).` });
+      await interaction.editReply({ content: `No se encontró el rol de verificación (${verifiedRoleId}).` });
       return;
     }
 
@@ -89,10 +94,12 @@ export default {
       logger.error(`[Verificacion] Error generando transcripción: ${err}`);
     }
 
-    // Send to verification log channel
-    const logChannel = guild.channels.cache.get(VERIFICATION_LOG_CHANNEL_ID) as TextChannel | undefined;
+    // Send to verification log channel (uses modLogChannelId from config)
+    const logChannelId = config.modLogChannelId;
+    if (!logChannelId) return;
+    const logChannel = guild.channels.cache.get(logChannelId) as TextChannel | undefined;
     if (!logChannel) {
-      logger.warn(`[Verificacion] Canal de logs ${VERIFICATION_LOG_CHANNEL_ID} no encontrado`);
+      logger.warn(`[Verificacion] Canal de logs ${logChannelId} no encontrado`);
       return;
     }
 

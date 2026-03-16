@@ -30,6 +30,8 @@ export async function checkAutoResponses(message: Message, config: any): Promise
           break;
         case 'regex':
           try {
+            // Limit regex length to prevent ReDoS
+            if (ar.trigger.length > 200) break;
             const regex = new RegExp(ar.trigger, 'i');
             matches = regex.test(message.content);
           } catch {
@@ -48,8 +50,12 @@ export async function checkAutoResponses(message: Message, config: any): Promise
           .replace(/{server}/g, message.guild.name)
           .replace(/{channel}/g, `<#${message.channelId}>`);
 
-        if ('send' in message.channel) {
-          await message.channel.send(response);
+        try {
+          if ('send' in message.channel) {
+            await message.channel.send(response);
+          }
+        } catch (err) {
+          logger.error(`[AutoResponse] Failed to send response: ${err}`);
         }
         break; // Only trigger the first match
       }

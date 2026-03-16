@@ -9,8 +9,6 @@ import {
 import prisma from '../../../database/client';
 import { moduleColor, getGuildConfig } from '../../utils';
 
-const DEFAULT_REP_CHANNEL_ID = '1420875609554292836';
-
 export default {
   data: new SlashCommandBuilder()
     .setName('rep')
@@ -29,20 +27,13 @@ export default {
     const target = interaction.options.getUser('usuario', true);
     const reason = interaction.options.getString('razon');
 
-    // Verificar canal permitido
+    // Verificar canal permitido (si está configurado)
     const config = await getGuildConfig(guildId);
-    const allowedChannelId = config.repChannelId || DEFAULT_REP_CHANNEL_ID;
-    if (interaction.channelId !== allowedChannelId) {
+    if (config.repChannelId && interaction.channelId !== config.repChannelId) {
       await interaction.reply({
-        content: `Las reputaciones solo se pueden dar en <#${allowedChannelId}>.`,
+        content: `Las reputaciones solo se pueden dar en <#${config.repChannelId}>.`,
         ephemeral: true,
       });
-      const repChannel = interaction.guild?.channels.cache.get(allowedChannelId);
-      if (repChannel?.isTextBased()) {
-        await (repChannel as import('discord.js').TextChannel).send(
-          `${interaction.user}, las reputaciones van aquí. Usa \`/rep\` en este canal.`
-        ).catch(() => {});
-      }
       return;
     }
 

@@ -379,13 +379,7 @@ export default {
         await interaction.reply({ embeds: [embed] });
         await sendModLog(interaction, config, embed);
 
-        // Cartel en el canal de bans
-        try {
-          const banChannel = await interaction.guild!.channels.fetch('1482938839084306482') as TextChannel;
-          if (banChannel?.isTextBased()) {
-            await banChannel.send({ embeds: [embed] });
-          }
-        } catch { /* sin permisos o canal no encontrado */ }
+        // Log al canal de moderación (ya se envió con sendModLog arriba)
         break;
       }
 
