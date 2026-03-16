@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
 import dotenv from 'dotenv';
 import logger from '../shared/logger';
 import prisma from '../database/client';
@@ -77,6 +78,13 @@ app.use('/api/guilds/:guildId/logging', loggingRouter);
 
 // Health check
 app.get('/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+// In production, serve the built dashboard and handle React Router
+if (process.env.NODE_ENV === 'production') {
+  const dashboardDist = path.join(__dirname, '../../dashboard/dist');
+  app.use(express.static(dashboardDist));
+  app.get('*', (_, res) => res.sendFile(path.join(dashboardDist, 'index.html')));
+}
 
 // 404 handler
 app.use((_, res) => res.status(404).json({ error: 'Not found' }));

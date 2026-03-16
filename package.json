@@ -17,6 +17,8 @@
     "db:studio": "prisma studio",
     "deploy:commands": "tsx src/bot/deploy-commands.ts",
     "lint": "eslint src --ext .ts",
+    "setup": "npm run build && npm run dashboard:build && npm run db:push",
+    "start:prod": "concurrently \"node dist/bot/index.js\" \"node dist/api/index.js\"",
     "postinstall": "prisma generate"
   },
   "dependencies": {
