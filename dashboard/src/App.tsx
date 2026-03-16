@@ -15,7 +15,6 @@ import NotFound from '@/pages/NotFound';
 // Module pages
 import GeneralConfig from '@/pages/modules/GeneralConfig';
 import Invites from '@/pages/modules/Invites';
-import Leveling from '@/pages/modules/Leveling';
 import Moderation from '@/pages/modules/Moderation';
 import AutoMod from '@/pages/modules/AutoMod';
 import Tickets from '@/pages/modules/Tickets';
@@ -77,7 +76,6 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="config" element={<GeneralConfig />} />
         <Route path="invites" element={<Invites />} />
-        <Route path="leveling" element={<Leveling />} />
         <Route path="moderation" element={<Moderation />} />
         <Route path="automod" element={<AutoMod />} />
         <Route path="tickets" element={<Tickets />} />

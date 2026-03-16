@@ -360,16 +360,32 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(0xed4245)
-          .setTitle('Usuario Baneado')
+          .setAuthor({
+            name: interaction.guild!.name,
+            iconURL: interaction.guild!.iconURL({ size: 64 }) ?? undefined,
+          })
+          .setTitle('🚨 USUARIO BANEADO')
+          .setDescription(`**${user.username}** ha sido expulsado permanentemente del servidor.`)
+          .setThumbnail(user.displayAvatarURL({ size: 256 }))
           .addFields(
-            { name: 'Usuario', value: `${user.username} (${user.id})`, inline: true },
-            { name: 'Moderador', value: `<@${interaction.user.id}>`, inline: true },
-            { name: 'Razón', value: reason }
+            { name: '👤 Usuario', value: `<@${user.id}> \`${user.username}\``, inline: true },
+            { name: '🛡️ Moderador', value: `<@${interaction.user.id}>`, inline: true },
+            { name: '\u200b', value: '\u200b', inline: true },
+            { name: '📋 Razón', value: `\`\`\`${reason}\`\`\`` },
           )
+          .setFooter({ text: `ID del usuario: ${user.id}` })
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed] });
         await sendModLog(interaction, config, embed);
+
+        // Cartel en el canal de bans
+        try {
+          const banChannel = await interaction.guild!.channels.fetch('1482938839084306482') as TextChannel;
+          if (banChannel?.isTextBased()) {
+            await banChannel.send({ embeds: [embed] });
+          }
+        } catch { /* sin permisos o canal no encontrado */ }
         break;
       }
 

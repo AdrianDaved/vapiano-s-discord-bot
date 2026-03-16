@@ -90,7 +90,8 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
   }
 
   // ─── Anti-Caps ─────────────────────────────────────────
-  if (config.antiCapsEnabled && message.content.length > 10) {
+  const minCapsLength = config.antiCapsMinLength ?? 10;
+  if (config.antiCapsEnabled && message.content.length > minCapsLength) {
     const threshold = config.antiCapsThreshold || 70;
     const uppercase = message.content.replace(/[^a-zA-Z]/g, '');
     if (uppercase.length > 0) {
@@ -136,7 +137,7 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
   }
 
   // ─── Blacklisted Words ─────────────────────────────────
-  if (config.blacklistedWords && config.blacklistedWords.length > 0) {
+  if (config.blacklistEnabled && config.blacklistedWords && config.blacklistedWords.length > 0) {
     const lowerContent = message.content.toLowerCase();
     const triggeredWord = config.blacklistedWords.find((w: string) =>
       lowerContent.includes(w.toLowerCase())

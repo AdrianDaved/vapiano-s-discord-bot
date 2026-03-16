@@ -1,8 +1,15 @@
 import { Router, Response } from 'express';
+import { REST } from '@discordjs/rest';
+import { Routes } from 'discord-api-types/v10';
 import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { ticketPanelCreateSchema, ticketPanelUpdateSchema, ticketUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
+
+const BUTTON_STYLE: Record<string, number> = {
+  Primary: 1, Secondary: 2, Success: 3, Danger: 4,
+  primary: 1, secondary: 2, success: 3, danger: 4,
+};
 
 export const ticketsRouter = Router({ mergeParams: true });
 
@@ -155,6 +162,92 @@ ticketsRouter.patch('/panels/:id', validate(ticketPanelUpdateSchema) as any, asy
     include: { _count: { select: { tickets: true, transcripts: true } } },
   });
   res.json(panel);
+}));
+
+/**
+ * POST /api/guilds/:guildId/tickets/panels/deploy — Send a multi-button panel message to a channel
+ * Body: { channelId, embedTitle, embedDescription, embedColor, panelIds: string[] }
+ */
+ticketsRouter.post('/panels/deploy', asyncHandler(async (req: AuthRequest, res: Response) => {
+  const guildId = req.params.guildId as string;
+  const { channelId, embedTitle, embedDescription, embedColor, panelIds } = req.body;
+
+  if (!channelId || !Array.isArray(panelIds) || panelIds.length === 0) {
+    res.status(400).json({ error: 'channelId and at least one panelId are required' });
+    return;
+  }
+  if (panelIds.length > 5) {
+    res.status(400).json({ error: 'Maximum 5 buttons per panel message' });
+    return;
+  }
+
+  const panels = await prisma.ticketPanel.findMany({
+    where: { id: { in: panelIds }, guildId },
+  });
+
+  if (panels.length === 0) {
+    res.status(404).json({ error: 'No panels found' });
+    return;
+  }
+
+  // Build ordered list matching panelIds order
+  const ordered = panelIds.map((id: string) => panels.find((p) => p.id === id)).filter(Boolean) as typeof panels;
+
+  // Parse embed color
+  const colorHex = (embedColor || '#5865F2').replace('#', '');
+  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
+
+  // Build Discord message payload
+  const buttons = ordered.map((p) => {
+    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
+    const component: Record<string, unknown> = {
+      type: 2,
+      style,
+      label: p.buttonLabel || p.name,
+      custom_id: `ticket_create_${p.id}`,
+    };
+    if (p.buttonEmoji) {
+      // Custom emoji format: <:name:id> or unicode
+      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
+      if (customMatch) {
+        component.emoji = { name: customMatch[1], id: customMatch[2] };
+      } else {
+        component.emoji = { name: p.buttonEmoji };
+      }
+    }
+    return component;
+  });
+
+  const payload: Record<string, unknown> = {
+    embeds: [
+      {
+        title: embedTitle || 'Sistema de Tickets',
+        description: embedDescription || 'Selecciona el botón que corresponda a tu caso.',
+        color: colorInt,
+      },
+    ],
+    components: [{ type: 1, components: buttons }],
+  };
+
+  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
+
+  let messageId: string;
+  try {
+    const msg = await rest.post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
+    messageId = msg.id;
+  } catch (err: any) {
+    const discordMsg = err?.rawError?.message || err?.message || 'Discord API error';
+    res.status(502).json({ error: `No se pudo enviar el mensaje: ${discordMsg}` });
+    return;
+  }
+
+  // Save messageId to all deployed panels
+  await prisma.ticketPanel.updateMany({
+    where: { id: { in: ordered.map((p) => p.id) } },
+    data: { channelId, messageId },
+  });
+
+  res.json({ success: true, messageId, channelId, panelCount: ordered.length });
 }));
 
 /**

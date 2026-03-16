@@ -2,6 +2,7 @@ import {
   ButtonInteraction,
   StringSelectMenuInteraction,
   ModalSubmitInteraction,
+  ChatInputCommandInteraction,
   TextChannel,
   EmbedBuilder,
   ActionRowBuilder,
@@ -17,6 +18,7 @@ import {
   Message,
   GuildMember,
   User,
+  Client,
 } from 'discord.js';
 import prisma from '../../../database/client';
 import { getGuildConfig, updateGuildConfig } from '../../utils';
@@ -306,7 +308,11 @@ function getClosedActionRow(): ActionRowBuilder<ButtonBuilder> {
 // ═══════════════════════════════════════════════════════════════
 
 export async function handleTicketButton(interaction: ButtonInteraction): Promise<void> {
-  if (!interaction.guild || !interaction.member) return;
+  logger.info(`[Tickets] Button clicked: ${interaction.customId} by ${interaction.user.id} in guild ${interaction.guildId} (guild=${!!interaction.guild}, member=${!!interaction.member})`);
+  if (!interaction.guild || !interaction.member) {
+    logger.warn(`[Tickets] Early return: guild=${!!interaction.guild}, member=${!!interaction.member}`);
+    return;
+  }
 
   const panelId = interaction.customId.replace('ticket_create_', '');
   const panel = await prisma.ticketPanel.findUnique({ where: { id: panelId } });
@@ -501,7 +507,7 @@ async function createTicket(
       type: ChannelType.GuildText,
       parent: categoryId || undefined,
       permissionOverwrites,
-      topic: `Ticket #${ticketNumber} | Created by ${interaction.user.username} | Panel: ${panel.name || panel.title}`,
+      topic: `Ticket #${ticketNumber} | Creado por ${interaction.user.username} | Panel: ${panel.name || panel.title}`,
     });
 
     // Save ticket
@@ -519,7 +525,12 @@ async function createTicket(
     // Build welcome embed
     const welcomeEmbed = new EmbedBuilder()
       .setColor(parseInt((panel.welcomeColor || '#5865F2').replace('#', ''), 16))
-      .setTitle(panel.welcomeTitle || `Ticket #${ticketNumber.toString().padStart(4, '0')}`)
+      .setTitle(
+        (panel.welcomeTitle || `Ticket #${ticketNumber.toString().padStart(4, '0')}`)
+          .replace('{user}', interaction.user.username)
+          .replace('{number}', ticketNumber.toString().padStart(4, '0'))
+          .replace('{panel}', panel.name || panel.title)
+      )
       .setDescription(
         (panel.welcomeMessage || '¡Bienvenido! Describe tu problema.\nUn miembro del staff te ayudará pronto.')
           .replace('{user}', `<@${interaction.user.id}>`)
@@ -707,7 +718,7 @@ async function closeTicket(interaction: ButtonInteraction, ticket: any, reason?:
       }
     }
 
-    await channel.setName(`closed-${ticket.number.toString().padStart(4, '0')}`).catch(() => {});
+    await channel.setName(`cerrado-${ticket.number.toString().padStart(4, '0')}`).catch(() => {});
 
     // Move to closed category if set
     if (panel?.closedCategoryId) {
@@ -765,8 +776,8 @@ async function closeTicket(interaction: ButtonInteraction, ticket: any, reason?:
     }
   }
 
-  // DM transcript to user
-  if (transcriptResult && (panel?.transcriptDMUser !== false || config.ticketDMTranscript)) {
+  // DM transcript to user — only if explicitly enabled on the panel
+  if (transcriptResult && panel?.transcriptDMUser === true) {
     try {
       const user = await interaction.client.users.fetch(ticket.userId);
       const buf = Buffer.from(transcriptResult.html, 'utf-8');
@@ -855,6 +866,143 @@ async function closeTicket(interaction: ButtonInteraction, ticket: any, reason?:
         components: [feedbackRow],
       });
     } catch {}
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CLOSE FROM SLASH COMMAND (/cerrar)
+// ═══════════════════════════════════════════════════════════════
+
+export async function closeTicketByCommand(interaction: ChatInputCommandInteraction, reason: string): Promise<void> {
+  if (!interaction.guild) return;
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { channelId: interaction.channelId },
+    include: { panel: true },
+  });
+
+  if (!ticket || ticket.status !== 'open') {
+    await interaction.reply({ content: 'Este no es un canal de ticket abierto.', ephemeral: true });
+    return;
+  }
+
+  await interaction.deferReply();
+
+  const channel = interaction.channel as TextChannel;
+  const panel = ticket.panel;
+  const config = await getGuildConfig(interaction.guild.id);
+
+  // Generate transcript
+  let transcriptResult: { html: string; messages: TranscriptMessage[]; transcriptId: string } | null = null;
+  if (panel?.transcriptEnabled !== false) {
+    try {
+      transcriptResult = await generateTranscript(channel, ticket, interaction.user.id);
+    } catch (err) {
+      logger.error(`[Tickets] Transcript generation failed: ${err}`);
+    }
+  }
+
+  // Update DB
+  await prisma.ticket.update({
+    where: { id: ticket.id },
+    data: { status: 'closed', closedAt: new Date(), closedBy: interaction.user.id, closeReason: reason },
+  });
+
+  // Update channel permissions and rename
+  try {
+    await channel.permissionOverwrites.edit(ticket.userId, { ViewChannel: false, SendMessages: false });
+    if (ticket.addedUsers?.length > 0) {
+      for (const uid of ticket.addedUsers as string[]) {
+        await channel.permissionOverwrites.edit(uid, { ViewChannel: false, SendMessages: false }).catch(() => {});
+      }
+    }
+    await channel.setName(`cerrado-${ticket.number.toString().padStart(4, '0')}`).catch(() => {});
+    if (panel?.closedCategoryId) {
+      await channel.setParent(panel.closedCategoryId, { lockPermissions: false }).catch(() => {});
+    }
+  } catch (err) {
+    logger.error(`[Tickets] Error updating closed channel: ${err}`);
+  }
+
+  // Duration
+  const openDurationMs = Date.now() - new Date(ticket.createdAt).getTime();
+  const openHours = Math.floor(openDurationMs / 3600000);
+  const openMins = Math.floor((openDurationMs % 3600000) / 60000);
+  const openDurationStr = openHours > 0 ? `${openHours}h ${openMins}m` : `${openMins}m`;
+
+  // Closed embed in channel
+  const closedEmbed = new EmbedBuilder()
+    .setColor(CLOSE_COLOR)
+    .setTitle('Ticket cerrado')
+    .setDescription(
+      `Este ticket fue cerrado por <@${interaction.user.id}>.\n**Motivo:** ${reason}\n**Tiempo abierto:** ${openDurationStr}` +
+      (transcriptResult ? `\n\nTranscripción guardada (${transcriptResult.messages.length} mensajes).` : '')
+    )
+    .setTimestamp();
+
+  await interaction.editReply({ embeds: [closedEmbed], components: [getClosedActionRow()] as any });
+
+  // DM reason to user
+  try {
+    const user = await interaction.client.users.fetch(ticket.userId);
+    await user.send({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(CLOSE_COLOR)
+          .setTitle('Tu ticket fue cerrado')
+          .setDescription(`Tu ticket **#${ticket.number.toString().padStart(4, '0')}** en **${interaction.guild.name}** fue cerrado.`)
+          .addFields({ name: 'Motivo', value: reason })
+          .setTimestamp(),
+      ],
+    });
+  } catch {
+    // DMs desactivados
+  }
+
+  // Transcript to transcript channel
+  if (transcriptResult && (panel?.transcriptChannelId || config.ticketTranscriptChannelId)) {
+    const tcId = panel?.transcriptChannelId || config.ticketTranscriptChannelId;
+    const tc = interaction.guild.channels.cache.get(tcId) as TextChannel;
+    if (tc) {
+      const buf = Buffer.from(transcriptResult.html, 'utf-8');
+      await tc.send({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(INFO_COLOR)
+            .setTitle(`Transcripción: Ticket #${ticket.number.toString().padStart(4, '0')}`)
+            .addFields(
+              { name: 'Creado por', value: `<@${ticket.userId}>`, inline: true },
+              { name: 'Cerrado por', value: `<@${interaction.user.id}>`, inline: true },
+              { name: 'Motivo', value: reason, inline: true },
+              { name: 'Mensajes', value: `${transcriptResult.messages.length}`, inline: true },
+            )
+            .setTimestamp(),
+        ],
+        files: [new AttachmentBuilder(buf, { name: `transcript-${ticket.number.toString().padStart(4, '0')}.html` })],
+      }).catch(() => {});
+    }
+  }
+
+  // Log
+  const logChannelId = panel?.logChannelId || config.ticketLogChannelId;
+  if (logChannelId) {
+    const logChannel = interaction.guild.channels.cache.get(logChannelId) as TextChannel;
+    if (logChannel) {
+      await logChannel.send({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(CLOSE_COLOR)
+            .setTitle('Ticket cerrado')
+            .addFields(
+              { name: 'Ticket', value: `#${ticket.number.toString().padStart(4, '0')}`, inline: true },
+              { name: 'Cerrado por', value: `<@${interaction.user.id}>`, inline: true },
+              { name: 'Tiempo abierto', value: openDurationStr, inline: true },
+              { name: 'Motivo', value: reason, inline: true },
+            )
+            .setTimestamp(),
+        ],
+      }).catch(() => {});
+    }
   }
 }
 
@@ -1154,6 +1302,135 @@ export async function handleTicketFeedback(interaction: ButtonInteraction): Prom
   await interaction.reply({
     content: `¡Gracias por tu valoración! Calificaste este ticket con **${'⭐'.repeat(rating)}** (${rating}/5).`,
   });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTO-CLOSE TIMER
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Check all open tickets against their panel's autoCloseHours setting.
+ * Runs every 15 minutes. Closes inactive tickets via the bot client.
+ */
+async function runAutoClose(client: Client): Promise<void> {
+  try {
+    // Find all open tickets whose panel has autoCloseHours > 0
+    const tickets = await prisma.ticket.findMany({
+      where: { status: 'open' },
+      include: { panel: true },
+    });
+
+    const now = Date.now();
+
+    for (const ticket of tickets) {
+      const hours = ticket.panel?.autoCloseHours ?? 0;
+      if (hours <= 0) continue;
+
+      const inactiveMs = now - new Date(ticket.lastActivityAt).getTime();
+      const thresholdMs = hours * 3600000;
+
+      if (inactiveMs < thresholdMs) continue;
+
+      // Auto-close this ticket
+      try {
+        const guild = client.guilds.cache.get(ticket.guildId);
+        if (!guild) continue;
+
+        const channel = guild.channels.cache.get(ticket.channelId) as TextChannel | undefined;
+
+        // Generate transcript
+        let transcriptResult: { html: string; messages: TranscriptMessage[]; transcriptId: string } | null = null;
+        if (channel && ticket.panel?.transcriptEnabled !== false) {
+          transcriptResult = await generateTranscript(channel, ticket, 'auto-close').catch(() => null);
+        }
+
+        // Update DB
+        await prisma.ticket.update({
+          where: { id: ticket.id },
+          data: { status: 'closed', closedAt: new Date(), closedBy: 'auto-close', closeReason: 'Cierre automático por inactividad' },
+        });
+
+        if (channel) {
+          // Remove user access and rename
+          await channel.permissionOverwrites.edit(ticket.userId, { ViewChannel: false, SendMessages: false }).catch(() => {});
+          for (const uid of ticket.addedUsers as string[]) {
+            await channel.permissionOverwrites.edit(uid, { ViewChannel: false, SendMessages: false }).catch(() => {});
+          }
+          if (ticket.panel?.closedCategoryId) {
+            await channel.setParent(ticket.panel.closedCategoryId, { lockPermissions: false }).catch(() => {});
+          }
+          const ticketNum = ticket.number.toString().padStart(4, '0');
+          await channel.setName(`cerrado-${ticketNum}`).catch(() => {});
+
+          const closeEmbed = new EmbedBuilder()
+            .setColor(CLOSE_COLOR)
+            .setTitle('Ticket cerrado automáticamente')
+            .setDescription(`Este ticket fue cerrado por inactividad (${hours}h sin actividad).`)
+            .setTimestamp();
+
+          await channel.send({ embeds: [closeEmbed], components: [getClosedActionRow()] }).catch(() => {});
+        }
+
+        // Send transcript
+        if (transcriptResult) {
+          const ticketNum = ticket.number.toString().padStart(4, '0');
+          const transcriptBuf = Buffer.from(transcriptResult.html, 'utf-8');
+          const config = await getGuildConfig(ticket.guildId).catch(() => null);
+          const transcriptChannelId = ticket.panel?.transcriptChannelId || config?.ticketTranscriptChannelId;
+          if (transcriptChannelId && guild) {
+            const tCh = guild.channels.cache.get(transcriptChannelId) as TextChannel | undefined;
+            if (tCh) {
+              await tCh.send({
+                embeds: [
+                  new EmbedBuilder()
+                    .setColor(INFO_COLOR)
+                    .setTitle(`Transcripción: Ticket #${ticketNum}`)
+                    .addFields(
+                      { name: 'Cerrado por', value: 'Auto-cierre (inactividad)', inline: true },
+                      { name: 'Mensajes', value: `${transcriptResult.messages.length}`, inline: true }
+                    )
+                    .setTimestamp(),
+                ],
+                files: [new AttachmentBuilder(transcriptBuf, { name: `transcript-${ticketNum}.html` })],
+              }).catch(() => {});
+            }
+          }
+
+          // DM transcript to user
+          if (ticket.panel?.transcriptDMUser !== false || config?.ticketDMTranscript) {
+            try {
+              const user = await client.users.fetch(ticket.userId);
+              await user.send({
+                embeds: [
+                  new EmbedBuilder()
+                    .setColor(INFO_COLOR)
+                    .setTitle('Ticket cerrado')
+                    .setDescription(`Tu ticket #${ticketNum} fue cerrado automáticamente por inactividad.`)
+                    .setTimestamp(),
+                ],
+                files: [new AttachmentBuilder(transcriptBuf, { name: `transcript-${ticketNum}.html` })],
+              });
+            } catch {}
+          }
+        }
+
+        logger.info(`[Tickets] Auto-closed ticket #${ticket.number} (${ticket.guildId}) after ${hours}h inactivity`);
+      } catch (err) {
+        logger.error(`[Tickets] Error auto-closing ticket ${ticket.id}: ${err}`);
+      }
+    }
+  } catch (err) {
+    logger.error(`[Tickets] Auto-close check failed: ${err}`);
+  }
+}
+
+/**
+ * Initialize the auto-close timer. Checks every 15 minutes.
+ */
+export function initAutoClose(client: Client): void {
+  const INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+  setInterval(() => runAutoClose(client), INTERVAL_MS);
+  logger.info('[Tickets] Auto-close timer initialized (15 min interval)');
 }
 
 // ═══════════════════════════════════════════════════════════════

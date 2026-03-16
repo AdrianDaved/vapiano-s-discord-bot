@@ -12,21 +12,34 @@ export default function AutoMod() {
   const { config, loading, error, updateConfig } = useGuild();
   const [saving, setSaving] = useState(false);
 
-  // Local state
-  const [antiSpamMax, setAntiSpamMax] = useState('');
+  // Anti-spam
+  const [antiSpamThreshold, setAntiSpamThreshold] = useState('');
   const [antiSpamInterval, setAntiSpamInterval] = useState('');
-  const [antiCapsPercent, setAntiCapsPercent] = useState('');
-  const [antiCapsMinLength, setAntiCapsMinLength] = useState('');
-  const [blacklistWords, setBlacklistWords] = useState('');
 
-  // Sync local state from config whenever config changes (including guild switch)
+  // Anti-caps
+  const [antiCapsThreshold, setAntiCapsThreshold] = useState('');
+  const [antiCapsMinLength, setAntiCapsMinLength] = useState('');
+
+  // Blacklist
+  const [blacklistedWords, setBlacklistedWords] = useState('');
+
+  // Whitelist (links)
+  const [antiLinksWhitelist, setAntiLinksWhitelist] = useState('');
+
+  // Exempt roles / channels
+  const [exemptRoleIds, setExemptRoleIds] = useState('');
+  const [exemptChannelIds, setExemptChannelIds] = useState('');
+
   useEffect(() => {
     if (!config) return;
-    setAntiSpamMax(String(config.antiSpamMaxMessages ?? 5));
+    setAntiSpamThreshold(String(config.antiSpamThreshold ?? 5));
     setAntiSpamInterval(String(config.antiSpamInterval ?? 5));
-    setAntiCapsPercent(String(config.antiCapsPercent ?? 70));
+    setAntiCapsThreshold(String(config.antiCapsThreshold ?? 70));
     setAntiCapsMinLength(String(config.antiCapsMinLength ?? 10));
-    setBlacklistWords((config.blacklistWords || []).join('\n'));
+    setBlacklistedWords((config.blacklistedWords || []).join('\n'));
+    setAntiLinksWhitelist((config.antiLinksWhitelist || []).join('\n'));
+    setExemptRoleIds((config.automodExemptRoleIds || []).join(', '));
+    setExemptChannelIds((config.automodExemptChannelIds || []).join(', '));
   }, [config]);
 
   if (loading) return <Loader text="Cargando automod..." />;
@@ -45,16 +58,16 @@ export default function AutoMod() {
     setSaving(true);
     try {
       await updateConfig({
-        antiSpamMaxMessages: parseInt(antiSpamMax) || 5,
+        antiSpamThreshold: parseInt(antiSpamThreshold) || 5,
         antiSpamInterval: parseInt(antiSpamInterval) || 5,
-        antiCapsPercent: parseInt(antiCapsPercent) || 70,
+        antiCapsThreshold: parseInt(antiCapsThreshold) || 70,
         antiCapsMinLength: parseInt(antiCapsMinLength) || 10,
-        blacklistWords: blacklistWords
-          .split('\n')
-          .map((w) => w.trim())
-          .filter(Boolean),
+        blacklistedWords: blacklistedWords.split('\n').map((w) => w.trim()).filter(Boolean),
+        antiLinksWhitelist: antiLinksWhitelist.split('\n').map((w) => w.trim()).filter(Boolean),
+        automodExemptRoleIds: exemptRoleIds.split(',').map((s) => s.trim()).filter(Boolean),
+        automodExemptChannelIds: exemptChannelIds.split(',').map((s) => s.trim()).filter(Boolean),
       });
-      toast.success('Configuracion de AutoMod guardada');
+      toast.success('Configuración de AutoMod guardada');
     } catch {
       toast.error('No se pudo guardar');
     } finally {
@@ -66,7 +79,7 @@ export default function AutoMod() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-discord-white">AutoMod</h1>
-        <p className="text-discord-muted mt-1">Configura el filtrado automatico de mensajes</p>
+        <p className="text-discord-muted mt-1">Configura el filtrado automático de mensajes</p>
       </div>
 
       {/* Toggles */}
@@ -75,26 +88,32 @@ export default function AutoMod() {
           <Toggle
             enabled={config?.antiSpamEnabled ?? false}
             onChange={(v) => toggleSetting('antiSpamEnabled', v)}
-             label="Anti-spam"
-             description="Elimina mensajes de usuarios que envian demasiado rapido"
+            label="Anti-spam"
+            description="Elimina mensajes de usuarios que envían demasiado rápido"
+          />
+          <Toggle
+            enabled={config?.antiFloodEnabled ?? false}
+            onChange={(v) => toggleSetting('antiFloodEnabled', v)}
+            label="Anti-flood"
+            description="Activa modo lento cuando hay demasiados mensajes en el canal (anti-flood)"
           />
           <Toggle
             enabled={config?.antiCapsEnabled ?? false}
             onChange={(v) => toggleSetting('antiCapsEnabled', v)}
-             label="Anti-mayusculas"
-             description="Elimina mensajes con exceso de letras mayusculas"
+            label="Anti-mayusculas"
+            description="Elimina mensajes con exceso de letras mayúsculas"
           />
           <Toggle
             enabled={config?.antiLinksEnabled ?? false}
             onChange={(v) => toggleSetting('antiLinksEnabled', v)}
-             label="Anti-enlaces"
-             description="Elimina mensajes que contienen URLs"
+            label="Anti-enlaces"
+            description="Elimina mensajes que contienen enlaces no permitidos"
           />
           <Toggle
             enabled={config?.blacklistEnabled ?? false}
             onChange={(v) => toggleSetting('blacklistEnabled', v)}
-             label="Lista negra de palabras"
-             description="Elimina mensajes con palabras en lista negra"
+            label="Lista negra de palabras"
+            description="Elimina mensajes con palabras de la lista negra"
           />
         </div>
       </Card>
@@ -103,11 +122,11 @@ export default function AutoMod() {
       <Card title="Ajustes de anti-spam" className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Mensajes maximos"
+            label="Mensajes máximos"
             type="number"
             placeholder="5"
-            value={antiSpamMax}
-            onChange={(e) => setAntiSpamMax(e.target.value)}
+            value={antiSpamThreshold}
+            onChange={(e) => setAntiSpamThreshold(e.target.value)}
           />
           <Input
             label="Intervalo (segundos)"
@@ -118,43 +137,77 @@ export default function AutoMod() {
           />
         </div>
         <p className="text-xs text-discord-muted mt-2">
-          Usuarios que envien mas de {antiSpamMax || 5} mensajes dentro de {antiSpamInterval || 5} segundos seran marcados.
+          Usuarios que envíen más de {antiSpamThreshold || 5} mensajes en {antiSpamInterval || 5} segundos serán sancionados.
         </p>
       </Card>
 
       {/* Anti-Caps Settings */}
-      <Card title="Ajustes de anti-mayusculas" className="mb-6">
+      <Card title="Ajustes de anti-mayúsculas" className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Umbral de porcentaje en mayusculas"
+            label="Umbral de mayúsculas (%)"
             type="number"
             placeholder="70"
-            value={antiCapsPercent}
-            onChange={(e) => setAntiCapsPercent(e.target.value)}
+            value={antiCapsThreshold}
+            onChange={(e) => setAntiCapsThreshold(e.target.value)}
           />
           <Input
-            label="Longitud minima del mensaje"
+            label="Longitud mínima del mensaje"
             type="number"
             placeholder="10"
             value={antiCapsMinLength}
             onChange={(e) => setAntiCapsMinLength(e.target.value)}
           />
         </div>
+        <p className="text-xs text-discord-muted mt-2">
+          Solo se aplica a mensajes con más de {antiCapsMinLength || 10} caracteres.
+        </p>
       </Card>
 
       {/* Blacklist */}
-      <Card title="Palabras en lista negra" description="Una palabra por linea" className="mb-6">
+      <Card title="Palabras en lista negra" description="Una palabra o frase por línea" className="mb-6">
         <Textarea
-          placeholder="badword1&#10;badword2&#10;phrase to block"
-          value={blacklistWords}
-          onChange={(e) => setBlacklistWords(e.target.value)}
+          placeholder="palabra1&#10;palabra2&#10;frase bloqueada"
+          value={blacklistedWords}
+          onChange={(e) => setBlacklistedWords(e.target.value)}
           rows={6}
         />
       </Card>
 
+      {/* Anti-Links Whitelist */}
+      <Card title="Lista blanca de enlaces" description="Dominios permitidos aunque el anti-enlaces esté activo. Un dominio por línea." className="mb-6">
+        <Textarea
+          placeholder="discord.gg&#10;youtube.com&#10;twitch.tv"
+          value={antiLinksWhitelist}
+          onChange={(e) => setAntiLinksWhitelist(e.target.value)}
+          rows={5}
+        />
+      </Card>
+
+      {/* Exempt roles / channels */}
+      <Card title="Exclusiones" description="Roles y canales exentos de todas las reglas de AutoMod" className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="IDs de roles exentos (separados por coma)"
+            placeholder="123456789, 987654321"
+            value={exemptRoleIds}
+            onChange={(e) => setExemptRoleIds(e.target.value)}
+          />
+          <Input
+            label="IDs de canales exentos (separados por coma)"
+            placeholder="123456789, 987654321"
+            value={exemptChannelIds}
+            onChange={(e) => setExemptChannelIds(e.target.value)}
+          />
+        </div>
+        <p className="text-xs text-discord-muted mt-2">
+          Los miembros con rol exento, o en canales exentos, ignoran todas las reglas de AutoMod.
+        </p>
+      </Card>
+
       <div className="flex justify-end">
         <Button onClick={save} loading={saving}>
-          Guardar configuracion de AutoMod
+          Guardar configuración de AutoMod
         </Button>
       </div>
     </div>

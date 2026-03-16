@@ -39,7 +39,6 @@ export interface InviteData {
 /** Module names for enable/disable */
 export type ModuleName =
   | 'invites'
-  | 'leveling'
   | 'moderation'
   | 'automod'
   | 'tickets'
@@ -58,7 +57,6 @@ export type ModuleName =
 /** Map module name to GuildConfig toggle field */
 export const MODULE_TOGGLE_MAP: Record<ModuleName, string> = {
   invites: 'invitesEnabled',
-  leveling: 'levelingEnabled',
   moderation: 'moderationEnabled',
   automod: 'automodEnabled',
   tickets: 'ticketsEnabled',

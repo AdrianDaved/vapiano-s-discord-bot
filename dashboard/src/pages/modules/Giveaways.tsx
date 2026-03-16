@@ -57,7 +57,7 @@ export default function Giveaways() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-discord-white">Sorteos</h1>
-        <p className="text-discord-muted mt-1">Ver y administrar sorteos. Crea nuevos con <code>/giveaway start</code> en Discord.</p>
+        <p className="text-discord-muted mt-1">Ver y administrar sorteos. Crea nuevos con <code>/sorteo inicio</code> en Discord.</p>
       </div>
 
       <div className="space-y-6">
@@ -98,7 +98,7 @@ export default function Giveaways() {
                   <div className="flex gap-4 text-xs text-discord-muted">
                     <span>{g.entries.length} participaciones</span>
                     <span>{g.winnerIds.length} ganador(es)</span>
-                    <span>Finalizo: {new Date(g.endsAt).toLocaleString()}</span>
+                    <span>Finalizó: {new Date(g.endsAt).toLocaleString()}</span>
                   </div>
                 </div>
               ))}

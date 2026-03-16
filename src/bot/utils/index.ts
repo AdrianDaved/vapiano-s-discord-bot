@@ -108,27 +108,6 @@ export function replaceTemplateVars(
 }
 
 /**
- * Calculate XP needed for a given level.
- * Formula: 5 * level^2 + 50 * level + 100
- */
-export function xpForLevel(level: number): number {
-  return 5 * level * level + 50 * level + 100;
-}
-
-/**
- * Calculate level from total XP.
- */
-export function levelFromXp(xp: number): number {
-  let level = 0;
-  let remaining = xp;
-  while (remaining >= xpForLevel(level)) {
-    remaining -= xpForLevel(level);
-    level++;
-  }
-  return level;
-}
-
-/**
  * Truncate text to a max length.
  */
 export function truncate(text: string, maxLength: number): string {
@@ -143,7 +122,6 @@ export function moduleColor(module: string): number {
   const colors: Record<string, number> = {
     invites: 0x5865f2,     // blurple
     backup: 0x57f287,      // green
-    leveling: 0xfee75c,    // yellow
     moderation: 0xed4245,  // red
     automod: 0xeb459e,     // fuchsia
     automation: 0xf47b67,  // orange

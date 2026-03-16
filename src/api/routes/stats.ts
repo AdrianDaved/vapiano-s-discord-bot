@@ -3,6 +3,39 @@ import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth
 import { asyncHandler } from '../middleware/validate';
 import prisma from '../../database/client';
 
+// Cache Discord guild stats for 3 minutes to avoid repeated API calls on every page load
+const discordStatsCache = new Map<string, { data: any; expiresAt: number }>();
+const DISCORD_CACHE_TTL = 3 * 60 * 1000;
+
+async function getDiscordStats(guildId: string) {
+  const cached = discordStatsCache.get(guildId);
+  if (cached && cached.expiresAt > Date.now()) return cached.data;
+
+  const headers = { Authorization: `Bot ${process.env.BOT_TOKEN}` };
+
+  const [guildRes, channelsRes, rolesRes] = await Promise.all([
+    fetch(`https://discord.com/api/v10/guilds/${guildId}?with_counts=true`, { headers }),
+    fetch(`https://discord.com/api/v10/guilds/${guildId}/channels`, { headers }),
+    fetch(`https://discord.com/api/v10/guilds/${guildId}/roles`, { headers }),
+  ]);
+
+  const [guildData, channelsData, rolesData]: any[] = await Promise.all([
+    guildRes.ok ? guildRes.json() : null,
+    channelsRes.ok ? channelsRes.json() : null,
+    rolesRes.ok ? rolesRes.json() : null,
+  ]);
+
+  const result = {
+    members: guildData?.approximate_member_count || 0,
+    online: guildData?.approximate_presence_count || 0,
+    channels: Array.isArray(channelsData) ? channelsData.length : 0,
+    roles: Array.isArray(rolesData) ? rolesData.length : 0,
+  };
+
+  discordStatsCache.set(guildId, { data: result, expiresAt: Date.now() + DISCORD_CACHE_TTL });
+  return result;
+}
+
 export const statsRouter = Router({ mergeParams: true });
 
 statsRouter.use(requireAuth as any);
@@ -57,48 +90,12 @@ statsRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
     }),
   ]);
 
-  // Fetch guild info from Discord API using the bot token
-  let members = 0;
-  let online = 0;
-  let channels = 0;
-  let roles = 0;
-
+  // Fetch Discord stats (cached 3 min to avoid rate limits and latency on every load)
+  let members = 0, online = 0, channels = 0, roles = 0;
   try {
-    const guildRes = await fetch(
-      `https://discord.com/api/v10/guilds/${guildId}?with_counts=true`,
-      {
-        headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` },
-      }
-    );
-    if (guildRes.ok) {
-      const guildData = await (guildRes as any).json();
-      members = guildData.approximate_member_count || 0;
-      online = guildData.approximate_presence_count || 0;
-    }
-
-    const channelsRes = await fetch(
-      `https://discord.com/api/v10/guilds/${guildId}/channels`,
-      {
-        headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` },
-      }
-    );
-    if (channelsRes.ok) {
-      const channelsData = await (channelsRes as any).json();
-      channels = Array.isArray(channelsData) ? channelsData.length : 0;
-    }
-
-    const rolesRes = await fetch(
-      `https://discord.com/api/v10/guilds/${guildId}/roles`,
-      {
-        headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` },
-      }
-    );
-    if (rolesRes.ok) {
-      const rolesData = await (rolesRes as any).json();
-      roles = Array.isArray(rolesData) ? rolesData.length : 0;
-    }
+    ({ members, online, channels, roles } = await getDiscordStats(guildId));
   } catch {
-    // If Discord API fails, just return 0s
+    // If Discord API fails, return 0s
   }
 
   // Return flat shape matching Dashboard.tsx expectations

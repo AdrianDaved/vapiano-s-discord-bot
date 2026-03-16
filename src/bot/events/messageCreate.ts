@@ -1,7 +1,6 @@
 import { Events, Message, EmbedBuilder, TextChannel } from 'discord.js';
 import { BotClient } from '../../shared/types';
 import { getGuildConfig, moduleColor } from '../utils';
-import { processXp } from '../modules/leveling/xpProcessor';
 import { checkAutomod } from '../modules/moderation/automod';
 import { checkAutoResponses } from '../modules/automation/autoResponses';
 import { processStickyMessage } from '../modules/sticky/stickyHandler';
@@ -67,11 +66,6 @@ export default {
       } catch { /* ignore */ }
     }
 
-    // ─── Leveling XP ────────────────────────────────────
-    if (config.levelingEnabled) {
-      await processXp(message, config, client);
-    }
-
     // ─── Auto-Responses ─────────────────────────────────
     if (config.automationEnabled) {
       await checkAutoResponses(message, config);
@@ -115,6 +109,14 @@ export default {
         }
       }
     }
+
+    // ─── Ticket Activity Tracking ────────────────────────
+    try {
+      await prisma.ticket.updateMany({
+        where: { channelId: message.channelId, status: 'open' },
+        data: { lastActivityAt: new Date() },
+      });
+    } catch { /* ignore — channel is not a ticket */ }
 
     // ─── Sticky Messages ─────────────────────────────────
     // Re-send sticky message if this channel has one (runs last, after all other checks)

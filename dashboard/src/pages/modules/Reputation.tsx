@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { reputation } from '@/lib/api';
+import { useGuild } from '@/hooks/useGuild';
 import Card from '@/components/Card';
 import Loader from '@/components/Loader';
 import Table from '@/components/Table';
+import Input from '@/components/Input';
+import Button from '@/components/Button';
+import { toast } from 'react-hot-toast';
 
 interface RepEntry {
   userId: string;
@@ -20,11 +24,19 @@ interface RecentRep {
 
 export default function Reputation() {
   const { guildId } = useParams();
+  const { config, updateConfig } = useGuild();
   const [leaderboard, setLeaderboard] = useState<RepEntry[]>([]);
   const [recent, setRecent] = useState<RecentRep[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [repChannelId, setRepChannelId] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!config) return;
+    setRepChannelId(config.repChannelId ?? '1420875609554292836');
+  }, [config]);
 
   useEffect(() => {
     if (!guildId) return;
@@ -38,16 +50,28 @@ export default function Reputation() {
         setLeaderboard(lb);
         setRecent(rc);
       })
-      .catch((err) => setError(err.message || 'No se pudieron cargar los datos de reputacion'))
+      .catch((err) => setError(err.message || 'No se pudieron cargar los datos de reputación'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
-  if (loading) return <Loader text="Cargando reputacion..." />;
+  const saveChannel = async () => {
+    setSaving(true);
+    try {
+      await updateConfig({ repChannelId: repChannelId || null });
+      toast.success('Canal de reputación guardado');
+    } catch {
+      toast.error('No se pudo guardar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <Loader text="Cargando reputación..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">No se pudo cargar la reputacion</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudo cargar la reputación</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
         <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
@@ -57,14 +81,33 @@ export default function Reputation() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Reputacion</h1>
-        <p className="text-discord-muted mt-1">Ver clasificacion de reputacion y actividad reciente</p>
+        <h1 className="text-2xl font-bold text-discord-white">Reputación</h1>
+        <p className="text-discord-muted mt-1">Configura el canal y consulta la actividad de reputación</p>
       </div>
 
+      <Card title="Configuración" description="Canal donde se pueden usar los comandos de reputación" className="mb-6">
+        <div className="flex items-end gap-4 mt-2">
+          <div className="flex-1">
+            <Input
+              label="ID del canal de reputación"
+              placeholder="1420875609554292836"
+              value={repChannelId}
+              onChange={(e) => setRepChannelId(e.target.value)}
+            />
+          </div>
+          <Button onClick={saveChannel} loading={saving}>
+            Guardar
+          </Button>
+        </div>
+        <p className="text-xs text-discord-muted mt-2">
+          Los usuarios que intenten usar <code>/rep dar</code> fuera de este canal recibirán un aviso indicando el canal correcto.
+        </p>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Clasificacion">
+        <Card title="Clasificación">
           {leaderboard.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">Aun no hay datos de reputacion.</p>
+            <p className="text-discord-muted text-sm py-4">Aún no hay datos de reputación.</p>
           ) : (
             <div className="space-y-2 mt-3">
               {leaderboard.slice(0, 20).map((entry, i) => (
@@ -84,7 +127,7 @@ export default function Reputation() {
 
         <Card title="Actividad reciente">
           {recent.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">No hay actividad reciente de reputacion.</p>
+            <p className="text-discord-muted text-sm py-4">No hay actividad reciente de reputación.</p>
           ) : (
             <div className="space-y-2 mt-3">
               {recent.slice(0, 20).map((entry) => (

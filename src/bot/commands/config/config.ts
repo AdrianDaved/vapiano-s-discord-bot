@@ -27,7 +27,6 @@ export default {
                 .setRequired(true)
                 .addChoices(
                   { name: 'Invites', value: 'invites' },
-                  { name: 'Leveling', value: 'leveling' },
                   { name: 'Moderation', value: 'moderation' },
                   { name: 'AutoMod', value: 'automod' },
                   { name: 'Tickets', value: 'tickets' },
@@ -37,7 +36,10 @@ export default {
                   { name: 'Reputation', value: 'reputation' },
                   { name: 'Giveaway', value: 'giveaway' },
                   { name: 'Suggestions', value: 'suggestions' },
-                  { name: 'Starboard', value: 'starboard' }
+                  { name: 'Starboard', value: 'starboard' },
+                  { name: 'Logging', value: 'logging' },
+                  { name: 'AFK', value: 'afk' },
+                  { name: 'Sticky', value: 'sticky' }
                 )
             )
         )
@@ -52,7 +54,6 @@ export default {
                 .setRequired(true)
                 .addChoices(
                   { name: 'Invites', value: 'invites' },
-                  { name: 'Leveling', value: 'leveling' },
                   { name: 'Moderation', value: 'moderation' },
                   { name: 'AutoMod', value: 'automod' },
                   { name: 'Tickets', value: 'tickets' },
@@ -62,7 +63,10 @@ export default {
                   { name: 'Reputation', value: 'reputation' },
                   { name: 'Giveaway', value: 'giveaway' },
                   { name: 'Suggestions', value: 'suggestions' },
-                  { name: 'Starboard', value: 'starboard' }
+                  { name: 'Starboard', value: 'starboard' },
+                  { name: 'Logging', value: 'logging' },
+                  { name: 'AFK', value: 'afk' },
+                  { name: 'Sticky', value: 'sticky' }
                 )
             )
         )
@@ -80,6 +84,7 @@ export default {
             .setDescription('Configurar mensajes de bienvenida')
             .addChannelOption((opt) => opt.setName('canal').setDescription('Canal de bienvenida').setRequired(true))
             .addStringOption((opt) => opt.setName('mensaje').setDescription('Mensaje de bienvenida (usa {user}, {server}, {inviter}, {memberCount})'))
+            .addBooleanOption((opt) => opt.setName('imagen').setDescription('Activar tarjeta de bienvenida con imagen'))
         )
         .addSubcommand((sub) =>
           sub
@@ -105,14 +110,6 @@ export default {
             .setName('joinleavelog')
             .setDescription('Establecer el canal de logs de entradas/salidas')
             .addChannelOption((opt) => opt.setName('canal').setDescription('Canal de logs de entradas/salidas').setRequired(true))
-        )
-        .addSubcommand((sub) =>
-          sub
-            .setName('levelup')
-            .setDescription('Configurar ajustes de subida de nivel')
-            .addChannelOption((opt) => opt.setName('canal').setDescription('Canal de anuncios de subida de nivel'))
-            .addIntegerOption((opt) => opt.setName('xp_por_mensaje').setDescription('XP por mensaje (por defecto 15)').setMinValue(1).setMaxValue(500))
-            .addIntegerOption((opt) => opt.setName('enfriamiento').setDescription('Enfriamiento de XP en segundos (por defecto 60)').setMinValue(0).setMaxValue(600))
         )
         .addSubcommand((sub) =>
           sub
@@ -146,6 +143,29 @@ export default {
             .setName('reputation')
             .setDescription('Configurar ajustes de reputación')
             .addChannelOption((opt) => opt.setName('canal').setDescription('Restringir /rep a este canal (opcional)'))
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName('auditlog')
+            .setDescription('Establecer el canal de logs de auditoría (cambios de roles/canales)')
+            .addChannelOption((opt) => opt.setName('canal').setDescription('Canal de logs de auditoría').setRequired(true))
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName('voicelog')
+            .setDescription('Establecer el canal de logs de actividad de voz')
+            .addChannelOption((opt) => opt.setName('canal').setDescription('Canal de logs de voz').setRequired(true))
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName('tickets')
+            .setDescription('Configurar ajustes globales de tickets')
+            .addChannelOption((opt) => opt.setName('log').setDescription('Canal de log de tickets'))
+            .addChannelOption((opt) => opt.setName('transcripcion').setDescription('Canal de transcripciones'))
+            .addChannelOption((opt) => opt.setName('categoria').setDescription('Categoría por defecto para tickets'))
+            .addRoleOption((opt) => opt.setName('staff').setDescription('Rol de staff global para tickets'))
+            .addBooleanOption((opt) => opt.setName('confirmacion_cierre').setDescription('Pedir confirmación antes de cerrar'))
+            .addBooleanOption((opt) => opt.setName('dm_transcripcion').setDescription('Enviar transcripción por DM al cerrar'))
         )
     )
     .addSubcommandGroup((group) =>
@@ -202,7 +222,7 @@ export default {
     if (group === 'modulo') {
       if (sub === 'estado') {
         const config = await getGuildConfig(guildId);
-        const modules: ModuleName[] = ['invites', 'leveling', 'moderation', 'automod', 'tickets', 'automation', 'welcome', 'farewell', 'reputation', 'giveaway', 'suggestions', 'starboard'];
+        const modules: ModuleName[] = ['invites', 'moderation', 'automod', 'tickets', 'automation', 'welcome', 'farewell', 'reputation', 'giveaway', 'suggestions', 'starboard', 'logging', 'afk', 'sticky'];
         const lines = modules.map((m) => {
           const field = MODULE_TOGGLE_MAP[m];
           const enabled = (config as any)[field];
@@ -239,13 +259,15 @@ export default {
         case 'bienvenida': {
           const channel = interaction.options.getChannel('canal', true);
           const message = interaction.options.getString('mensaje');
+          const imagen = interaction.options.getBoolean('imagen');
 
           const data: Record<string, any> = { welcomeChannelId: channel.id };
           if (message) data.welcomeMessage = message;
+          if (imagen !== null) data.welcomeImageEnabled = imagen;
 
           await updateGuildConfig(guildId, data);
           await interaction.reply({
-            content: `Canal de bienvenida establecido en <#${channel.id}>.${message ? ' Mensaje actualizado.' : ''}`,
+            content: `Canal de bienvenida establecido en <#${channel.id}>.${message ? ' Mensaje actualizado.' : ''}${imagen !== null ? ` Imagen de bienvenida ${imagen ? 'activada' : 'desactivada'}.` : ''}`,
             ephemeral: true,
           });
           break;
@@ -284,32 +306,6 @@ export default {
           const channel = interaction.options.getChannel('canal', true);
           await updateGuildConfig(guildId, { joinLeaveLogChannelId: channel.id });
           await interaction.reply({ content: `Canal de logs de entradas/salidas establecido en <#${channel.id}>.`, ephemeral: true });
-          break;
-        }
-
-        case 'levelup': {
-          const channel = interaction.options.getChannel('canal');
-          const xpPerMsg = interaction.options.getInteger('xp_por_mensaje');
-          const cooldown = interaction.options.getInteger('enfriamiento');
-
-          const data: Record<string, any> = {};
-          if (channel) data.levelUpChannelId = channel.id;
-          if (xpPerMsg !== null) data.xpPerMessage = xpPerMsg;
-          if (cooldown !== null) data.xpCooldown = cooldown;
-
-          if (Object.keys(data).length === 0) {
-            await interaction.reply({ content: 'No se proporcionaron ajustes.', ephemeral: true });
-            return;
-          }
-
-          await updateGuildConfig(guildId, data);
-
-          const parts: string[] = [];
-          if (channel) parts.push(`Canal de subida de nivel: <#${channel.id}>`);
-          if (xpPerMsg !== null) parts.push(`XP por mensaje: ${xpPerMsg}`);
-          if (cooldown !== null) parts.push(`Enfriamiento de XP: ${cooldown}s`);
-
-          await interaction.reply({ content: parts.join('\n'), ephemeral: true });
           break;
         }
 
@@ -375,6 +371,60 @@ export default {
 
           await updateGuildConfig(guildId, { repChannelId: channel.id });
           await interaction.reply({ content: `Canal de reputación establecido en <#${channel.id}>.`, ephemeral: true });
+          break;
+        }
+
+        case 'auditlog': {
+          const channel = interaction.options.getChannel('canal', true);
+          await updateGuildConfig(guildId, { auditLogChannelId: channel.id });
+          await interaction.reply({ content: `Canal de logs de auditoría establecido en <#${channel.id}>.`, ephemeral: true });
+          break;
+        }
+
+        case 'voicelog': {
+          const channel = interaction.options.getChannel('canal', true);
+          await updateGuildConfig(guildId, { voiceLogChannelId: channel.id });
+          await interaction.reply({ content: `Canal de logs de voz establecido en <#${channel.id}>.`, ephemeral: true });
+          break;
+        }
+
+        case 'tickets': {
+          const log = interaction.options.getChannel('log');
+          const transcript = interaction.options.getChannel('transcripcion');
+          const category = interaction.options.getChannel('categoria');
+          const staff = interaction.options.getRole('staff');
+          const closeConfirm = interaction.options.getBoolean('confirmacion_cierre');
+          const dmTranscript = interaction.options.getBoolean('dm_transcripcion');
+
+          const data: Record<string, any> = {};
+          if (log) data.ticketLogChannelId = log.id;
+          if (transcript) data.ticketTranscriptChannelId = transcript.id;
+          if (category) data.ticketCategoryId = category.id;
+          if (staff) {
+            const config = await getGuildConfig(guildId);
+            const staffRoles: string[] = config.ticketStaffRoleIds || [];
+            if (!staffRoles.includes(staff.id)) staffRoles.push(staff.id);
+            data.ticketStaffRoleIds = staffRoles;
+          }
+          if (closeConfirm !== null) data.ticketCloseConfirmation = closeConfirm;
+          if (dmTranscript !== null) data.ticketDMTranscript = dmTranscript;
+
+          if (Object.keys(data).length === 0) {
+            await interaction.reply({ content: 'No se proporcionaron ajustes.', ephemeral: true });
+            return;
+          }
+
+          await updateGuildConfig(guildId, data);
+
+          const parts: string[] = [];
+          if (log) parts.push(`Log de tickets: <#${log.id}>`);
+          if (transcript) parts.push(`Transcripciones: <#${transcript.id}>`);
+          if (category) parts.push(`Categoría: <#${category.id}>`);
+          if (staff) parts.push(`Staff agregado: ${staff.name}`);
+          if (closeConfirm !== null) parts.push(`Confirmación de cierre: ${closeConfirm ? 'activada' : 'desactivada'}`);
+          if (dmTranscript !== null) parts.push(`DM de transcripción: ${dmTranscript ? 'activado' : 'desactivado'}`);
+
+          await interaction.reply({ content: parts.join('\n'), ephemeral: true });
           break;
         }
       }

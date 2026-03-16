@@ -53,7 +53,7 @@ export default {
       sub
         .setName('cerrar')
         .setDescription('Cerrar el ticket actual')
-        .addStringOption((opt) => opt.setName('motivo').setDescription('Motivo del cierre'))
+        .addStringOption((opt) => opt.setName('motivo').setDescription('Motivo del cierre').setRequired(true))
     )
 
     // ── Close Request ─────────────────────────────
@@ -232,7 +232,7 @@ export default {
           return;
         }
 
-        const reason = interaction.options.getString('motivo');
+        const reason = interaction.options.getString('motivo', true);
         const panel = ticket.panel;
         const config = await getGuildConfig(guildId);
 
@@ -247,39 +247,26 @@ export default {
               ticket,
               interaction.user.id
             );
-          } catch (err) {
-            // continue without transcript
-          }
+          } catch {}
         }
 
         // Update ticket
         await prisma.ticket.update({
           where: { id: ticket.id },
-          data: {
-            status: 'closed',
-            closedAt: new Date(),
-            closedBy: interaction.user.id,
-            closeReason: reason || null,
-          },
+          data: { status: 'closed', closedAt: new Date(), closedBy: interaction.user.id, closeReason: reason },
         });
 
         const channel = interaction.channel as TextChannel;
 
         // Remove user access
-        await channel.permissionOverwrites.edit(ticket.userId, {
-          ViewChannel: false, SendMessages: false,
-        }).catch(() => {});
-
+        await channel.permissionOverwrites.edit(ticket.userId, { ViewChannel: false, SendMessages: false }).catch(() => {});
         if (ticket.addedUsers?.length > 0) {
           for (const uid of ticket.addedUsers as string[]) {
-            await channel.permissionOverwrites.edit(uid, {
-              ViewChannel: false, SendMessages: false,
-            }).catch(() => {});
+            await channel.permissionOverwrites.edit(uid, { ViewChannel: false, SendMessages: false }).catch(() => {});
           }
         }
 
-        await channel.setName(`closed-${padNum(ticket.number)}`).catch(() => {});
-
+        await channel.setName(`cerrado-${padNum(ticket.number)}`).catch(() => {});
         if (panel?.closedCategoryId) {
           await channel.setParent(panel.closedCategoryId, { lockPermissions: false }).catch(() => {});
         }
@@ -293,16 +280,29 @@ export default {
           .setColor(CLOSE_COLOR)
           .setTitle('Ticket cerrado')
           .setDescription(
-            `Cerrado por <@${interaction.user.id}>.` +
-            (reason ? `\n**Motivo:** ${reason}` : '') +
-            `\n**Tiempo abierto:** ${openDurationStr}` +
+            `Cerrado por <@${interaction.user.id}>.\n**Motivo:** ${reason}\n**Tiempo abierto:** ${openDurationStr}` +
             (transcriptResult ? `\n\nTranscripción guardada (${transcriptResult.messages.length} mensajes).` : '')
           )
           .setTimestamp();
 
         await interaction.editReply({ embeds: [closedEmbed], components: [getClosedActionRow()] });
 
-        // Send transcript to channel + DM
+        // DM reason to user (no transcript)
+        try {
+          const ticketUser = await interaction.client.users.fetch(ticket.userId);
+          await ticketUser.send({
+            embeds: [
+              new EmbedBuilder()
+                .setColor(CLOSE_COLOR)
+                .setTitle('Tu ticket fue cerrado')
+                .setDescription(`Tu ticket **#${padNum(ticket.number)}** en **${interaction.guild!.name}** fue cerrado.`)
+                .addFields({ name: 'Motivo', value: reason })
+                .setTimestamp(),
+            ],
+          });
+        } catch {}
+
+        // Transcript to transcript channel only
         if (transcriptResult) {
           const transcriptChannelId = panel?.transcriptChannelId || config.ticketTranscriptChannelId;
           if (transcriptChannelId) {
@@ -317,6 +317,7 @@ export default {
                     .addFields(
                       { name: 'Creado por', value: `<@${ticket.userId}>`, inline: true },
                       { name: 'Cerrado por', value: `<@${interaction.user.id}>`, inline: true },
+                      { name: 'Motivo', value: reason, inline: true },
                       { name: 'Mensajes', value: `${transcriptResult.messages.length}`, inline: true }
                     )
                     .setTimestamp(),
@@ -324,24 +325,6 @@ export default {
                 files: [new AttachmentBuilder(buf, { name: `transcript-${padNum(ticket.number)}.html` })],
               }).catch(() => {});
             }
-          }
-
-          // DM user
-          if (panel?.transcriptDMUser !== false || config.ticketDMTranscript) {
-            try {
-              const user = await interaction.client.users.fetch(ticket.userId);
-              const buf = Buffer.from(transcriptResult.html, 'utf-8');
-              await user.send({
-                embeds: [
-                  new EmbedBuilder()
-                    .setColor(INFO_COLOR)
-                    .setTitle('Ticket cerrado')
-                    .setDescription(`Tu ticket #${padNum(ticket.number)} en **${interaction.guild!.name}** fue cerrado.`)
-                    .setTimestamp(),
-                ],
-                files: [new AttachmentBuilder(buf, { name: `transcript-${padNum(ticket.number)}.html` })],
-              });
-            } catch {}
           }
         }
 
@@ -358,7 +341,7 @@ export default {
                   .addFields(
                     { name: 'Ticket', value: `#${padNum(ticket.number)}`, inline: true },
                     { name: 'Cerrado por', value: `<@${interaction.user.id}>`, inline: true },
-                    { name: 'Motivo', value: reason || 'Sin motivo', inline: true }
+                    { name: 'Motivo', value: reason, inline: true }
                   )
                   .setTimestamp(),
               ],

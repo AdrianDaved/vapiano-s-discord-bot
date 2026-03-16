@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { sticky as stickyApi } from '@/lib/api';
 import Card from '@/components/Card';
 import Toggle from '@/components/Toggle';
@@ -9,7 +10,7 @@ import Loader from '@/components/Loader';
 import Modal from '@/components/Modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import toast from 'react-hot-toast';
-import { Pencil } from 'lucide-react';
+import { Pencil, Copy } from 'lucide-react';
 
 interface StickyEntry {
   id: string;
@@ -30,10 +31,10 @@ export default function StickyMessages() {
   const [stickies, setStickies] = useState<StickyEntry[]>([]);
 
   // New sticky form
-  const [channelId, setChannelId] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [color, setColor] = useState('#5865F2');
+  const [channelId, setChannelId] = useLocalStorage(`${guildId}-sticky-channelId`, '');
+  const [title, setTitle] = useLocalStorage(`${guildId}-sticky-title`, '');
+  const [description, setDescription] = useLocalStorage(`${guildId}-sticky-description`, '');
+  const [color, setColor] = useLocalStorage(`${guildId}-sticky-color`, '#5865F2');
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -56,7 +57,7 @@ export default function StickyMessages() {
   const createSticky = async () => {
     if (!guildId) return;
     if (!channelId || !description) {
-      toast.error('ID del canal y descripcion son obligatorios');
+      toast.error('El ID del canal y la descripción son obligatorios');
       return;
     }
     setCreating(true);
@@ -68,10 +69,6 @@ export default function StickyMessages() {
         color,
       });
       setStickies((prev) => [s, ...prev]);
-      setChannelId('');
-      setTitle('');
-      setDescription('');
-      setColor('#5865F2');
       toast.success('Mensaje fijo creado');
     } catch (err: any) {
       toast.error(err.message || 'No se pudo crear el mensaje fijo');
@@ -106,6 +103,15 @@ export default function StickyMessages() {
       setDeleting(false);
       setDeleteTarget(null);
     }
+  };
+
+  const cloneSticky = (s: StickyEntry) => {
+    setChannelId('');
+    setTitle(s.title || '');
+    setDescription(s.description);
+    setColor(s.color);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast.success('Datos copiados al formulario — cambia el canal y crea');
   };
 
   const openEdit = (s: StickyEntry) => {
@@ -169,14 +175,14 @@ export default function StickyMessages() {
               />
             </div>
             <Input
-               label="Titulo (opcional)"
-               placeholder="Titulo del embed"
+              label="Título (opcional)"
+              placeholder="Título del embed"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
             <Textarea
-               label="Descripcion"
-               placeholder="Contenido del mensaje fijo..."
+              label="Descripción"
+              placeholder="Contenido del mensaje fijo..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -201,21 +207,24 @@ export default function StickyMessages() {
                       />
                       <div>
                         <p className="text-sm text-discord-white">
-                           {s.title || 'Sin titulo'} <span className="text-discord-muted font-mono text-xs">#{s.channelId.slice(-4)}</span>
+                          {s.title || 'Sin título'} <span className="text-discord-muted font-mono text-xs">#{s.channelId.slice(-4)}</span>
                         </p>
                         <p className="text-xs text-discord-muted mt-0.5 truncate max-w-md">{s.description}</p>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 ml-3">
-                     <button onClick={() => openEdit(s)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Editar">
+                    <button onClick={() => cloneSticky(s)} className="p-1 hover:text-discord-green text-discord-muted transition-colors" title="Clonar al formulario">
+                      <Copy size={16} />
+                    </button>
+                    <button onClick={() => openEdit(s)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Editar">
                       <Pencil size={16} />
                     </button>
                     <Toggle
                       enabled={s.enabled}
                       onChange={(v) => toggleEnabled(s.channelId, v)}
                     />
-                     <Button variant="danger" size="sm" onClick={() => setDeleteTarget(s.channelId)}>Eliminar</Button>
+                    <Button variant="danger" size="sm" onClick={() => setDeleteTarget(s.channelId)}>Eliminar</Button>
                   </div>
                 </div>
               ))}
@@ -229,20 +238,20 @@ export default function StickyMessages() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-               label="Titulo (opcional)"
-               placeholder="Titulo del embed"
+              label="Título (opcional)"
+              placeholder="Título del embed"
               value={editData.title}
               onChange={(e) => setEditData({ ...editData, title: e.target.value })}
             />
             <Input
-               label="Color del embed"
+              label="Color del embed"
               type="color"
               value={editData.color}
               onChange={(e) => setEditData({ ...editData, color: e.target.value })}
             />
           </div>
           <Textarea
-            label="Descripcion"
+            label="Descripción"
             placeholder="Contenido del mensaje fijo..."
             value={editData.description}
             onChange={(e) => setEditData({ ...editData, description: e.target.value })}
@@ -262,7 +271,7 @@ export default function StickyMessages() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteSticky(deleteTarget)}
         title="Eliminar mensaje fijo"
-        message="Seguro que quieres eliminar este mensaje fijo? El mensaje ya no quedara fijado en el canal."
+        message="¿Seguro que quieres eliminar este mensaje fijo? El mensaje ya no quedará fijado en el canal."
         confirmLabel="Eliminar"
         loading={deleting}
       />

@@ -16,6 +16,27 @@ interface Suggestion {
   createdAt: string;
 }
 
+const statusLabels: Record<string, string> = {
+  pending: 'Pendiente',
+  approved: 'Aprobada',
+  denied: 'Rechazada',
+  implemented: 'Implementada',
+};
+
+const statusColors: Record<string, string> = {
+  pending: 'bg-discord-yellow/20 text-discord-yellow',
+  approved: 'bg-discord-green/20 text-discord-green',
+  denied: 'bg-discord-red/20 text-discord-red',
+  implemented: 'bg-discord-blurple/20 text-discord-blurple',
+};
+
+const statusEmojis: Record<string, string> = {
+  pending: '⏳',
+  approved: '✅',
+  denied: '❌',
+  implemented: '🚀',
+};
+
 export default function Suggestions() {
   const { guildId } = useParams();
   const [items, setItems] = useState<Suggestion[]>([]);
@@ -47,20 +68,6 @@ export default function Suggestions() {
     );
   }
 
-  const statusColors: Record<string, string> = {
-    pending: 'bg-discord-yellow/20 text-discord-yellow',
-    approved: 'bg-discord-green/20 text-discord-green',
-    denied: 'bg-discord-red/20 text-discord-red',
-    implemented: 'bg-discord-blurple/20 text-discord-blurple',
-  };
-
-  const statusEmojis: Record<string, string> = {
-    pending: '⏳',
-    approved: '✅',
-    denied: '❌',
-    implemented: '🚀',
-  };
-
   return (
     <div>
       <div className="mb-8">
@@ -69,8 +76,8 @@ export default function Suggestions() {
       </div>
 
       {/* Filter */}
-      <div className="flex gap-2 mb-6">
-        {['', 'pending', 'approved', 'denied', 'implemented'].map((status) => (
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {(['', 'pending', 'approved', 'denied', 'implemented'] as const).map((status) => (
           <button
             key={status}
             onClick={() => { setFilter(status); setLoading(true); }}
@@ -80,14 +87,14 @@ export default function Suggestions() {
                 : 'bg-discord-lighter/30 text-discord-muted hover:text-discord-white'
             }`}
           >
-             {status ? `${statusEmojis[status]} ${status.charAt(0).toUpperCase() + status.slice(1)}` : 'Todos'}
+            {status ? `${statusEmojis[status]} ${statusLabels[status]}` : 'Todas'}
           </button>
         ))}
       </div>
 
       <div className="space-y-3">
         {items.length === 0 ? (
-           <Card><p className="text-discord-muted text-sm py-4">No se encontraron sugerencias.</p></Card>
+          <Card><p className="text-discord-muted text-sm py-4">No se encontraron sugerencias.</p></Card>
         ) : (
           items.map((s) => (
             <Card key={s.id}>
@@ -95,13 +102,13 @@ export default function Suggestions() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[s.status] || ''}`}>
-                      {statusEmojis[s.status]} {s.status}
+                      {statusEmojis[s.status]} {statusLabels[s.status] || s.status}
                     </span>
                     <span className="text-xs text-discord-muted font-mono">{s.id.slice(0, 8)}</span>
                   </div>
                   <p className="text-sm text-discord-white">{s.content}</p>
                   {s.staffNote && (
-                     <p className="text-xs text-discord-muted mt-2 italic">Nota del staff: {s.staffNote}</p>
+                    <p className="text-xs text-discord-muted mt-2 italic">Nota del staff: {s.staffNote}</p>
                   )}
                 </div>
                 <div className="text-right ml-4">

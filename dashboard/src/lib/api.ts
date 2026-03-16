@@ -35,7 +35,8 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<any> {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Solicitud fallida' }));
-    throw new Error(err.error || `HTTP ${res.status}`);
+    const detail = err.details ? ` [${err.details.map((d: any) => `${d.path}: ${d.message}`).join(', ')}]` : '';
+    throw new Error((err.error || `HTTP ${res.status}`) + detail);
   }
 
   // Handle 204 No Content (common for DELETE endpoints)
@@ -56,6 +57,8 @@ export const auth = {
 // ─── Guilds ──────────────────────────────────────────────
 export const guilds = {
   list: () => apiFetch(`${API_BASE}/guilds`),
+  channels: (guildId: string) => apiFetch(`${API_BASE}/guilds/${guildId}/channels`),
+  roles: (guildId: string) => apiFetch(`${API_BASE}/guilds/${guildId}/roles`),
 };
 
 // ─── Guild Config ────────────────────────────────────────
@@ -65,6 +68,11 @@ export const config = {
     apiFetch(`${API_BASE}/guilds/${guildId}/config`, {
       method: 'PATCH',
       body: JSON.stringify(data),
+    }),
+  clone: (guildId: string, targetGuildId: string, sections: string[]) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/config/clone`, {
+      method: 'POST',
+      body: JSON.stringify({ targetGuildId, sections }),
     }),
 };
 
@@ -77,19 +85,6 @@ export const stats = {
 export const invites = {
   list: (guildId: string) => apiFetch(`${API_BASE}/guilds/${guildId}/invites`),
   leaderboard: (guildId: string) => apiFetch(`${API_BASE}/guilds/${guildId}/invites/leaderboard`),
-};
-
-// ─── Leveling ────────────────────────────────────────────
-export const leveling = {
-  leaderboard: (guildId: string) => apiFetch(`${API_BASE}/guilds/${guildId}/leveling`),
-  rewards: (guildId: string) => apiFetch(`${API_BASE}/guilds/${guildId}/leveling/rewards`),
-  addReward: (guildId: string, data: any) =>
-    apiFetch(`${API_BASE}/guilds/${guildId}/leveling/rewards`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-  removeReward: (guildId: string, id: string) =>
-    apiFetch(`${API_BASE}/guilds/${guildId}/leveling/rewards/${id}`, { method: 'DELETE' }),
 };
 
 // ─── Moderation ──────────────────────────────────────────
@@ -141,6 +136,11 @@ export const tickets = {
     }),
   deletePanel: (guildId: string, id: string) =>
     apiFetch(`${API_BASE}/guilds/${guildId}/tickets/panels/${id}`, { method: 'DELETE' }),
+  deployPanels: (guildId: string, data: { channelId: string; embedTitle: string; embedDescription: string; embedColor: string; panelIds: string[] }) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/tickets/panels/deploy`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 
   // Transcripts
   transcripts: (guildId: string, params?: { page?: number; limit?: number; userId?: string }) => {

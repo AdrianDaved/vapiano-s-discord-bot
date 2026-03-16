@@ -40,12 +40,12 @@ export default function Invites() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-discord-white">Seguimiento de invitaciones</h1>
-        <p className="text-discord-muted mt-1">Mira quien esta invitando miembros a tu servidor</p>
+        <p className="text-discord-muted mt-1">Mira quién está invitando miembros a tu servidor</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard label="Total de invitadores" value={leaderboard.length} icon={UserPlus} color="text-discord-blurple" />
-        <StatCard label="Invitaciones validas" value={totalValid} icon={TrendingUp} color="text-discord-green" />
+        <StatCard label="Invitaciones válidas" value={totalValid} icon={TrendingUp} color="text-discord-green" />
         <StatCard label="Invitaciones falsas" value={totalFake} icon={UserMinus} color="text-discord-red" />
         <StatCard label="Se fueron tras entrar" value={totalLeaves} icon={UserMinus} color="text-discord-yellow" />
       </div>
@@ -68,7 +68,7 @@ export default function Invites() {
             { key: 'inviterTag', label: 'Usuario' },
             {
               key: 'valid',
-               label: 'Validas',
+               label: 'Válidas',
               render: (item: InviteEntry) => (
                 <span className="text-discord-green font-medium">{item.valid}</span>
               ),

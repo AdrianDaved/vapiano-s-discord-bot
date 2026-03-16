@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useGuild } from '@/hooks/useGuild';
-import { tickets as ticketsApi } from '@/lib/api';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { tickets as ticketsApi, guilds as guildsApi } from '@/lib/api';
 import Card from '@/components/Card';
 import Table from '@/components/Table';
 import Button from '@/components/Button';
@@ -59,6 +60,7 @@ interface TicketPanel {
   escalatePanelId?: string;
   feedbackEnabled: boolean;
   feedbackMessage?: string;
+  autoCloseHours: number;
   createdAt: string;
   _count?: { tickets: number; transcripts: number };
 }
@@ -146,6 +148,7 @@ const DEFAULT_PANEL: Partial<TicketPanel> = {
   formQuestions: [],
   feedbackEnabled: false,
   feedbackMessage: 'Como calificarias el soporte que recibiste?',
+  autoCloseHours: 0,
 };
 
 // ─── Priority helpers ────────────────────────────────────
@@ -201,6 +204,17 @@ export default function Tickets() {
   const [editingPanelId, setEditingPanelId] = useState<string | null>(null);
   const [panelSection, setPanelSection] = useState<'general' | 'categories' | 'permissions' | 'messages' | 'buttons' | 'transcripts' | 'forms' | 'advanced'>('general');
   const [savingPanel, setSavingPanel] = useState(false);
+
+  // Guild channels cache
+  const [guildChannels, setGuildChannels] = useState<{ id: string; name: string; type: number; parentId: string | null }[]>([]);
+
+  // Deploy multi-panel
+  const [deployChannelId, setDeployChannelId] = useLocalStorage(`${guildId}-deploy-channelId`, '');
+  const [deployTitle, setDeployTitle] = useLocalStorage(`${guildId}-deploy-title`, 'SELECCIONAR EL BOTÓN QUE CORRESPONDA A TU CASO');
+  const [deployDesc, setDeployDesc] = useLocalStorage(`${guildId}-deploy-desc`, '');
+  const [deployColor, setDeployColor] = useLocalStorage(`${guildId}-deploy-color`, '#5865F2');
+  const [deploySelected, setDeploySelected] = useLocalStorage<string[]>(`${guildId}-deploy-selected`, []);
+  const [deploying, setDeploying] = useState(false);
 
   // Transcript viewer
   const [viewingTranscript, setViewingTranscript] = useState<any>(null);
@@ -260,6 +274,14 @@ export default function Tickets() {
     if (tab === 'transcripts') fetchTranscripts(1);
   }, [tab, fetchTickets, fetchTranscripts]);
 
+  // ─── Fetch guild channels when panel modal opens ─────
+  useEffect(() => {
+    if (!showPanelModal || !guildId || guildChannels.length > 0) return;
+    guildsApi.channels(guildId)
+      .then(setGuildChannels)
+      .catch(() => {});
+  }, [showPanelModal, guildId]);
+
   // ─── Panel CRUD ──────────────────────────────────────
   const openNewPanel = () => {
     setEditingPanel({ ...DEFAULT_PANEL });
@@ -279,26 +301,50 @@ export default function Tickets() {
     if (!guildId) return;
     setSavingPanel(true);
     try {
+      const { id: _id, guildId: _gid, createdAt: _ca, updatedAt: _ua, _count: _cnt, messageId: _mid, ...panelData } = editingPanel as any;
       if (editingPanelId) {
-        const updated = await ticketsApi.updatePanel(guildId, editingPanelId, editingPanel);
+        const updated = await ticketsApi.updatePanel(guildId, editingPanelId, panelData);
         setPanels((prev) => prev.map((p) => (p.id === editingPanelId ? updated : p)));
           toast.success('Panel actualizado');
       } else {
-        if (!editingPanel.channelId) {
+        if (!panelData.channelId) {
           toast.error('El ID del canal es obligatorio');
           setSavingPanel(false);
           return;
         }
-        const created = await ticketsApi.createPanel(guildId, editingPanel);
+        const created = await ticketsApi.createPanel(guildId, panelData);
         setPanels((prev) => [...prev, created]);
         toast.success('Panel creado');
       }
       setShowPanelModal(false);
       fetchOverview();
-    } catch {
-      toast.error('No se pudo guardar el panel');
+    } catch (err: any) {
+      toast.error(err?.message || 'No se pudo guardar el panel');
     } finally {
       setSavingPanel(false);
+    }
+  };
+
+  const handleDeploy = async () => {
+    if (!guildId) return;
+    if (!deployChannelId.trim()) { toast.error('Ingresa el ID del canal'); return; }
+    if (deploySelected.length === 0) { toast.error('Selecciona al menos un panel'); return; }
+    if (deploySelected.length > 5) { toast.error('Máximo 5 botones por panel'); return; }
+    setDeploying(true);
+    try {
+      await ticketsApi.deployPanels(guildId, {
+        channelId: deployChannelId.trim(),
+        embedTitle: deployTitle,
+        embedDescription: deployDesc,
+        embedColor: deployColor,
+        panelIds: deploySelected,
+      });
+      toast.success('Panel desplegado en Discord');
+      setDeploySelected([]);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al desplegar el panel');
+    } finally {
+      setDeploying(false);
     }
   };
 
@@ -411,9 +457,14 @@ export default function Tickets() {
                       <p className="text-sm font-medium text-discord-white">{panel.name}</p>
                        <p className="text-xs text-discord-muted">{panel.title} &middot; {panel._count?.tickets ?? 0} tickets &middot; {panel._count?.transcripts ?? 0} transcripciones</p>
                     </div>
-                    <Button size="sm" variant="ghost" onClick={() => { setTab('panels'); openEditPanel(panel); }}>
-                      <Edit3 size={14} />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => { setTab('panels'); openEditPanel(panel); }}>
+                        <Edit3 size={14} />
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => deletePanel(panel.id)}>
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -469,6 +520,140 @@ export default function Tickets() {
               ))}
             </div>
           )}
+        </Card>
+      )}
+
+      {/* ═══════ DEPLOY MULTI-PANEL ═══════ */}
+      {tab === 'panels' && panels.length > 0 && (
+        <Card
+          title="Desplegar panel en Discord"
+          description="Envía un mensaje con múltiples botones (uno por panel) a cualquier canal"
+          className="mt-6"
+        >
+          <div className="space-y-4">
+            {/* Channel + colors */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <Input
+                  label="ID del canal de destino"
+                  placeholder="Ej. 1420907241124663297"
+                  value={deployChannelId}
+                  onChange={(e) => setDeployChannelId(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-discord-muted mb-1.5">Color del embed</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={deployColor}
+                    onChange={(e) => setDeployColor(e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-discord-lighter bg-transparent"
+                  />
+                  <span className="text-sm text-discord-muted font-mono">{deployColor}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Embed texts */}
+            <Input
+              label="Título del embed"
+              placeholder="SELECCIONAR EL BOTÓN QUE CORRESPONDA A TU CASO"
+              value={deployTitle}
+              onChange={(e) => setDeployTitle(e.target.value)}
+            />
+            <Textarea
+              label="Descripción del embed"
+              placeholder="Describe cada categoría aquí (opcional)..."
+              value={deployDesc}
+              onChange={(e) => setDeployDesc(e.target.value)}
+              rows={4}
+            />
+
+            {/* Panel selector */}
+            <div>
+              <p className="text-sm font-medium text-discord-muted mb-2">
+                Paneles a incluir como botones <span className="text-discord-muted/60">(máx. 5, en el orden seleccionado)</span>
+              </p>
+              <div className="space-y-2">
+                {panels.map((panel) => {
+                  const checked = deploySelected.includes(panel.id);
+                  const idx = deploySelected.indexOf(panel.id);
+                  return (
+                    <label
+                      key={panel.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        checked
+                          ? 'border-discord-blurple bg-discord-blurple/10'
+                          : 'border-discord-lighter/20 bg-discord-darker hover:border-discord-lighter/40'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            if (deploySelected.length < 5) setDeploySelected((prev) => [...prev, panel.id]);
+                            else toast.error('Máximo 5 botones');
+                          } else {
+                            setDeploySelected((prev) => prev.filter((id) => id !== panel.id));
+                          }
+                        }}
+                        className="accent-discord-blurple w-4 h-4"
+                      />
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: panel.embedColor || '#5865F2' }}
+                      />
+                      <span className="text-sm font-medium text-discord-white flex-1">{panel.name}</span>
+                      {panel.buttonEmoji && <span className="text-base">{panel.buttonEmoji}</span>}
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        panel.buttonColor === 'Primary' ? 'bg-discord-blurple/30 text-discord-blurple' :
+                        panel.buttonColor === 'Success' ? 'bg-green-500/20 text-green-400' :
+                        panel.buttonColor === 'Danger' ? 'bg-discord-red/20 text-discord-red' :
+                        'bg-discord-lighter text-discord-muted'
+                      }`}>{panel.buttonColor}</span>
+                      {checked && (
+                        <span className="text-xs font-bold text-discord-blurple w-5 text-right">#{idx + 1}</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Preview + deploy */}
+            {deploySelected.length > 0 && (
+              <div className="p-3 rounded-lg bg-discord-darker border border-discord-lighter/20">
+                <p className="text-xs text-discord-muted mb-2">Vista previa de botones:</p>
+                <div className="flex flex-wrap gap-2">
+                  {deploySelected.map((id) => {
+                    const p = panels.find((x) => x.id === id);
+                    if (!p) return null;
+                    return (
+                      <span
+                        key={id}
+                        className={`px-3 py-1.5 rounded text-sm font-medium ${
+                          p.buttonColor === 'Primary' ? 'bg-discord-blurple text-white' :
+                          p.buttonColor === 'Success' ? 'bg-green-600 text-white' :
+                          p.buttonColor === 'Danger' ? 'bg-red-600 text-white' :
+                          'bg-discord-lighter text-discord-white'
+                        }`}
+                      >
+                        {p.buttonEmoji} {p.buttonLabel || p.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <Button onClick={handleDeploy} loading={deploying} disabled={deploySelected.length === 0 || !deployChannelId.trim()}>
+                Desplegar panel en Discord
+              </Button>
+            </div>
+          </div>
         </Card>
       )}
 
@@ -684,11 +869,16 @@ export default function Tickets() {
                 value={editingPanel.name || ''}
                 onChange={(e) => updateField('name', e.target.value)}
               />
-              <Input
-                label="ID del canal"
-                placeholder="Canal para enviar el embed del panel"
+              <Select
+                label="Canal"
+                options={[
+                  { value: '', label: 'Seleccionar canal...' },
+                  ...guildChannels
+                    .filter((c) => c.type === 0 || c.type === 5)
+                    .map((c) => ({ value: c.id, label: `#${c.name}` })),
+                ]}
                 value={editingPanel.channelId || ''}
-                onChange={(e) => updateField('channelId', e.target.value)}
+                onChange={(e) => updateField('channelId', e.target.value || null)}
               />
               <Input
                 label="Titulo del embed"
@@ -748,17 +938,27 @@ export default function Tickets() {
           {/* ─── Categories ─── */}
           {panelSection === 'categories' && (
             <>
-              <Input
-                label="ID de categoria de tickets abiertos"
-                placeholder="Categoria para tickets nuevos"
+              <Select
+                label="Categoria de tickets abiertos"
+                options={[
+                  { value: '', label: 'Sin categoría' },
+                  ...guildChannels
+                    .filter((c) => c.type === 4)
+                    .map((c) => ({ value: c.id, label: c.name })),
+                ]}
                 value={editingPanel.categoryId || ''}
-                onChange={(e) => updateField('categoryId', e.target.value)}
+                onChange={(e) => updateField('categoryId', e.target.value || null)}
               />
-              <Input
-                label="ID de categoria de tickets cerrados"
-                placeholder="Categoria para mover tickets cerrados (opcional)"
+              <Select
+                label="Categoria de tickets cerrados"
+                options={[
+                  { value: '', label: 'Sin categoría' },
+                  ...guildChannels
+                    .filter((c) => c.type === 4)
+                    .map((c) => ({ value: c.id, label: c.name })),
+                ]}
                 value={editingPanel.closedCategoryId || ''}
-                onChange={(e) => updateField('closedCategoryId', e.target.value)}
+                onChange={(e) => updateField('closedCategoryId', e.target.value || null)}
               />
               <p className="text-xs text-discord-muted">
                 Cuando se cierra un ticket, se puede mover a una categoria separada. Dejalo vacio para mantenerlo en la misma categoria.
@@ -855,6 +1055,18 @@ export default function Tickets() {
                     onChange={(e) => updateField('feedbackMessage', e.target.value)}
                   />
                 )}
+              </div>
+              <div className="mt-4 pt-4 border-t border-discord-dark">
+                <Input
+                  label="Cierre automatico por inactividad (horas)"
+                  type="number"
+                  placeholder="0"
+                  value={String(editingPanel.autoCloseHours ?? 0)}
+                  onChange={(e) => updateField('autoCloseHours', parseInt(e.target.value) || 0)}
+                />
+                <p className="text-xs text-discord-muted mt-1">
+                  Cierra el ticket automaticamente si no hay actividad en X horas. Pon 0 para desactivar.
+                </p>
               </div>
             </>
           )}

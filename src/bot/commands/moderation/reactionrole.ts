@@ -50,6 +50,24 @@ export default {
     )
     .addSubcommand((sub) =>
       sub.setName('lista').setDescription('Listar todos los paneles de roles por reacción')
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('emoji')
+        .setDescription('Dar un rol cuando alguien reaccione con un emoji en cualquier mensaje')
+        .addStringOption((opt) => opt.setName('id_mensaje').setDescription('ID del mensaje').setRequired(true))
+        .addRoleOption((opt) => opt.setName('rol').setDescription('Rol a asignar').setRequired(true))
+        .addStringOption((opt) => opt.setName('emoji').setDescription('Emoji de reacción (ej. ✅)').setRequired(true))
+        .addStringOption((opt) =>
+          opt
+            .setName('tipo')
+            .setDescription('Comportamiento')
+            .addChoices(
+              { name: 'Alternar (dar/quitar)', value: 'toggle' },
+              { name: 'Solo dar', value: 'give' },
+              { name: 'Solo quitar', value: 'remove' }
+            )
+        )
     ),
   module: 'moderation',
   cooldown: 5,
@@ -209,6 +227,36 @@ export default {
         } catch { /* el mensaje puede haber sido eliminado */ }
 
         await interaction.reply({ content: 'Rol de reacción eliminado.', ephemeral: true });
+        break;
+      }
+
+      case 'emoji': {
+        const messageId = interaction.options.getString('id_mensaje', true);
+        const role = interaction.options.getRole('rol', true);
+        const emoji = interaction.options.getString('emoji', true);
+        const type = interaction.options.getString('tipo') || 'toggle';
+
+        const channel = interaction.channel as TextChannel;
+
+        // Verify message exists in this channel
+        try {
+          await channel.messages.fetch(messageId);
+        } catch {
+          await interaction.reply({ content: 'Mensaje no encontrado en este canal.', ephemeral: true });
+          return;
+        }
+
+        await prisma.reactionRole.upsert({
+          where: { messageId_emoji: { messageId, emoji } },
+          update: { roleId: role.id, type, channelId: channel.id },
+          create: { guildId, channelId: channel.id, messageId, emoji, roleId: role.id, type },
+        });
+
+        const typeNames: Record<string, string> = { toggle: 'alternar (dar/quitar)', give: 'solo dar', remove: 'solo quitar' };
+        await interaction.reply({
+          content: `Listo. Cuando alguien reaccione con ${emoji} en ese mensaje, se le ${typeNames[type]} el rol **${role.name}**.`,
+          ephemeral: true,
+        });
         break;
       }
 

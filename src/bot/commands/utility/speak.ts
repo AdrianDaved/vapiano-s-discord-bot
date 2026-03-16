@@ -10,35 +10,62 @@ import {
   GuildTextBasedChannel,
 } from 'discord.js';
 
+const IMAGE_COUNT = 10;
+const IMAGE_OPTIONS = Array.from({ length: IMAGE_COUNT }, (_, i) => `imagen${i + 1}`);
+
 export default {
-  data: new SlashCommandBuilder()
-    .setName('hablar')
-    .setDescription('Hacer que el bot envíe un mensaje en un canal')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-    .addStringOption((opt) =>
-      opt.setName('mensaje').setDescription('El mensaje que dirá el bot').setRequired(true)
-    )
-    .addChannelOption((opt) =>
+  data: (() => {
+    const builder = new SlashCommandBuilder()
+      .setName('hablar')
+      .setDescription('Hacer que el bot envíe un mensaje en un canal')
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+      .addStringOption((opt) =>
+        opt.setName('mensaje').setDescription('El mensaje que dirá el bot').setRequired(false)
+      );
+
+    for (let i = 1; i <= IMAGE_COUNT; i++) {
+      builder.addAttachmentOption((opt) =>
+        opt.setName(`imagen${i}`).setDescription(`Imagen ${i} (opcional)`).setRequired(false)
+      );
+    }
+
+    builder.addChannelOption((opt) =>
       opt
         .setName('canal')
         .setDescription('Canal donde enviar el mensaje (por defecto el actual)')
         .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
         .setRequired(false)
-    ),
+    );
+
+    return builder;
+  })(),
   module: 'utility',
   cooldown: 5,
   permissions: [PermissionFlagsBits.ManageMessages],
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const message = interaction.options.getString('mensaje', true);
+    const message = interaction.options.getString('mensaje');
+    const files = IMAGE_OPTIONS
+      .map((name) => interaction.options.getAttachment(name))
+      .filter(Boolean)
+      .map((a) => a!.url);
+
     const channel = (interaction.options.getChannel('canal') || interaction.channel) as GuildTextBasedChannel;
+
+    if (!message && files.length === 0) {
+      await interaction.reply({ content: 'Debes proporcionar un mensaje, al menos una imagen, o ambos.', ephemeral: true });
+      return;
+    }
 
     if (!channel || !('send' in channel)) {
       await interaction.reply({ content: 'Canal inválido.', ephemeral: true });
       return;
     }
 
-    await channel.send(message);
+    await channel.send({
+      content: message || undefined,
+      files,
+    });
 
     await interaction.reply({
       content: `Mensaje enviado a <#${channel.id}>.`,

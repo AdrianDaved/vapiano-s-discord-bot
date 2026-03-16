@@ -66,7 +66,7 @@ export default function Moderation() {
     }
   };
 
-  if (configLoading || loading) return <Loader text="Cargando moderacion..." />;
+  if (configLoading || loading) return <Loader text="Cargando moderación..." />;
 
   const typeColor: Record<string, string> = {
     warn: 'text-discord-yellow',
@@ -82,8 +82,8 @@ export default function Moderation() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Moderacion</h1>
-        <p className="text-discord-muted mt-1">Ver acciones de moderacion y advertencias</p>
+        <h1 className="text-2xl font-bold text-discord-white">Moderación</h1>
+        <p className="text-discord-muted mt-1">Ver acciones de moderación y advertencias</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -121,25 +121,37 @@ export default function Moderation() {
             columns={[
               {
                 key: 'type',
-                label: 'Accion',
+                label: 'Acción',
                 render: (a: ModAction) => (
                   <span className={`font-medium uppercase text-xs ${typeColor[a.type] || ''}`}>
                     {a.type}
                   </span>
                 ),
               },
-               { key: 'userTag', label: 'Usuario' },
-               { key: 'moderatorTag', label: 'Moderador' },
+              {
+                key: 'userTag',
+                label: 'Usuario',
+                render: (a: ModAction) => (
+                  <span className="text-discord-muted font-mono text-xs">{a.userTag}</span>
+                ),
+              },
+              {
+                key: 'moderatorTag',
+                label: 'Moderador',
+                render: (a: ModAction) => (
+                  <span className="text-discord-muted font-mono text-xs">{a.moderatorTag}</span>
+                ),
+              },
               {
                 key: 'reason',
-                 label: 'Razon',
+                label: 'Razón',
                 render: (a: ModAction) => (
-                   <span className="text-discord-muted">{a.reason || 'Sin razon'}</span>
+                  <span className="text-discord-muted">{a.reason || 'Sin razón'}</span>
                 ),
               },
               {
                 key: 'createdAt',
-                 label: 'Fecha',
+                label: 'Fecha',
                 render: (a: ModAction) => (
                   <span className="text-discord-muted text-xs">
                     {new Date(a.createdAt).toLocaleDateString()}
@@ -148,7 +160,7 @@ export default function Moderation() {
               },
             ]}
             data={actions}
-            emptyMessage="No hay acciones de moderacion registradas."
+            emptyMessage="No hay acciones de moderación registradas."
           />
         </Card>
       )}
@@ -157,12 +169,24 @@ export default function Moderation() {
         <Card>
           <Table
             columns={[
-               { key: 'userTag', label: 'Usuario' },
-               { key: 'moderatorTag', label: 'Emitida por' },
-               { key: 'reason', label: 'Razon' },
+              {
+                key: 'userTag',
+                label: 'Usuario',
+                render: (w: Warning) => (
+                  <span className="text-discord-muted font-mono text-xs">{w.userTag}</span>
+                ),
+              },
+              {
+                key: 'moderatorTag',
+                label: 'Emitida por',
+                render: (w: Warning) => (
+                  <span className="text-discord-muted font-mono text-xs">{w.moderatorTag}</span>
+                ),
+              },
+              { key: 'reason', label: 'Razón' },
               {
                 key: 'createdAt',
-                 label: 'Fecha',
+                label: 'Fecha',
                 render: (w: Warning) => (
                   <span className="text-discord-muted text-xs">
                     {new Date(w.createdAt).toLocaleDateString()}
@@ -193,7 +217,7 @@ export default function Moderation() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteWarning(deleteTarget)}
         title="Eliminar advertencia"
-        message="Seguro que quieres eliminar esta advertencia? Esta accion no se puede deshacer."
+        message="¿Seguro que quieres eliminar esta advertencia? Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         loading={deleting}
       />

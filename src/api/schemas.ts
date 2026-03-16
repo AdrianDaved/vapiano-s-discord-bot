@@ -15,7 +15,6 @@ export const configUpdateSchema = z.object({
 
   // Module toggles
   invitesEnabled: z.boolean().optional(),
-  levelingEnabled: z.boolean().optional(),
   moderationEnabled: z.boolean().optional(),
   automodEnabled: z.boolean().optional(),
   ticketsEnabled: z.boolean().optional(),
@@ -39,7 +38,6 @@ export const configUpdateSchema = z.object({
   joinLeaveLogChannelId: snowflake,
   auditLogChannelId: snowflake,
   voiceLogChannelId: snowflake,
-  levelUpChannelId: snowflake,
   ticketCategoryId: snowflake,
   ticketLogChannelId: snowflake,
   ticketTranscriptChannelId: snowflake,
@@ -52,16 +50,13 @@ export const configUpdateSchema = z.object({
   // Strings
   welcomeMessage: z.string().max(2000).optional(),
   farewellMessage: z.string().max(2000).optional(),
-  levelUpMessage: z.string().max(1000).optional(),
   welcomeImageEnabled: z.boolean().optional(),
 
   // Numbers
-  xpPerMessage: z.number().int().min(1).max(1000).optional(),
-  xpCooldown: z.number().int().min(0).max(86400).optional(),
-  xpMultiplier: z.number().min(0.1).max(10).optional(),
   antiSpamThreshold: z.number().int().min(1).max(50).optional(),
   antiSpamInterval: z.number().int().min(1).max(60).optional(),
   antiCapsThreshold: z.number().int().min(30).max(100).optional(),
+  antiCapsMinLength: z.number().int().min(5).max(500).optional(),
   repCooldown: z.number().int().min(0).max(604800).optional(),
   starboardThreshold: z.number().int().min(1).max(100).optional(),
   starboardEmoji: z.string().max(50).optional(),
@@ -71,6 +66,7 @@ export const configUpdateSchema = z.object({
   antiFloodEnabled: z.boolean().optional(),
   antiCapsEnabled: z.boolean().optional(),
   antiLinksEnabled: z.boolean().optional(),
+  blacklistEnabled: z.boolean().optional(),
   ticketCloseConfirmation: z.boolean().optional(),
   ticketDMTranscript: z.boolean().optional(),
 
@@ -81,6 +77,7 @@ export const configUpdateSchema = z.object({
   blacklistedWords: z.array(z.string().max(100)).optional(),
   automodExemptRoleIds: snowflakeArray,
   automodExemptChannelIds: snowflakeArray,
+  moduleAllowedRoles: z.record(z.array(z.string().regex(/^\d{17,20}$/))).optional(),
 }).strict();
 
 // ─── Welcome ─────────────────────────────────────────────
@@ -173,37 +170,31 @@ export const scheduledMessageUpdateSchema = z.object({
   enabled: z.boolean().optional(),
 }).strict();
 
-// ─── Leveling ────────────────────────────────────────────
-export const levelRewardCreateSchema = z.object({
-  level: z.number().int().min(1).max(500),
-  roleId: snowflakeRequired,
-}).strict();
-
 // ─── Tickets ─────────────────────────────────────────────
 export const ticketPanelCreateSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(100).nullable().optional(),
   channelId: snowflakeRequired,
-  title: z.string().max(256).optional(),
-  description: z.string().max(4000).optional(),
-  embedColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  footerText: z.string().max(256).optional(),
-  buttonLabel: z.string().max(80).optional(),
-  buttonEmoji: z.string().max(100).optional(),
-  buttonColor: z.string().max(20).optional(),
-  style: z.string().max(50).optional(),
+  title: z.string().max(256).nullable().optional(),
+  description: z.string().max(4000).nullable().optional(),
+  embedColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+  footerText: z.string().max(256).nullable().optional(),
+  buttonLabel: z.string().max(80).nullable().optional(),
+  buttonEmoji: z.string().max(100).nullable().optional(),
+  buttonColor: z.string().max(20).nullable().optional(),
+  style: z.string().max(50).nullable().optional(),
   categoryId: snowflake,
   closedCategoryId: snowflake,
-  namingPattern: z.string().max(100).optional(),
+  namingPattern: z.string().max(100).nullable().optional(),
   staffRoleIds: snowflakeArray,
   adminRoleIds: snowflakeArray,
-  ticketLimit: z.number().int().min(1).max(50).optional(),
+  ticketLimit: z.number().int().min(1).max(9999).optional(),
   mentionStaff: z.boolean().optional(),
   mentionCreator: z.boolean().optional(),
-  welcomeTitle: z.string().max(256).optional(),
-  welcomeMessage: z.string().max(2000).optional(),
-  welcomeColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  welcomeTitle: z.string().max(256).nullable().optional(),
+  welcomeMessage: z.string().max(2000).nullable().optional(),
+  welcomeColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
   closeRequestEnabled: z.boolean().optional(),
-  closeRequestMessage: z.string().max(1000).optional(),
+  closeRequestMessage: z.string().max(1000).nullable().optional(),
   claimEnabled: z.boolean().optional(),
   claimLockOthers: z.boolean().optional(),
   transcriptEnabled: z.boolean().optional(),
@@ -215,11 +206,12 @@ export const ticketPanelCreateSchema = z.object({
   showClaimButton: z.boolean().optional(),
   showTranscriptButton: z.boolean().optional(),
   formEnabled: z.boolean().optional(),
-  formTitle: z.string().max(256).optional(),
-  formQuestions: z.array(z.string().max(500)).max(5).optional(),
+  formTitle: z.string().max(256).nullable().optional(),
+  formQuestions: z.array(z.any()).max(5).nullable().optional(),
   escalatePanelId: snowflake,
   feedbackEnabled: z.boolean().optional(),
-  feedbackMessage: z.string().max(1000).optional(),
+  feedbackMessage: z.string().max(1000).nullable().optional(),
+  autoCloseHours: z.number().int().min(0).max(720).optional(),
 }).strict();
 
 export const ticketPanelUpdateSchema = ticketPanelCreateSchema.partial().omit({ channelId: true }).extend({

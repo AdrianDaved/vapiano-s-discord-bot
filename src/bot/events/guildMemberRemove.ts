@@ -44,7 +44,7 @@ export default {
           .setFooter({ text: `${guild.memberCount} miembros restantes` })
           .setTimestamp();
 
-        await channel.send({ embeds: [embed] });
+        await channel.send({ content: `${member}`, embeds: [embed] });
       } catch (err) {
         logger.error(`[Farewell] Error sending farewell message: ${err}`);
       }

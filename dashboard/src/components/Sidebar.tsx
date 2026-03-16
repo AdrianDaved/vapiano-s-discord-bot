@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Settings,
   UserPlus,
-  Trophy,
   Shield,
   ShieldAlert,
   Ticket,
@@ -29,17 +28,16 @@ interface SidebarProps {
 
 const modules = [
   { path: '', icon: LayoutDashboard, label: 'Panel' },
-  { path: '/config', icon: Settings, label: 'Configuracion general' },
+  { path: '/config', icon: Settings, label: 'Configuración general' },
   { path: '/welcome', icon: HandMetal, label: 'Bienvenida / Despedida' },
   { path: '/invites', icon: UserPlus, label: 'Invitaciones' },
-  { path: '/leveling', icon: Trophy, label: 'Niveles' },
-  { path: '/moderation', icon: Shield, label: 'Moderacion' },
+  { path: '/moderation', icon: Shield, label: 'Moderación' },
   { path: '/automod', icon: ShieldAlert, label: 'AutoMod' },
   { path: '/tickets', icon: Ticket, label: 'Tickets' },
-  { path: '/automation', icon: Bot, label: 'Automatizacion' },
-  { path: '/reactionroles', icon: Tags, label: 'Roles por reaccion' },
+  { path: '/automation', icon: Bot, label: 'Automatización' },
+  { path: '/reactionroles', icon: Tags, label: 'Roles por reacción' },
   { path: '/starboard', icon: Sparkles, label: 'Starboard' },
-  { path: '/reputation', icon: Star, label: 'Reputacion' },
+  { path: '/reputation', icon: Star, label: 'Reputación' },
   { path: '/giveaways', icon: Gift, label: 'Sorteos' },
   { path: '/suggestions', icon: Lightbulb, label: 'Sugerencias' },
   { path: '/sticky', icon: StickyNote, label: 'Mensajes fijos' },
@@ -120,7 +118,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <button
               onClick={logout}
               className="p-1.5 rounded-lg hover:bg-discord-lighter text-discord-muted hover:text-discord-red transition-colors"
-              title="Cerrar sesion"
+              title="Cerrar sesión"
             >
               <LogOut size={16} />
             </button>

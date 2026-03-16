@@ -25,7 +25,12 @@ moderationRouter.get('/actions', asyncHandler(async (req: AuthRequest, res: Resp
     take: limit,
   });
 
-  res.json(actions);
+  res.json(actions.map((a) => ({
+    ...a,
+    type: a.action,
+    userTag: a.userId,
+    moderatorTag: a.moderatorId,
+  })));
 }));
 
 /**
@@ -44,7 +49,11 @@ moderationRouter.get('/warnings', asyncHandler(async (req: AuthRequest, res: Res
     take: 100,
   });
 
-  res.json(warnings);
+  res.json(warnings.map((w) => ({
+    ...w,
+    userTag: w.userId,
+    moderatorTag: w.moderatorId,
+  })));
 }));
 
 /**

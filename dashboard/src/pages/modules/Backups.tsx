@@ -76,7 +76,7 @@ export default function Backups() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <StatCard label="Copias totales" value={backupList.length} icon={Database} color="text-discord-blurple" />
         <StatCard
-          label="Ultima copia"
+          label="Última copia"
           value={
             backupList.length > 0
               ? new Date(backupList[0].createdAt).toLocaleDateString()
@@ -92,22 +92,22 @@ export default function Backups() {
           columns={[
             {
               key: 'name',
-               label: 'Nombre',
-               render: (b: Backup) => <span className="font-medium">{b.name || `Copia ${b.id.slice(0, 8)}`}</span>,
+              label: 'Nombre',
+              render: (b: Backup) => <span className="font-medium">{b.name || `Copia ${b.id.slice(0, 8)}`}</span>,
             },
             {
               key: 'channels',
-               label: 'Canales',
+              label: 'Canales',
               render: (b: Backup) => <span className="text-discord-muted">{b.channels ?? '-'}</span>,
             },
             {
               key: 'roles',
-               label: 'Roles',
+              label: 'Roles',
               render: (b: Backup) => <span className="text-discord-muted">{b.roles ?? '-'}</span>,
             },
             {
               key: 'createdAt',
-               label: 'Creada',
+              label: 'Creada',
               render: (b: Backup) => (
                 <span className="text-discord-muted text-xs">
                   {new Date(b.createdAt).toLocaleString()}
@@ -122,14 +122,14 @@ export default function Backups() {
                   <button
                     onClick={() => viewBackupDetails(b.id)}
                     className="p-1 hover:text-discord-blurple text-discord-muted transition-colors"
-                     title="Ver detalles"
+                    title="Ver detalles"
                   >
                     <Eye size={16} />
                   </button>
                   <button
                     onClick={() => setDeleteTarget(b.id)}
                     className="p-1 hover:text-discord-red text-discord-muted transition-colors"
-                     title="Eliminar copia"
+                    title="Eliminar copia"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -159,7 +159,7 @@ export default function Backups() {
 
             {viewBackup.channels && (
               <div>
-                <p className="text-xs text-discord-muted mb-2">Channels ({viewBackup.channels.length || 0})</p>
+                <p className="text-xs text-discord-muted mb-2">Canales ({viewBackup.channels.length || 0})</p>
                 <div className="bg-discord-darker rounded-lg p-3 max-h-40 overflow-y-auto">
                   {Array.isArray(viewBackup.channels)
                     ? viewBackup.channels.map((ch: any, i: number) => (
@@ -167,7 +167,7 @@ export default function Backups() {
                           #{ch.name || ch}
                         </p>
                       ))
-                     : <p className="text-sm text-discord-muted">Datos no disponibles</p>
+                    : <p className="text-sm text-discord-muted">Datos no disponibles</p>
                   }
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function Backups() {
                           @{role.name || role}
                         </p>
                       ))
-                     : <p className="text-sm text-discord-muted">Datos no disponibles</p>
+                    : <p className="text-sm text-discord-muted">Datos no disponibles</p>
                   }
                 </div>
               </div>
@@ -201,7 +201,7 @@ export default function Backups() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteBackup(deleteTarget)}
         title="Eliminar copia de seguridad"
-        message="Seguro que quieres eliminar esta copia? Esta accion no se puede deshacer y los datos se perderan permanentemente."
+        message="¿Seguro que quieres eliminar esta copia? Esta acción no se puede deshacer y los datos se perderán permanentemente."
         confirmLabel="Eliminar"
         loading={deleting}
       />

@@ -44,7 +44,7 @@ export default function Welcome() {
         setFarewellMessage(data.farewellMessage ?? '');
         setJoinRoleIds((data.joinRoleIds ?? []).join(', '));
       })
-      .catch((err) => setError(err.message || 'No se pudo cargar la configuracion de bienvenida'))
+      .catch((err) => setError(err.message || 'No se pudo cargar la configuración de bienvenida'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
@@ -71,20 +71,20 @@ export default function Welcome() {
         farewellMessage: farewellMessage || null,
         joinRoleIds: roleIds,
       });
-      toast.success('Configuracion de bienvenida guardada');
+      toast.success('Configuración de bienvenida guardada');
     } catch {
-      toast.error('No se pudo guardar la configuracion');
+      toast.error('No se pudo guardar la configuración');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <Loader text="Cargando configuracion de bienvenida..." />;
+  if (loading) return <Loader text="Cargando configuración de bienvenida..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">No se pudo cargar la configuracion de bienvenida</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudo cargar la configuración de bienvenida</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
         <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
@@ -95,75 +95,75 @@ export default function Welcome() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-discord-white">Bienvenida y despedida</h1>
-        <p className="text-discord-muted mt-1">Configura mensajes de bienvenida/despedida y roles automaticos</p>
+        <p className="text-discord-muted mt-1">Configura mensajes de bienvenida/despedida y roles automáticos</p>
       </div>
 
       <div className="space-y-6">
-        <Card title="Modulo de bienvenida">
+        <Card title="Módulo de bienvenida">
           <div className="space-y-4 mt-3">
             <Toggle
-               label="Activar mensajes de bienvenida"
-               description="Enviar un mensaje cuando un usuario entra"
+              label="Activar mensajes de bienvenida"
+              description="Enviar un mensaje cuando un usuario entra"
               enabled={welcomeEnabled}
               onChange={(v) => { setWelcomeEnabled(v); toggleSetting('welcomeEnabled', v); }}
             />
             <Toggle
-               label="Tarjeta de imagen de bienvenida"
-               description="Generar una tarjeta de bienvenida con el avatar del usuario"
+              label="Tarjeta de imagen de bienvenida"
+              description="Generar una tarjeta de bienvenida con el avatar del usuario"
               enabled={welcomeImageEnabled}
               onChange={(v) => setWelcomeImageEnabled(v)}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                 label="ID del canal de bienvenida"
-                 placeholder="ID del canal"
+                label="ID del canal de bienvenida"
+                placeholder="ID del canal"
                 value={welcomeChannelId}
                 onChange={(e) => setWelcomeChannelId(e.target.value)}
               />
             </div>
             <Textarea
-               label="Mensaje de bienvenida"
-              placeholder="Bienvenido {user} ! Use {user}, {server}, {memberCount}"
+              label="Mensaje de bienvenida"
+              placeholder="¡Bienvenido {user}! Usa {user}, {server}, {memberCount}"
               value={welcomeMessage}
               onChange={(e) => setWelcomeMessage(e.target.value)}
             />
           </div>
         </Card>
 
-        <Card title="Modulo de despedida">
+        <Card title="Módulo de despedida">
           <div className="space-y-4 mt-3">
             <Toggle
-               label="Activar mensajes de despedida"
-               description="Enviar un mensaje cuando un usuario sale"
+              label="Activar mensajes de despedida"
+              description="Enviar un mensaje cuando un usuario sale"
               enabled={farewellEnabled}
               onChange={(v) => { setFarewellEnabled(v); toggleSetting('farewellEnabled', v); }}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                 label="ID del canal de despedida"
-                 placeholder="ID del canal"
+                label="ID del canal de despedida"
+                placeholder="ID del canal"
                 value={farewellChannelId}
                 onChange={(e) => setFarewellChannelId(e.target.value)}
               />
             </div>
             <Textarea
-               label="Mensaje de despedida"
-               placeholder="Adios {user}, te vamos a extranar!"
+              label="Mensaje de despedida"
+              placeholder="¡Adiós {user}, te vamos a extrañar!"
               value={farewellMessage}
               onChange={(e) => setFarewellMessage(e.target.value)}
             />
           </div>
         </Card>
 
-        <Card title="Roles al entrar automaticos">
+        <Card title="Roles automáticos al entrar">
           <div className="mt-3">
             <Input
-               label="IDs de roles (separados por coma)"
+              label="IDs de roles (separados por coma)"
               placeholder="123456789, 987654321"
               value={joinRoleIds}
               onChange={(e) => setJoinRoleIds(e.target.value)}
             />
-             <p className="text-xs text-discord-muted mt-1">Roles asignados automaticamente a miembros nuevos</p>
+            <p className="text-xs text-discord-muted mt-1">Roles asignados automáticamente a miembros nuevos</p>
           </div>
         </Card>
 

@@ -77,7 +77,7 @@ export default {
         }
       }
 
-      // Module enabled check
+      // Module enabled check + role restriction
       if (command.module && interaction.guildId) {
         const config = await getGuildConfig(interaction.guildId);
         const moduleField = `${command.module}Enabled`;
@@ -87,6 +87,23 @@ export default {
             ephemeral: true,
           });
           return;
+        }
+
+        // Check module role restrictions (skip for admins and 'config' module)
+        if (command.module !== 'config' && interaction.member) {
+          const allowedRoles = (config.moduleAllowedRoles as Record<string, string[]> | null)?.[command.module] ?? [];
+          if (allowedRoles.length > 0) {
+            const memberRoles = (interaction.member as any).roles?.cache ?? new Map();
+            const hasRole = allowedRoles.some((rid: string) => memberRoles.has(rid));
+            const isAdmin = (interaction.memberPermissions as PermissionsBitField)?.has('Administrator') ?? false;
+            if (!hasRole && !isAdmin) {
+              await interaction.reply({
+                content: `No tienes permiso para usar comandos de **${command.module}**.`,
+                ephemeral: true,
+              });
+              return;
+            }
+          }
         }
       }
 

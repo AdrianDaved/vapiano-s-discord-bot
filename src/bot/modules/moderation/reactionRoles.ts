@@ -1,6 +1,55 @@
-import { ButtonInteraction, GuildMember } from 'discord.js';
+import { ButtonInteraction, GuildMember, MessageReaction, PartialMessageReaction, User, PartialUser } from 'discord.js';
 import prisma from '../../../database/client';
 import logger from '../../../shared/logger';
+
+/**
+ * Handle emoji reaction add/remove for reaction roles.
+ */
+export async function handleEmojiReactionRole(
+  reaction: MessageReaction | PartialMessageReaction,
+  user: User | PartialUser,
+  action: 'add' | 'remove'
+): Promise<void> {
+  try {
+    if (reaction.partial) await reaction.fetch();
+    if (user.partial) await user.fetch();
+    if (!reaction.message.guild) return;
+
+    const emoji = reaction.emoji.id
+      ? `<${reaction.emoji.animated ? 'a' : ''}:${reaction.emoji.name}:${reaction.emoji.id}>`
+      : reaction.emoji.name || '';
+
+    const rr = await prisma.reactionRole.findUnique({
+      where: { messageId_emoji: { messageId: reaction.message.id, emoji } },
+    });
+    if (!rr) return;
+
+    const guild = reaction.message.guild;
+    const member = await guild.members.fetch(user.id).catch(() => null);
+    if (!member) return;
+
+    const role = guild.roles.cache.get(rr.roleId);
+    if (!role) return;
+
+    const botMember = guild.members.me;
+    if (!botMember || role.position >= botMember.roles.highest.position) return;
+
+    if (action === 'add') {
+      if (rr.type === 'remove') {
+        await member.roles.remove(role).catch(() => {});
+      } else {
+        await member.roles.add(role).catch(() => {});
+      }
+    } else {
+      // reaction removed
+      if (rr.type === 'toggle' || rr.type === 'give') {
+        await member.roles.remove(role).catch(() => {});
+      }
+    }
+  } catch (err) {
+    logger.error(`[ReactionRoles] Error handling emoji reaction: ${err}`);
+  }
+}
 
 /**
  * Handle reaction/button role toggle when a user clicks a role button.

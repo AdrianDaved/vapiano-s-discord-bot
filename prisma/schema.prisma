@@ -20,7 +20,6 @@ model GuildConfig {
 
   // Module toggles
   invitesEnabled    Boolean @default(false)
-  levelingEnabled   Boolean @default(false)
   moderationEnabled Boolean @default(false)
   automodEnabled    Boolean @default(false)
   ticketsEnabled    Boolean @default(false)
@@ -36,6 +35,9 @@ model GuildConfig {
   stickyEnabled     Boolean @default(true)
   loggingEnabled    Boolean @default(false)
 
+  // Module role restrictions: { "moderation": ["roleId1", ...], "tickets": ["roleId2"] }
+  moduleAllowedRoles Json @default("{}")
+
   // Welcome / Farewell
   welcomeChannelId  String?
   welcomeMessage    String? @default("Bienvenido {user} !")
@@ -50,13 +52,6 @@ model GuildConfig {
   auditLogChannelId   String? // server changes: roles, channels, etc.
   voiceLogChannelId   String? // voice activity logging
   muteRoleId          String?
-
-  // Leveling
-  levelUpChannelId String?
-  levelUpMessage   String? @default("Congratulations {user}! You reached level {level}!")
-  xpPerMessage     Int     @default(15)
-  xpCooldown       Int     @default(60) // seconds
-  xpMultiplier     Float   @default(1.0)
 
   // Tickets
   ticketCategoryId       String?
@@ -79,12 +74,14 @@ model GuildConfig {
   antiCapsThreshold Int     @default(70) // percentage
   antiLinksEnabled  Boolean @default(false)
   antiLinksWhitelist String[] @default([])
+  blacklistEnabled  Boolean @default(false)
   blacklistedWords  String[] @default([])
+  antiCapsMinLength Int     @default(10) // min message length for caps check
   automodExemptRoleIds String[] @default([])
   automodExemptChannelIds String[] @default([])
 
   // Reputation
-  repCooldown       Int     @default(86400) // seconds between giving rep (default: 24h)
+  repCooldown       Int     @default(86400) // unused — kept for backwards compat
   repChannelId      String? // optional: restrict rep to this channel
 
   // Starboard
@@ -99,7 +96,6 @@ model GuildConfig {
   // Relations
   invites       Invite[]
   backups       Backup[]
-  userLevels    UserLevel[]
   warnings      Warning[]
   modActions    ModAction[]
   reactionRoles ReactionRole[]
@@ -107,7 +103,6 @@ model GuildConfig {
   scheduledMsgs ScheduledMessage[]
   ticketPanels  TicketPanel[]
   tickets       Ticket[]
-  levelRewards  LevelReward[]
   polls         Poll[]
   reputations   Reputation[]
   giveaways     Giveaway[]
@@ -150,35 +145,6 @@ model Backup {
 
   @@index([guildId])
   @@map("backups")
-}
-
-// ─── Leveling Module ─────────────────────────────────────────
-model UserLevel {
-  id        String   @id @default(uuid())
-  guildId   String
-  guild     GuildConfig @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  userId    String
-  xp        Int      @default(0)
-  level     Int      @default(0)
-  messages  Int      @default(0)
-  lastXpAt  DateTime @default(now())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([guildId, userId])
-  @@index([guildId, level(sort: Desc)])
-  @@map("user_levels")
-}
-
-model LevelReward {
-  id      String      @id @default(uuid())
-  guildId String
-  guild   GuildConfig @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  level   Int
-  roleId  String      // Role to give at this level
-
-  @@unique([guildId, level, roleId])
-  @@map("level_rewards")
 }
 
 // ─── Moderation Module ───────────────────────────────────────
@@ -351,6 +317,9 @@ model TicketPanel {
   feedbackEnabled Boolean @default(false) // ask rating after close
   feedbackMessage String? @default("How would you rate the support you received?")
 
+  // Auto-close
+  autoCloseHours Int @default(0) // hours of inactivity before auto-close (0 = disabled)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
@@ -379,9 +348,10 @@ model Ticket {
   feedback    String?  // optional feedback text
   addedUsers  String[] @default([]) // extra users added to the ticket
 
-  closedAt    DateTime?
+  closedAt      DateTime?
   firstResponse DateTime? // when staff first replied
-  createdAt   DateTime @default(now())
+  lastActivityAt DateTime @default(now()) // updated on each message in the ticket
+  createdAt     DateTime @default(now())
 
   transcripts TicketTranscript[]
 

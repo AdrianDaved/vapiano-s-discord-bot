@@ -9,3 +9,4 @@ dashboard/dist/
 prisma/*.db
 prisma/migrations/
 CLAUDE.md
+.claude/

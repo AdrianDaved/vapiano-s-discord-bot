@@ -12,7 +12,6 @@ import { moduleColor } from '../../utils';
 
 const moduleEmojis: Record<string, string> = {
   invites: '📨',
-  leveling: '🏆',
   moderation: '🛡️',
   automod: '🤖',
   tickets: '🎫',
@@ -29,7 +28,6 @@ const moduleEmojis: Record<string, string> = {
 
 const moduleNames: Record<string, string> = {
   invites: 'Invitaciones',
-  leveling: 'Niveles',
   moderation: 'Moderación',
   automod: 'AutoMod',
   tickets: 'Tickets',
