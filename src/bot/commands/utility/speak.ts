@@ -37,6 +37,13 @@ export default {
         .setRequired(false)
     );
 
+    builder.addStringOption((opt) =>
+      opt
+        .setName('id_canal')
+        .setDescription('ID del canal donde enviar el mensaje (tiene prioridad sobre "canal")')
+        .setRequired(false)
+    );
+
     return builder;
   })(),
   module: 'utility',
@@ -50,7 +57,19 @@ export default {
       .filter(Boolean)
       .map((a) => a!.url);
 
-    const channel = (interaction.options.getChannel('canal') || interaction.channel) as GuildTextBasedChannel;
+    const channelId = interaction.options.getString('id_canal');
+    let channel: GuildTextBasedChannel;
+
+    if (channelId) {
+      const resolved = await interaction.guild?.channels.fetch(channelId).catch(() => null);
+      if (!resolved || !('send' in resolved)) {
+        await interaction.reply({ content: `No encontré un canal de texto con la ID \`${channelId}\`.`, ephemeral: true });
+        return;
+      }
+      channel = resolved as GuildTextBasedChannel;
+    } else {
+      channel = (interaction.options.getChannel('canal') || interaction.channel) as GuildTextBasedChannel;
+    }
 
     if (!message && files.length === 0) {
       await interaction.reply({ content: 'Debes proporcionar un mensaje, al menos una imagen, o ambos.', ephemeral: true });
