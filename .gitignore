@@ -8,3 +8,4 @@ dashboard/node_modules/
 dashboard/dist/
 prisma/*.db
 prisma/migrations/
+CLAUDE.md
