@@ -1,0 +1,9 @@
+#\!/bin/bash
+set -e
+echo Pulling...
+git pull origin main
+echo Installing dependencies...
+npm install
+echo Restarting bot...
+pm2 restart vapiano-bot
+echo Deploy complete\!
