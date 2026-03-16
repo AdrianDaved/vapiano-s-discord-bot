@@ -63,9 +63,9 @@ export default function Leveling() {
       setShowAddReward(false);
       setNewRewardLevel('');
       setNewRewardRole('');
-      toast.success('Reward added');
+      toast.success('Recompensa agregada');
     } catch {
-      toast.error('Failed to add reward');
+      toast.error('No se pudo agregar la recompensa');
     } finally {
       setAddingReward(false);
     }
@@ -77,16 +77,16 @@ export default function Leveling() {
     try {
       await levelingApi.removeReward(guildId, id);
       setRewards((prev) => prev.filter((r) => r.id !== id));
-      toast.success('Reward removed');
+      toast.success('Recompensa eliminada');
     } catch {
-      toast.error('Failed to remove reward');
+      toast.error('No se pudo eliminar la recompensa');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
     }
   };
 
-  if (configLoading || loading) return <Loader text="Loading leveling..." />;
+  if (configLoading || loading) return <Loader text="Cargando niveles..." />;
 
   const totalXp = leaderboard.reduce((s, u) => s + u.xp, 0);
   const highestLevel = leaderboard.length > 0 ? Math.max(...leaderboard.map((u) => u.level)) : 0;
@@ -94,31 +94,31 @@ export default function Leveling() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Leveling System</h1>
-        <p className="text-discord-muted mt-1">XP leaderboard and role rewards</p>
+        <h1 className="text-2xl font-bold text-discord-white">Sistema de niveles</h1>
+        <p className="text-discord-muted mt-1">Clasificacion de XP y recompensas de roles</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard label="Active Members" value={leaderboard.length} icon={Users} color="text-discord-blurple" />
-        <StatCard label="Highest Level" value={highestLevel} icon={Trophy} color="text-discord-yellow" />
-        <StatCard label="Role Rewards" value={rewards.length} icon={Gift} color="text-discord-green" />
+        <StatCard label="Miembros activos" value={leaderboard.length} icon={Users} color="text-discord-blurple" />
+        <StatCard label="Nivel mas alto" value={highestLevel} icon={Trophy} color="text-discord-yellow" />
+        <StatCard label="Recompensas de rol" value={rewards.length} icon={Gift} color="text-discord-green" />
       </div>
 
       {/* Rewards */}
       <Card
-        title="Level Rewards"
-        description="Roles granted when members reach a level"
+        title="Recompensas por nivel"
+        description="Roles entregados cuando los miembros alcanzan un nivel"
         className="mb-6"
         action={
           <Button size="sm" onClick={() => setShowAddReward(true)}>
-            Add Reward
+            Agregar recompensa
           </Button>
         }
       >
         <Table
           columns={[
-            { key: 'level', label: 'Level', render: (r: Reward) => <span className="font-bold text-discord-yellow">Lv. {r.level}</span> },
-            { key: 'roleId', label: 'Role ID', render: (r: Reward) => <code className="text-sm text-discord-muted">{r.roleId}</code> },
+             { key: 'level', label: 'Nivel', render: (r: Reward) => <span className="font-bold text-discord-yellow">Nv. {r.level}</span> },
+             { key: 'roleId', label: 'ID del rol', render: (r: Reward) => <code className="text-sm text-discord-muted">{r.roleId}</code> },
             {
               key: 'actions',
               label: '',
@@ -130,12 +130,12 @@ export default function Leveling() {
             },
           ]}
           data={rewards.sort((a, b) => a.level - b.level)}
-          emptyMessage="No level rewards configured. Add one to get started."
+          emptyMessage="No hay recompensas por nivel configuradas. Agrega una para empezar."
         />
       </Card>
 
       {/* Leaderboard */}
-      <Card title="XP Leaderboard">
+      <Card title="Clasificacion de XP">
         <Table
           columns={[
             {
@@ -146,37 +146,37 @@ export default function Leveling() {
                 return <span className={idx < 3 ? 'font-bold text-discord-yellow' : ''}>{idx + 1}</span>;
               },
             },
-            { key: 'username', label: 'User' },
-            { key: 'level', label: 'Level', render: (u: LevelUser) => <span className="font-bold">Lv. {u.level}</span> },
+             { key: 'username', label: 'Usuario' },
+             { key: 'level', label: 'Nivel', render: (u: LevelUser) => <span className="font-bold">Nv. {u.level}</span> },
             { key: 'xp', label: 'XP', render: (u: LevelUser) => <span className="text-discord-muted">{u.xp.toLocaleString()}</span> },
           ]}
           data={leaderboard}
-          emptyMessage="No leveling data yet. Members earn XP by chatting."
+          emptyMessage="Aun no hay datos de niveles. Los miembros ganan XP al chatear."
         />
       </Card>
 
       {/* Add Reward Modal */}
-      <Modal open={showAddReward} onClose={() => setShowAddReward(false)} title="Add Level Reward">
+      <Modal open={showAddReward} onClose={() => setShowAddReward(false)} title="Agregar recompensa por nivel">
         <div className="space-y-4">
           <Input
-            label="Level"
+            label="Nivel"
             type="number"
-            placeholder="e.g. 10"
+            placeholder="ej. 10"
             value={newRewardLevel}
             onChange={(e) => setNewRewardLevel(e.target.value)}
           />
           <Input
-            label="Role ID"
-            placeholder="Enter the role ID to grant"
+            label="ID del rol"
+            placeholder="Ingresa el ID del rol a otorgar"
             value={newRewardRole}
             onChange={(e) => setNewRewardRole(e.target.value)}
           />
           <div className="flex justify-end gap-3 mt-4">
             <Button variant="secondary" onClick={() => setShowAddReward(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button onClick={addReward} loading={addingReward}>
-              Add Reward
+              Agregar recompensa
             </Button>
           </div>
         </div>
@@ -186,9 +186,9 @@ export default function Leveling() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && removeReward(deleteTarget)}
-        title="Remove Reward"
-        message="Are you sure you want to remove this level reward? Members who already have the role will keep it."
-        confirmLabel="Remove"
+        title="Eliminar recompensa"
+        message="Seguro que quieres eliminar esta recompensa por nivel? Los miembros que ya tienen el rol lo conservaran."
+        confirmLabel="Eliminar"
         loading={deleting}
       />
     </div>

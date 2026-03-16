@@ -49,14 +49,14 @@ export default function StickyMessages() {
     setError(null);
     stickyApi.list(guildId)
       .then((data) => setStickies(data))
-      .catch((err) => setError(err.message || 'Failed to load sticky messages'))
+      .catch((err) => setError(err.message || 'No se pudieron cargar los mensajes fijos'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
   const createSticky = async () => {
     if (!guildId) return;
     if (!channelId || !description) {
-      toast.error('Channel ID and description are required');
+      toast.error('ID del canal y descripcion son obligatorios');
       return;
     }
     setCreating(true);
@@ -72,9 +72,9 @@ export default function StickyMessages() {
       setTitle('');
       setDescription('');
       setColor('#5865F2');
-      toast.success('Sticky message created');
+      toast.success('Mensaje fijo creado');
     } catch (err: any) {
-      toast.error(err.message || 'Failed to create sticky');
+      toast.error(err.message || 'No se pudo crear el mensaje fijo');
     } finally {
       setCreating(false);
     }
@@ -87,9 +87,9 @@ export default function StickyMessages() {
       setStickies((prev) =>
         prev.map((s) => (s.channelId === channelId ? { ...s, enabled } : s))
       );
-      toast.success(`Sticky ${enabled ? 'enabled' : 'disabled'}`);
+      toast.success(`Fijo ${enabled ? 'activado' : 'desactivado'}`);
     } catch {
-      toast.error('Failed to update');
+      toast.error('No se pudo actualizar');
     }
   };
 
@@ -99,9 +99,9 @@ export default function StickyMessages() {
     try {
       await stickyApi.delete(guildId, channelId);
       setStickies((prev) => prev.filter((s) => s.channelId !== channelId));
-      toast.success('Sticky message deleted');
+      toast.success('Mensaje fijo eliminado');
     } catch {
-      toast.error('Failed to delete');
+      toast.error('No se pudo eliminar');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
@@ -124,22 +124,22 @@ export default function StickyMessages() {
           : s
       ));
       setEditTarget(null);
-      toast.success('Sticky message updated');
+      toast.success('Mensaje fijo actualizado');
     } catch {
-      toast.error('Failed to update sticky');
+      toast.error('No se pudo actualizar el fijo');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <Loader text="Loading sticky messages..." />;
+  if (loading) return <Loader text="Cargando mensajes fijos..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">Failed to load sticky messages</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudieron cargar los mensajes fijos</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
-        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Retry</button>
+        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
     );
   }
@@ -147,48 +147,48 @@ export default function StickyMessages() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Sticky Messages</h1>
-        <p className="text-discord-muted mt-1">Messages that stay pinned at the bottom of a channel</p>
+        <h1 className="text-2xl font-bold text-discord-white">Mensajes fijos</h1>
+        <p className="text-discord-muted mt-1">Mensajes que se mantienen fijados al final de un canal</p>
       </div>
 
       <div className="space-y-6">
-        <Card title="Create Sticky Message">
+        <Card title="Crear mensaje fijo">
           <div className="space-y-4 mt-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Channel ID"
-                placeholder="Target channel ID"
+                label="ID del canal"
+                placeholder="ID del canal objetivo"
                 value={channelId}
                 onChange={(e) => setChannelId(e.target.value)}
               />
               <Input
-                label="Embed Color"
+                label="Color del embed"
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
               />
             </div>
             <Input
-              label="Title (optional)"
-              placeholder="Embed title"
+               label="Titulo (opcional)"
+               placeholder="Titulo del embed"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
             <Textarea
-              label="Description"
-              placeholder="Sticky message content..."
+               label="Descripcion"
+               placeholder="Contenido del mensaje fijo..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div className="flex justify-end mt-4">
-            <Button onClick={createSticky} loading={creating}>Create Sticky</Button>
+            <Button onClick={createSticky} loading={creating}>Crear fijo</Button>
           </div>
         </Card>
 
-        <Card title={`Active Stickies (${stickies.length})`}>
+        <Card title={`Fijos activos (${stickies.length})`}>
           {stickies.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">No sticky messages configured.</p>
+            <p className="text-discord-muted text-sm py-4">No hay mensajes fijos configurados.</p>
           ) : (
             <div className="space-y-2 mt-3">
               {stickies.map((s) => (
@@ -201,21 +201,21 @@ export default function StickyMessages() {
                       />
                       <div>
                         <p className="text-sm text-discord-white">
-                          {s.title || 'Untitled'} <span className="text-discord-muted font-mono text-xs">#{s.channelId.slice(-4)}</span>
+                           {s.title || 'Sin titulo'} <span className="text-discord-muted font-mono text-xs">#{s.channelId.slice(-4)}</span>
                         </p>
                         <p className="text-xs text-discord-muted mt-0.5 truncate max-w-md">{s.description}</p>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 ml-3">
-                    <button onClick={() => openEdit(s)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Edit">
+                     <button onClick={() => openEdit(s)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Editar">
                       <Pencil size={16} />
                     </button>
                     <Toggle
                       enabled={s.enabled}
                       onChange={(v) => toggleEnabled(s.channelId, v)}
                     />
-                    <Button variant="danger" size="sm" onClick={() => setDeleteTarget(s.channelId)}>Delete</Button>
+                     <Button variant="danger" size="sm" onClick={() => setDeleteTarget(s.channelId)}>Eliminar</Button>
                   </div>
                 </div>
               ))}
@@ -225,34 +225,34 @@ export default function StickyMessages() {
       </div>
 
       {/* Edit Modal */}
-      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Sticky Message">
+      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Editar mensaje fijo">
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="Title (optional)"
-              placeholder="Embed title"
+               label="Titulo (opcional)"
+               placeholder="Titulo del embed"
               value={editData.title}
               onChange={(e) => setEditData({ ...editData, title: e.target.value })}
             />
             <Input
-              label="Embed Color"
+               label="Color del embed"
               type="color"
               value={editData.color}
               onChange={(e) => setEditData({ ...editData, color: e.target.value })}
             />
           </div>
           <Textarea
-            label="Description"
-            placeholder="Sticky message content..."
+            label="Descripcion"
+            placeholder="Contenido del mensaje fijo..."
             value={editData.description}
             onChange={(e) => setEditData({ ...editData, description: e.target.value })}
           />
           {editTarget && (
-            <p className="text-xs text-discord-muted">Channel: {editTarget.channelId}</p>
+            <p className="text-xs text-discord-muted">Canal: {editTarget.channelId}</p>
           )}
           <div className="flex justify-end gap-3 mt-4">
-            <Button variant="secondary" onClick={() => setEditTarget(null)}>Cancel</Button>
-            <Button onClick={saveEdit} loading={saving}>Save Changes</Button>
+            <Button variant="secondary" onClick={() => setEditTarget(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} loading={saving}>Guardar cambios</Button>
           </div>
         </div>
       </Modal>
@@ -261,9 +261,9 @@ export default function StickyMessages() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteSticky(deleteTarget)}
-        title="Delete Sticky Message"
-        message="Are you sure you want to delete this sticky message? The message will no longer be pinned in the channel."
-        confirmLabel="Delete"
+        title="Eliminar mensaje fijo"
+        message="Seguro que quieres eliminar este mensaje fijo? El mensaje ya no quedara fijado en el canal."
+        confirmLabel="Eliminar"
         loading={deleting}
       />
     </div>

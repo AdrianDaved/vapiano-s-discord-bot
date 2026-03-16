@@ -31,18 +31,18 @@ export default function Suggestions() {
     suggestions
       .list(guildId, filter || undefined)
       .then(setItems)
-      .catch((err) => setError(err.message || 'Failed to load suggestions'))
+      .catch((err) => setError(err.message || 'No se pudieron cargar las sugerencias'))
       .finally(() => setLoading(false));
   }, [guildId, filter, retryCount]);
 
-  if (loading) return <Loader text="Loading suggestions..." />;
+  if (loading) return <Loader text="Cargando sugerencias..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">Failed to load suggestions</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudieron cargar las sugerencias</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
-        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Retry</button>
+        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
     );
   }
@@ -64,8 +64,8 @@ export default function Suggestions() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Suggestions</h1>
-        <p className="text-discord-muted mt-1">View and manage community suggestions</p>
+        <h1 className="text-2xl font-bold text-discord-white">Sugerencias</h1>
+        <p className="text-discord-muted mt-1">Ver y administrar sugerencias de la comunidad</p>
       </div>
 
       {/* Filter */}
@@ -80,14 +80,14 @@ export default function Suggestions() {
                 : 'bg-discord-lighter/30 text-discord-muted hover:text-discord-white'
             }`}
           >
-            {status ? `${statusEmojis[status]} ${status.charAt(0).toUpperCase() + status.slice(1)}` : 'All'}
+             {status ? `${statusEmojis[status]} ${status.charAt(0).toUpperCase() + status.slice(1)}` : 'Todos'}
           </button>
         ))}
       </div>
 
       <div className="space-y-3">
         {items.length === 0 ? (
-          <Card><p className="text-discord-muted text-sm py-4">No suggestions found.</p></Card>
+           <Card><p className="text-discord-muted text-sm py-4">No se encontraron sugerencias.</p></Card>
         ) : (
           items.map((s) => (
             <Card key={s.id}>
@@ -101,7 +101,7 @@ export default function Suggestions() {
                   </div>
                   <p className="text-sm text-discord-white">{s.content}</p>
                   {s.staffNote && (
-                    <p className="text-xs text-discord-muted mt-2 italic">Staff note: {s.staffNote}</p>
+                     <p className="text-xs text-discord-muted mt-2 italic">Nota del staff: {s.staffNote}</p>
                   )}
                 </div>
                 <div className="text-right ml-4">

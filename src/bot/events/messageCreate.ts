@@ -40,7 +40,7 @@ export default {
         const timeStr = hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
 
         const reply = await message.reply({
-          content: `Welcome back! You were AFK for **${timeStr}**.`,
+          content: `¡Bienvenido de vuelta! Estuviste AFK por **${timeStr}**.`,
         });
         setTimeout(() => reply.delete().catch(() => {}), 5000);
       }
@@ -59,7 +59,7 @@ export default {
         if (afkUsers.length > 0) {
           const lines = afkUsers.map((afk) => {
             const timestamp = Math.floor(afk.createdAt.getTime() / 1000);
-            return `<@${afk.userId}> is AFK: **${afk.reason}** (since <t:${timestamp}:R>)`;
+            return `<@${afk.userId}> está AFK: **${afk.reason}** (desde <t:${timestamp}:R>)`;
           });
 
           await message.reply({ content: lines.join('\n') });
@@ -75,6 +75,45 @@ export default {
     // ─── Auto-Responses ─────────────────────────────────
     if (config.automationEnabled) {
       await checkAutoResponses(message, config);
+    }
+
+    // ─── +rep message command ────────────────────────────
+    if (config.reputationEnabled && message.content.startsWith('+rep')) {
+      const args = message.content.slice(4).trim();
+      const target = message.mentions.users.first();
+
+      if (target) {
+        if (target.id === message.author.id) {
+          await message.reply({ content: 'No puedes darte reputación a ti mismo.' });
+        } else if (target.bot) {
+          await message.reply({ content: 'No puedes dar reputación a bots.' });
+        } else {
+          // Extract reason: everything after the mention
+          const mentionPattern = /<@!?\d+>/;
+          const reason = args.replace(mentionPattern, '').trim() || null;
+
+          await prisma.reputation.create({
+            data: {
+              guildId: message.guild.id,
+              userId: target.id,
+              giverId: message.author.id,
+              reason,
+            },
+          });
+
+          const totalRep = await prisma.reputation.count({
+            where: { guildId: message.guild.id, userId: target.id },
+          });
+
+          const embed = new EmbedBuilder()
+            .setColor(moduleColor('reputation'))
+            .setDescription(`${message.author} dio **+1 rep** a ${target}${reason ? `\n**Razón:** ${reason}` : ''}`)
+            .setFooter({ text: `${target.username} ahora tiene ${totalRep} rep` })
+            .setTimestamp();
+
+          await message.reply({ embeds: [embed] });
+        }
+      }
     }
 
     // ─── Sticky Messages ─────────────────────────────────

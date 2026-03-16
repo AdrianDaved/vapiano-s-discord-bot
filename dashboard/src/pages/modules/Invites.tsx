@@ -30,7 +30,7 @@ export default function Invites() {
       .finally(() => setLoading(false));
   }, [guildId]);
 
-  if (configLoading || loading) return <Loader text="Loading invites..." />;
+  if (configLoading || loading) return <Loader text="Cargando invitaciones..." />;
 
   const totalValid = leaderboard.reduce((s, e) => s + e.valid, 0);
   const totalFake = leaderboard.reduce((s, e) => s + e.fake, 0);
@@ -39,18 +39,18 @@ export default function Invites() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Invite Tracker</h1>
-        <p className="text-discord-muted mt-1">See who is inviting members to your server</p>
+        <h1 className="text-2xl font-bold text-discord-white">Seguimiento de invitaciones</h1>
+        <p className="text-discord-muted mt-1">Mira quien esta invitando miembros a tu servidor</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Inviters" value={leaderboard.length} icon={UserPlus} color="text-discord-blurple" />
-        <StatCard label="Valid Invites" value={totalValid} icon={TrendingUp} color="text-discord-green" />
-        <StatCard label="Fake Invites" value={totalFake} icon={UserMinus} color="text-discord-red" />
-        <StatCard label="Left After Join" value={totalLeaves} icon={UserMinus} color="text-discord-yellow" />
+        <StatCard label="Total de invitadores" value={leaderboard.length} icon={UserPlus} color="text-discord-blurple" />
+        <StatCard label="Invitaciones validas" value={totalValid} icon={TrendingUp} color="text-discord-green" />
+        <StatCard label="Invitaciones falsas" value={totalFake} icon={UserMinus} color="text-discord-red" />
+        <StatCard label="Se fueron tras entrar" value={totalLeaves} icon={UserMinus} color="text-discord-yellow" />
       </div>
 
-      <Card title="Invite Leaderboard">
+      <Card title="Clasificacion de invitaciones">
         <Table
           columns={[
             {
@@ -65,24 +65,24 @@ export default function Invites() {
                 );
               },
             },
-            { key: 'inviterTag', label: 'User' },
+            { key: 'inviterTag', label: 'Usuario' },
             {
               key: 'valid',
-              label: 'Valid',
+               label: 'Validas',
               render: (item: InviteEntry) => (
                 <span className="text-discord-green font-medium">{item.valid}</span>
               ),
             },
             {
               key: 'fake',
-              label: 'Fake',
+               label: 'Falsas',
               render: (item: InviteEntry) => (
                 <span className="text-discord-red">{item.fake}</span>
               ),
             },
             {
               key: 'leaves',
-              label: 'Leaves',
+               label: 'Salidas',
               render: (item: InviteEntry) => (
                 <span className="text-discord-yellow">{item.leaves}</span>
               ),
@@ -96,7 +96,7 @@ export default function Invites() {
             },
           ]}
           data={leaderboard}
-          emptyMessage="No invite data yet. Invites will appear as members join."
+          emptyMessage="Aun no hay datos de invitaciones. Apareceran cuando entren miembros."
         />
       </Card>
     </div>

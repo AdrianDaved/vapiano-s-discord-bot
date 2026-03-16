@@ -82,7 +82,7 @@ export default {
         if (!channel) return;
 
         // Get inviter info for template
-        let inviterTag = 'Unknown';
+        let inviterTag = 'Desconocido';
         if (config.invitesEnabled) {
           const inviteRecord = await prisma.invite.findFirst({
             where: { guildId: guild.id, invitedId: member.id },
@@ -124,10 +124,10 @@ export default {
           // Image disabled — send as embed
           const embed = new EmbedBuilder()
             .setColor(0x57f287)
-            .setTitle('Welcome!')
+            .setTitle('¡Bienvenido!')
             .setDescription(textMessage)
             .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
-            .setFooter({ text: `Member #${guild.memberCount}` })
+            .setFooter({ text: `Miembro #${guild.memberCount}` })
             .setTimestamp();
           await channel.send({ embeds: [embed] });
         }
@@ -143,11 +143,11 @@ export default {
         if (logChannel) {
           const embed = new EmbedBuilder()
             .setColor(0x57f287)
-            .setAuthor({ name: 'Member Joined', iconURL: member.user.displayAvatarURL() })
+            .setAuthor({ name: 'Miembro se unió', iconURL: member.user.displayAvatarURL() })
             .addFields(
-              { name: 'User', value: `${member.user.username} (${member.id})`, inline: true },
-              { name: 'Account Created', value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true },
-              { name: 'Member Count', value: guild.memberCount.toString(), inline: true }
+              { name: 'Usuario', value: `${member.user.username} (${member.id})`, inline: true },
+              { name: 'Cuenta creada', value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true },
+              { name: 'Total de miembros', value: guild.memberCount.toString(), inline: true }
             )
             .setTimestamp();
           await logChannel.send({ embeds: [embed] });

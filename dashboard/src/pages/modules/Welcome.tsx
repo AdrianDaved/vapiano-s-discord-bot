@@ -44,7 +44,7 @@ export default function Welcome() {
         setFarewellMessage(data.farewellMessage ?? '');
         setJoinRoleIds((data.joinRoleIds ?? []).join(', '));
       })
-      .catch((err) => setError(err.message || 'Failed to load welcome settings'))
+      .catch((err) => setError(err.message || 'No se pudo cargar la configuracion de bienvenida'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
@@ -52,9 +52,9 @@ export default function Welcome() {
     if (!guildId) return;
     try {
       await configApi.update(guildId, { [key]: value });
-      toast.success(`${key.replace('Enabled', '')} ${value ? 'enabled' : 'disabled'}`);
+      toast.success(`${key.replace('Enabled', '')} ${value ? 'activado' : 'desactivado'}`);
     } catch {
-      toast.error('Failed to update setting');
+      toast.error('No se pudo actualizar el ajuste');
     }
   };
 
@@ -71,22 +71,22 @@ export default function Welcome() {
         farewellMessage: farewellMessage || null,
         joinRoleIds: roleIds,
       });
-      toast.success('Welcome settings saved');
+      toast.success('Configuracion de bienvenida guardada');
     } catch {
-      toast.error('Failed to save settings');
+      toast.error('No se pudo guardar la configuracion');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <Loader text="Loading welcome settings..." />;
+  if (loading) return <Loader text="Cargando configuracion de bienvenida..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">Failed to load welcome settings</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudo cargar la configuracion de bienvenida</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
-        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Retry</button>
+        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
     );
   }
@@ -94,35 +94,35 @@ export default function Welcome() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Welcome & Farewell</h1>
-        <p className="text-discord-muted mt-1">Configure welcome/farewell messages and auto-roles</p>
+        <h1 className="text-2xl font-bold text-discord-white">Bienvenida y despedida</h1>
+        <p className="text-discord-muted mt-1">Configura mensajes de bienvenida/despedida y roles automaticos</p>
       </div>
 
       <div className="space-y-6">
-        <Card title="Welcome Module">
+        <Card title="Modulo de bienvenida">
           <div className="space-y-4 mt-3">
             <Toggle
-              label="Enable Welcome Messages"
-              description="Send a welcome message when a user joins"
+               label="Activar mensajes de bienvenida"
+               description="Enviar un mensaje cuando un usuario entra"
               enabled={welcomeEnabled}
               onChange={(v) => { setWelcomeEnabled(v); toggleSetting('welcomeEnabled', v); }}
             />
             <Toggle
-              label="Welcome Image Card"
-              description="Generate a welcome image card with the user's avatar"
+               label="Tarjeta de imagen de bienvenida"
+               description="Generar una tarjeta de bienvenida con el avatar del usuario"
               enabled={welcomeImageEnabled}
               onChange={(v) => setWelcomeImageEnabled(v)}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Welcome Channel ID"
-                placeholder="Channel ID"
+                 label="ID del canal de bienvenida"
+                 placeholder="ID del canal"
                 value={welcomeChannelId}
                 onChange={(e) => setWelcomeChannelId(e.target.value)}
               />
             </div>
             <Textarea
-              label="Welcome Message"
+               label="Mensaje de bienvenida"
               placeholder="Bienvenido {user} ! Use {user}, {server}, {memberCount}"
               value={welcomeMessage}
               onChange={(e) => setWelcomeMessage(e.target.value)}
@@ -130,45 +130,45 @@ export default function Welcome() {
           </div>
         </Card>
 
-        <Card title="Farewell Module">
+        <Card title="Modulo de despedida">
           <div className="space-y-4 mt-3">
             <Toggle
-              label="Enable Farewell Messages"
-              description="Send a farewell message when a user leaves"
+               label="Activar mensajes de despedida"
+               description="Enviar un mensaje cuando un usuario sale"
               enabled={farewellEnabled}
               onChange={(v) => { setFarewellEnabled(v); toggleSetting('farewellEnabled', v); }}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Farewell Channel ID"
-                placeholder="Channel ID"
+                 label="ID del canal de despedida"
+                 placeholder="ID del canal"
                 value={farewellChannelId}
                 onChange={(e) => setFarewellChannelId(e.target.value)}
               />
             </div>
             <Textarea
-              label="Farewell Message"
-              placeholder="Goodbye {user}, we'll miss you!"
+               label="Mensaje de despedida"
+               placeholder="Adios {user}, te vamos a extranar!"
               value={farewellMessage}
               onChange={(e) => setFarewellMessage(e.target.value)}
             />
           </div>
         </Card>
 
-        <Card title="Auto-Join Roles">
+        <Card title="Roles al entrar automaticos">
           <div className="mt-3">
             <Input
-              label="Role IDs (comma-separated)"
+               label="IDs de roles (separados por coma)"
               placeholder="123456789, 987654321"
               value={joinRoleIds}
               onChange={(e) => setJoinRoleIds(e.target.value)}
             />
-            <p className="text-xs text-discord-muted mt-1">Roles automatically assigned to new members</p>
+             <p className="text-xs text-discord-muted mt-1">Roles asignados automaticamente a miembros nuevos</p>
           </div>
         </Card>
 
         <div className="flex justify-end">
-          <Button onClick={save} loading={saving}>Save Changes</Button>
+          <Button onClick={save} loading={saving}>Guardar cambios</Button>
         </div>
       </div>
     </div>

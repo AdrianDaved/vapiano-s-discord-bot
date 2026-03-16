@@ -54,7 +54,7 @@ export default function Starboard() {
         setEntries(data.entries ?? []);
         setTotal(data.total ?? 0);
       })
-      .catch((err) => setError(err.message || 'Failed to load starboard'))
+      .catch((err) => setError(err.message || 'No se pudo cargar el tablon de estrellas'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
@@ -67,9 +67,9 @@ export default function Starboard() {
         starboardEmoji: starboardEmoji || '⭐',
         starboardThreshold,
       });
-      toast.success('Starboard settings saved');
+      toast.success('Configuracion del tablon de estrellas guardada');
     } catch {
-      toast.error('Failed to save settings');
+      toast.error('No se pudo guardar la configuracion');
     } finally {
       setSaving(false);
     }
@@ -81,23 +81,23 @@ export default function Starboard() {
     try {
       await starboardApi.deleteEntry(guildId, id);
       setEntries((prev) => prev.filter((e) => e.id !== id));
-      toast.success('Entry deleted');
+      toast.success('Entrada eliminada');
     } catch {
-      toast.error('Failed to delete entry');
+      toast.error('No se pudo eliminar la entrada');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
     }
   };
 
-  if (loading) return <Loader text="Loading starboard..." />;
+  if (loading) return <Loader text="Cargando starboard..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">Failed to load starboard</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudo cargar el tablon de estrellas</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
-        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Retry</button>
+        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
     );
   }
@@ -105,40 +105,40 @@ export default function Starboard() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Starboard</h1>
-        <p className="text-discord-muted mt-1">Configure the starboard for highlighted messages</p>
+        <h1 className="text-2xl font-bold text-discord-white">Tablon de estrellas</h1>
+        <p className="text-discord-muted mt-1">Configura el tablon de estrellas para mensajes destacados</p>
       </div>
 
       <div className="space-y-6">
-        <Card title="Settings">
+        <Card title="Configuracion">
           <div className="space-y-4 mt-3">
             <Toggle
-              label="Enable Starboard"
-              description="Allow users to star messages to be highlighted"
+               label="Activar tablon de estrellas"
+               description="Permitir que los usuarios marquen mensajes con estrella para destacarlos"
               enabled={starboardEnabled}
               onChange={(v) => {
                 setStarboardEnabled(v);
                 if (guildId) configApi.update(guildId, { starboardEnabled: v }).then(
-                  () => toast.success(`Starboard ${v ? 'enabled' : 'disabled'}`),
-                  () => toast.error('Failed to update'),
+                   () => toast.success(`Tablon de estrellas ${v ? 'activado' : 'desactivado'}`),
+                  () => toast.error('No se pudo actualizar'),
                 );
               }}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
-                label="Starboard Channel ID"
-                placeholder="Channel ID"
+                 label="ID del canal del tablon"
+                 placeholder="ID del canal"
                 value={starboardChannelId}
                 onChange={(e) => setStarboardChannelId(e.target.value)}
               />
               <Input
-                label="Star Emoji"
+                 label="Emoji de estrella"
                 placeholder="⭐"
                 value={starboardEmoji}
                 onChange={(e) => setStarboardEmoji(e.target.value)}
               />
               <Input
-                label="Threshold"
+                 label="Umbral"
                 type="number"
                 placeholder="3"
                 value={starboardThreshold}
@@ -147,13 +147,13 @@ export default function Starboard() {
             </div>
           </div>
           <div className="flex justify-end mt-4">
-            <Button onClick={save} loading={saving}>Save Settings</Button>
+            <Button onClick={save} loading={saving}>Guardar configuracion</Button>
           </div>
         </Card>
 
-        <Card title={`Starred Messages (${total})`}>
+        <Card title={`Mensajes con estrella (${total})`}>
           {entries.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">No starred messages yet.</p>
+            <p className="text-discord-muted text-sm py-4">Aun no hay mensajes con estrella.</p>
           ) : (
             <div className="space-y-2 mt-3">
               {entries.map((entry) => (
@@ -164,10 +164,10 @@ export default function Starboard() {
                       <span className="text-xs text-discord-muted font-mono">#{entry.originalChId.slice(-4)}</span>
                     </div>
                     <p className="text-xs text-discord-light mt-1 truncate">
-                      {entry.content || 'No text content'}
+                       {entry.content || 'Sin contenido de texto'}
                     </p>
                   </div>
-                  <Button variant="danger" size="sm" onClick={() => setDeleteTarget(entry.id)}>Delete</Button>
+                   <Button variant="danger" size="sm" onClick={() => setDeleteTarget(entry.id)}>Eliminar</Button>
                 </div>
               ))}
             </div>
@@ -179,9 +179,9 @@ export default function Starboard() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteEntry(deleteTarget)}
-        title="Delete Starboard Entry"
-        message="Are you sure you want to delete this starboard entry? The starred message post will also be removed."
-        confirmLabel="Delete"
+        title="Eliminar entrada de starboard"
+        message="Seguro que quieres eliminar esta entrada de starboard? Tambien se eliminara la publicacion del mensaje con estrella."
+        confirmLabel="Eliminar"
         loading={deleting}
       />
     </div>

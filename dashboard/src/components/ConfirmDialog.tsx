@@ -18,10 +18,10 @@ export default function ConfirmDialog({
   open,
   onClose,
   onConfirm,
-  title = 'Are you sure?',
+  title = 'Seguro?',
   message,
-  confirmLabel = 'Delete',
-  cancelLabel = 'Cancel',
+  confirmLabel = 'Eliminar',
+  cancelLabel = 'Cancelar',
   variant = 'danger',
   loading = false,
 }: ConfirmDialogProps) {

@@ -1,4 +1,4 @@
-export default function Loader({ text = 'Loading...' }: { text?: string }) {
+export default function Loader({ text = 'Cargando...' }: { text?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <div className="relative w-12 h-12">

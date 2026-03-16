@@ -23,14 +23,14 @@ export default {
     try {
       const embed = new EmbedBuilder()
         .setColor(role.color || 0x57f287)
-        .setTitle('Role Created')
+        .setTitle('Rol creado')
         .addFields(
-          { name: 'Name', value: role.name, inline: true },
+          { name: 'Nombre', value: role.name, inline: true },
           { name: 'Color', value: role.hexColor, inline: true },
-          { name: 'Mentionable', value: role.mentionable ? 'Yes' : 'No', inline: true },
-          { name: 'Hoisted', value: role.hoist ? 'Yes' : 'No', inline: true },
+          { name: 'Mencionable', value: role.mentionable ? 'Si' : 'No', inline: true },
+          { name: 'Separado', value: role.hoist ? 'Si' : 'No', inline: true },
         )
-        .setFooter({ text: `Role ID: ${role.id}` })
+        .setFooter({ text: `ID del rol: ${role.id}` })
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });

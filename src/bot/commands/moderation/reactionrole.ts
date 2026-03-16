@@ -13,43 +13,43 @@ import { moduleColor } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('reactionrole')
-    .setDescription('Manage button-based reaction roles')
+    .setName('rolreaccion')
+    .setDescription('Gestionar roles por botones de reacción')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addSubcommand((sub) =>
       sub
-        .setName('create')
-        .setDescription('Create a reaction role panel')
-        .addStringOption((opt) => opt.setName('title').setDescription('Panel title').setRequired(true))
-        .addStringOption((opt) => opt.setName('description').setDescription('Panel description').setRequired(false))
+        .setName('crear')
+        .setDescription('Crear un panel de roles por reacción')
+        .addStringOption((opt) => opt.setName('titulo').setDescription('Título del panel').setRequired(true))
+        .addStringOption((opt) => opt.setName('descripcion').setDescription('Descripción del panel').setRequired(false))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('add')
-        .setDescription('Add a role button to a panel message')
-        .addStringOption((opt) => opt.setName('message_id').setDescription('Message ID of the panel').setRequired(true))
-        .addRoleOption((opt) => opt.setName('role').setDescription('Role to assign').setRequired(true))
-        .addStringOption((opt) => opt.setName('label').setDescription('Button label').setRequired(false))
-        .addStringOption((opt) => opt.setName('emoji').setDescription('Button emoji').setRequired(false))
+        .setName('agregar')
+        .setDescription('Agregar un botón de rol a un panel')
+        .addStringOption((opt) => opt.setName('id_mensaje').setDescription('ID del mensaje del panel').setRequired(true))
+        .addRoleOption((opt) => opt.setName('rol').setDescription('Rol a asignar').setRequired(true))
+        .addStringOption((opt) => opt.setName('etiqueta').setDescription('Etiqueta del botón').setRequired(false))
+        .addStringOption((opt) => opt.setName('emoji').setDescription('Emoji del botón').setRequired(false))
         .addStringOption((opt) =>
           opt
-            .setName('type')
-            .setDescription('Behavior type')
+            .setName('tipo')
+            .setDescription('Tipo de comportamiento')
             .addChoices(
-              { name: 'Toggle (give/remove)', value: 'toggle' },
-              { name: 'Give only', value: 'give' },
-              { name: 'Remove only', value: 'remove' }
+              { name: 'Alternar (dar/quitar)', value: 'toggle' },
+              { name: 'Solo dar', value: 'give' },
+              { name: 'Solo quitar', value: 'remove' }
             )
         )
     )
     .addSubcommand((sub) =>
       sub
-        .setName('remove')
-        .setDescription('Remove a role button from a panel')
-        .addStringOption((opt) => opt.setName('id').setDescription('Reaction role ID').setRequired(true))
+        .setName('eliminar')
+        .setDescription('Eliminar un botón de rol de un panel')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID del rol de reacción').setRequired(true))
     )
     .addSubcommand((sub) =>
-      sub.setName('list').setDescription('List all reaction role panels')
+      sub.setName('lista').setDescription('Listar todos los paneles de roles por reacción')
     ),
   module: 'moderation',
   cooldown: 5,
@@ -60,53 +60,53 @@ export default {
     const guildId = interaction.guildId!;
 
     switch (sub) {
-      case 'create': {
-        const title = interaction.options.getString('title', true);
-        const description = interaction.options.getString('description') || 'Click a button below to get a role.';
+      case 'crear': {
+        const title = interaction.options.getString('titulo', true);
+        const description = interaction.options.getString('descripcion') || 'Haz clic en un botón para obtener un rol.';
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('moderation'))
           .setTitle(title)
           .setDescription(description)
-          .setFooter({ text: 'Use /reactionrole add to attach role buttons to this message' });
+          .setFooter({ text: 'Usa /rolreaccion agregar para añadir botones de rol a este mensaje' });
 
         const channel = interaction.channel;
         if (!channel || !('send' in channel)) {
-          await interaction.reply({ content: 'Cannot send messages in this channel.', ephemeral: true });
+          await interaction.reply({ content: 'No se pueden enviar mensajes en este canal.', ephemeral: true });
           return;
         }
         const msg = await channel.send({ embeds: [embed] });
 
         await interaction.reply({
-          content: `Reaction role panel created. Message ID: \`${msg.id}\`\nUse \`/reactionrole add message_id:${msg.id} role:@role\` to add buttons.`,
+          content: `Panel de roles por reacción creado. ID del mensaje: \`${msg.id}\`\nUsa \`/rolreaccion agregar id_mensaje:${msg.id} rol:@rol\` para añadir botones.`,
           ephemeral: true,
         });
         break;
       }
 
-      case 'add': {
-        const messageId = interaction.options.getString('message_id', true);
-        const role = interaction.options.getRole('role', true);
-        const label = interaction.options.getString('label') || role.name;
+      case 'agregar': {
+        const messageId = interaction.options.getString('id_mensaje', true);
+        const role = interaction.options.getRole('rol', true);
+        const label = interaction.options.getString('etiqueta') || role.name;
         const emoji = interaction.options.getString('emoji');
-        const type = interaction.options.getString('type') || 'toggle';
+        const type = interaction.options.getString('tipo') || 'toggle';
 
         const channel = interaction.channel as TextChannel;
         let message;
         try {
           message = await channel.messages.fetch(messageId);
         } catch {
-          await interaction.reply({ content: 'Message not found in this channel.', ephemeral: true });
+          await interaction.reply({ content: 'Mensaje no encontrado en este canal.', ephemeral: true });
           return;
         }
 
-        // Ensure the message is from the bot
+        // Asegurar que el mensaje es del bot
         if (message.author.id !== interaction.client.user!.id) {
-          await interaction.reply({ content: 'I can only add buttons to my own messages.', ephemeral: true });
+          await interaction.reply({ content: 'Solo puedo añadir botones a mis propios mensajes.', ephemeral: true });
           return;
         }
 
-        // Create the reaction role record
+        // Crear el registro de rol de reacción
         const rr = await prisma.reactionRole.create({
           data: {
             guildId,
@@ -118,12 +118,12 @@ export default {
           },
         });
 
-        // Fetch all reaction roles for this message to rebuild buttons
+        // Obtener todos los roles de reacción para este mensaje para reconstruir botones
         const allRoles = await prisma.reactionRole.findMany({
           where: { messageId, guildId },
         });
 
-        // Build button rows (max 5 buttons per row, max 5 rows)
+        // Construir filas de botones (máx. 5 botones por fila, máx. 5 filas)
         const rows: ActionRowBuilder<ButtonBuilder>[] = [];
         let currentRow = new ActionRowBuilder<ButtonBuilder>();
 
@@ -137,28 +137,28 @@ export default {
           const rrRole = interaction.guild!.roles.cache.get(rrItem.roleId);
           const btn = new ButtonBuilder()
             .setCustomId(`rr_${rrItem.id}`)
-            .setLabel(rrRole?.name || 'Role')
+            .setLabel(rrRole?.name || 'Rol')
             .setStyle(ButtonStyle.Secondary);
 
           if (rrItem.emoji) {
-            try { btn.setEmoji(rrItem.emoji); } catch { /* invalid emoji */ }
+            try { btn.setEmoji(rrItem.emoji); } catch { /* emoji inválido */ }
           }
 
           currentRow.addComponents(btn);
         }
         rows.push(currentRow);
 
-        // Update the message with new buttons
+        // Actualizar el mensaje con los nuevos botones
         await message.edit({ components: rows.slice(0, 5) });
 
         await interaction.reply({
-          content: `Added **${role.name}** button to the panel. ID: \`${rr.id.slice(0, 8)}\``,
+          content: `Se añadió el botón de **${role.name}** al panel. ID: \`${rr.id.slice(0, 8)}\``,
           ephemeral: true,
         });
         break;
       }
 
-      case 'remove': {
+      case 'eliminar': {
         const id = interaction.options.getString('id', true);
 
         const rr = await prisma.reactionRole.findFirst({
@@ -166,13 +166,13 @@ export default {
         });
 
         if (!rr) {
-          await interaction.reply({ content: 'Reaction role not found.', ephemeral: true });
+          await interaction.reply({ content: 'Rol de reacción no encontrado.', ephemeral: true });
           return;
         }
 
         await prisma.reactionRole.delete({ where: { id: rr.id } });
 
-        // Rebuild buttons on the message
+        // Reconstruir botones en el mensaje
         try {
           const channel = interaction.guild!.channels.cache.get(rr.channelId) as TextChannel;
           const message = await channel.messages.fetch(rr.messageId);
@@ -196,33 +196,33 @@ export default {
               const role = interaction.guild!.roles.cache.get(rrItem.roleId);
               const btn = new ButtonBuilder()
                 .setCustomId(`rr_${rrItem.id}`)
-                .setLabel(role?.name || 'Role')
+                .setLabel(role?.name || 'Rol')
                 .setStyle(ButtonStyle.Secondary);
               if (rrItem.emoji) {
-                try { btn.setEmoji(rrItem.emoji); } catch { /* invalid */ }
+                try { btn.setEmoji(rrItem.emoji); } catch { /* inválido */ }
               }
               currentRow.addComponents(btn);
             }
             rows.push(currentRow);
             await message.edit({ components: rows.slice(0, 5) });
           }
-        } catch { /* message may have been deleted */ }
+        } catch { /* el mensaje puede haber sido eliminado */ }
 
-        await interaction.reply({ content: 'Reaction role removed.', ephemeral: true });
+        await interaction.reply({ content: 'Rol de reacción eliminado.', ephemeral: true });
         break;
       }
 
-      case 'list': {
+      case 'lista': {
         const reactionRoles = await prisma.reactionRole.findMany({
           where: { guildId },
         });
 
         if (reactionRoles.length === 0) {
-          await interaction.reply({ content: 'No reaction roles configured.', ephemeral: true });
+          await interaction.reply({ content: 'No hay roles de reacción configurados.', ephemeral: true });
           return;
         }
 
-        // Group by messageId
+        // Agrupar por messageId
         const grouped = new Map<string, typeof reactionRoles>();
         for (const rr of reactionRoles) {
           if (!grouped.has(rr.messageId)) grouped.set(rr.messageId, []);
@@ -231,16 +231,17 @@ export default {
 
         const lines: string[] = [];
         for (const [msgId, roles] of grouped) {
-          lines.push(`**Message:** \`${msgId}\` in <#${roles[0].channelId}>`);
+          lines.push(`**Mensaje:** \`${msgId}\` en <#${roles[0].channelId}>`);
           for (const rr of roles) {
-            lines.push(`  ${rr.emoji} <@&${rr.roleId}> (${rr.type}) — \`${rr.id.slice(0, 8)}\``);
+            const typeNames: Record<string, string> = { toggle: 'alternar', give: 'dar', remove: 'quitar' };
+            lines.push(`  ${rr.emoji} <@&${rr.roleId}> (${typeNames[rr.type] || rr.type}) — \`${rr.id.slice(0, 8)}\``);
           }
           lines.push('');
         }
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('moderation'))
-          .setTitle('Reaction Roles')
+          .setTitle('Roles de Reacción')
           .setDescription(lines.join('\n'))
           .setTimestamp();
 

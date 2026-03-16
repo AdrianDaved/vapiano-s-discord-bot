@@ -25,7 +25,7 @@ export default function Layout() {
         <button
           onClick={() => setSidebarOpen(true)}
           className="p-1.5 rounded-lg hover:bg-discord-lighter text-discord-muted hover:text-discord-white transition-colors"
-          aria-label="Open menu"
+          aria-label="Abrir menu"
         >
           <Menu size={22} />
         </button>

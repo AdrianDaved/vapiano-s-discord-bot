@@ -12,21 +12,21 @@ import { moduleColor, parseDuration } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('poll')
-    .setDescription('Create and manage polls')
+    .setName('encuesta')
+    .setDescription('Crear y gestionar encuestas')
     .addSubcommand((sub) =>
       sub
-        .setName('create')
-        .setDescription('Create a new poll')
-        .addStringOption((opt) => opt.setName('question').setDescription('Poll question').setRequired(true))
-        .addStringOption((opt) => opt.setName('options').setDescription('Options separated by | (e.g. Yes | No | Maybe)').setRequired(true))
-        .addStringOption((opt) => opt.setName('duration').setDescription('Duration (e.g. 1h, 1d). Leave empty for no expiry'))
+        .setName('crear')
+        .setDescription('Crear una nueva encuesta')
+        .addStringOption((opt) => opt.setName('pregunta').setDescription('Pregunta de la encuesta').setRequired(true))
+        .addStringOption((opt) => opt.setName('opciones').setDescription('Opciones separadas por | (ej. Si | No | Tal vez)').setRequired(true))
+        .addStringOption((opt) => opt.setName('duracion').setDescription('Duracion (ej. 1h, 1d). Deja vacio para no expirar'))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('end')
-        .setDescription('End an active poll')
-        .addStringOption((opt) => opt.setName('id').setDescription('Poll ID').setRequired(true))
+        .setName('finalizar')
+        .setDescription('Finalizar una encuesta activa')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID de la encuesta').setRequired(true))
     ),
   module: 'automation',
   cooldown: 10,
@@ -36,16 +36,16 @@ export default {
     const guildId = interaction.guildId!;
 
     switch (sub) {
-      case 'create': {
-        const question = interaction.options.getString('question', true);
-        const optionsStr = interaction.options.getString('options', true);
-        const durationStr = interaction.options.getString('duration');
+      case 'crear': {
+        const question = interaction.options.getString('pregunta', true);
+        const optionsStr = interaction.options.getString('opciones', true);
+        const durationStr = interaction.options.getString('duracion');
 
         const options = optionsStr.split('|').map((o) => o.trim()).filter((o) => o.length > 0);
 
         if (options.length < 2 || options.length > 10) {
           await interaction.reply({
-            content: 'Please provide between 2 and 10 options, separated by `|`.',
+            content: 'Debes proporcionar entre 2 y 10 opciones, separadas por `|`.',
             ephemeral: true,
           });
           return;
@@ -119,7 +119,7 @@ export default {
         break;
       }
 
-      case 'end': {
+      case 'finalizar': {
         const id = interaction.options.getString('id', true);
 
         const poll = await prisma.poll.findFirst({
@@ -127,7 +127,7 @@ export default {
         });
 
         if (!poll) {
-          await interaction.reply({ content: 'Poll not found or already ended.', ephemeral: true });
+          await interaction.reply({ content: 'Encuesta no encontrada o ya finalizada.', ephemeral: true });
           return;
         }
 
@@ -137,7 +137,7 @@ export default {
           !interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages)
         ) {
           await interaction.reply({
-            content: 'Only the poll creator or moderators can end a poll.',
+            content: 'Solo el creador de la encuesta o moderadores pueden finalizarla.',
             ephemeral: true,
           });
           return;
@@ -174,11 +174,11 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(0x57f287)
-          .setTitle(`📊 ${poll.question} (ENDED)`)
+          .setTitle(`📊 ${poll.question} (FINALIZADA)`)
           .setDescription(
-            `${description}\n\n🏆 **Winner: ${poll.options[winnerIdx]}** with ${maxVotes} vote(s)`
+            `${description}\n\n🏆 **Ganadora: ${poll.options[winnerIdx]}** con ${maxVotes} voto(s)`
           )
-          .setFooter({ text: `Total votes: ${totalVotes} | Poll ended` })
+          .setFooter({ text: `Votos totales: ${totalVotes} | Encuesta finalizada` })
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed] });

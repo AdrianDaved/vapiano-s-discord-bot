@@ -10,47 +10,47 @@ import { moduleColor, xpForLevel, levelFromXp } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('level')
-    .setDescription('Leveling system commands')
+    .setName('nivel')
+    .setDescription('Sistema de niveles')
     .addSubcommand((sub) =>
       sub
-        .setName('rank')
-        .setDescription('View your or another user\'s rank')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to check').setRequired(false))
+        .setName('rango')
+        .setDescription('Ver tu rango o el de otro usuario')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a consultar').setRequired(false))
     )
     .addSubcommand((sub) =>
-      sub.setName('leaderboard').setDescription('View the XP leaderboard')
-    )
-    .addSubcommand((sub) =>
-      sub
-        .setName('setxp')
-        .setDescription('Set a user\'s XP (admin only)')
-        .addUserOption((opt) => opt.setName('user').setDescription('Target user').setRequired(true))
-        .addIntegerOption((opt) => opt.setName('xp').setDescription('XP amount').setRequired(true).setMinValue(0))
+      sub.setName('ranking').setDescription('Ver el ranking de XP')
     )
     .addSubcommand((sub) =>
       sub
-        .setName('setlevel')
-        .setDescription('Set a user\'s level (admin only)')
-        .addUserOption((opt) => opt.setName('user').setDescription('Target user').setRequired(true))
-        .addIntegerOption((opt) => opt.setName('level').setDescription('Level').setRequired(true).setMinValue(0))
+        .setName('establecerxp')
+        .setDescription('Establecer la XP de un usuario (solo admins)')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario objetivo').setRequired(true))
+        .addIntegerOption((opt) => opt.setName('xp').setDescription('Cantidad de XP').setRequired(true).setMinValue(0))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('reward')
-        .setDescription('Add a level reward role')
-        .addIntegerOption((opt) => opt.setName('level').setDescription('Level to reach').setRequired(true).setMinValue(1))
-        .addRoleOption((opt) => opt.setName('role').setDescription('Role to award').setRequired(true))
-    )
-    .addSubcommand((sub) =>
-      sub.setName('rewards').setDescription('List all level reward roles')
+        .setName('establecernivel')
+        .setDescription('Establecer el nivel de un usuario (solo admins)')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario objetivo').setRequired(true))
+        .addIntegerOption((opt) => opt.setName('nivel').setDescription('Nivel').setRequired(true).setMinValue(0))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('removereward')
-        .setDescription('Remove a level reward')
-        .addIntegerOption((opt) => opt.setName('level').setDescription('Level of the reward').setRequired(true))
-        .addRoleOption((opt) => opt.setName('role').setDescription('Role to remove').setRequired(true))
+        .setName('recompensa')
+        .setDescription('Añadir un rol de recompensa por nivel')
+        .addIntegerOption((opt) => opt.setName('nivel').setDescription('Nivel a alcanzar').setRequired(true).setMinValue(1))
+        .addRoleOption((opt) => opt.setName('rol').setDescription('Rol a otorgar').setRequired(true))
+    )
+    .addSubcommand((sub) =>
+      sub.setName('recompensas').setDescription('Listar todos los roles de recompensa por nivel')
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('quitarrecompensa')
+        .setDescription('Quitar una recompensa de nivel')
+        .addIntegerOption((opt) => opt.setName('nivel').setDescription('Nivel de la recompensa').setRequired(true))
+        .addRoleOption((opt) => opt.setName('rol').setDescription('Rol a quitar').setRequired(true))
     ),
   module: 'leveling',
   cooldown: 5,
@@ -60,8 +60,8 @@ export default {
     const guildId = interaction.guildId!;
 
     switch (sub) {
-      case 'rank': {
-        const user = interaction.options.getUser('user') || interaction.user;
+      case 'rango': {
+        const user = interaction.options.getUser('usuario') || interaction.user;
 
         let userLevel = await prisma.userLevel.findUnique({
           where: { guildId_userId: { guildId, userId: user.id } },
@@ -69,13 +69,13 @@ export default {
 
         if (!userLevel) {
           await interaction.reply({
-            content: `${user.id === interaction.user.id ? 'You have' : `${user.username} has`} no XP yet.`,
+            content: `${user.id === interaction.user.id ? 'No tienes' : `${user.username} no tiene`} XP todavía.`,
             ephemeral: true,
           });
           return;
         }
 
-        // Get rank position
+        // Obtener posición en el ranking
         const rank = await prisma.userLevel.count({
           where: { guildId, xp: { gt: userLevel.xp } },
         });
@@ -95,11 +95,11 @@ export default {
           .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
           .setThumbnail(user.displayAvatarURL({ size: 256 }))
           .addFields(
-            { name: 'Rank', value: `#${rank + 1}`, inline: true },
-            { name: 'Level', value: userLevel.level.toString(), inline: true },
+            { name: 'Posición', value: `#${rank + 1}`, inline: true },
+            { name: 'Nivel', value: userLevel.level.toString(), inline: true },
             { name: 'XP', value: `${userLevel.xp.toLocaleString()} total`, inline: true },
-            { name: 'Messages', value: userLevel.messages.toLocaleString(), inline: true },
-            { name: 'Progress', value: `${progressBar} ${progressPercent}%\n${xpIntoLevel}/${currentLevelXp} XP to next level` }
+            { name: 'Mensajes', value: userLevel.messages.toLocaleString(), inline: true },
+            { name: 'Progreso', value: `${progressBar} ${progressPercent}%\n${xpIntoLevel}/${currentLevelXp} XP para el siguiente nivel` }
           )
           .setTimestamp();
 
@@ -107,7 +107,7 @@ export default {
         break;
       }
 
-      case 'leaderboard': {
+      case 'ranking': {
         const topUsers = await prisma.userLevel.findMany({
           where: { guildId },
           orderBy: { xp: 'desc' },
@@ -115,18 +115,18 @@ export default {
         });
 
         if (topUsers.length === 0) {
-          await interaction.reply({ content: 'No leveling data yet.', ephemeral: true });
+          await interaction.reply({ content: 'Aún no hay datos de niveles.', ephemeral: true });
           return;
         }
 
         const lines = topUsers.map((u, i) => {
           const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `**${i + 1}.**`;
-          return `${medal} <@${u.userId}> — Level **${u.level}** (${u.xp.toLocaleString()} XP)`;
+          return `${medal} <@${u.userId}> — Nivel **${u.level}** (${u.xp.toLocaleString()} XP)`;
         });
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('leveling'))
-          .setTitle('XP Leaderboard')
+          .setTitle('Ranking de XP')
           .setDescription(lines.join('\n'))
           .setFooter({ text: interaction.guild?.name || '' })
           .setTimestamp();
@@ -135,13 +135,13 @@ export default {
         break;
       }
 
-      case 'setxp': {
+      case 'establecerxp': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
-          await interaction.reply({ content: 'Only administrators can set XP.', ephemeral: true });
+          await interaction.reply({ content: 'Solo los administradores pueden establecer XP.', ephemeral: true });
           return;
         }
 
-        const user = interaction.options.getUser('user', true);
+        const user = interaction.options.getUser('usuario', true);
         const xp = interaction.options.getInteger('xp', true);
         const level = levelFromXp(xp);
 
@@ -152,22 +152,22 @@ export default {
         });
 
         await interaction.reply({
-          content: `Set **${user.username}**'s XP to **${xp}** (level ${level}).`,
+          content: `Se estableció la XP de **${user.username}** a **${xp}** (nivel ${level}).`,
           ephemeral: true,
         });
         break;
       }
 
-      case 'setlevel': {
+      case 'establecernivel': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
-          await interaction.reply({ content: 'Only administrators can set levels.', ephemeral: true });
+          await interaction.reply({ content: 'Solo los administradores pueden establecer niveles.', ephemeral: true });
           return;
         }
 
-        const user = interaction.options.getUser('user', true);
-        const targetLevel = interaction.options.getInteger('level', true);
+        const user = interaction.options.getUser('usuario', true);
+        const targetLevel = interaction.options.getInteger('nivel', true);
 
-        // Calculate total XP for the target level
+        // Calcular XP total para el nivel objetivo
         let totalXp = 0;
         for (let i = 0; i < targetLevel; i++) {
           totalXp += xpForLevel(i);
@@ -180,20 +180,20 @@ export default {
         });
 
         await interaction.reply({
-          content: `Set **${user.username}**'s level to **${targetLevel}** (${totalXp} XP).`,
+          content: `Se estableció el nivel de **${user.username}** a **${targetLevel}** (${totalXp} XP).`,
           ephemeral: true,
         });
         break;
       }
 
-      case 'reward': {
+      case 'recompensa': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles)) {
-          await interaction.reply({ content: 'You need the **Manage Roles** permission.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso **Gestionar Roles**.', ephemeral: true });
           return;
         }
 
-        const level = interaction.options.getInteger('level', true);
-        const role = interaction.options.getRole('role', true);
+        const level = interaction.options.getInteger('nivel', true);
+        const role = interaction.options.getRole('rol', true);
 
         await prisma.levelReward.upsert({
           where: { guildId_level_roleId: { guildId, level, roleId: role.id } },
@@ -202,30 +202,30 @@ export default {
         });
 
         await interaction.reply({
-          content: `Users will receive **${role.name}** upon reaching level **${level}**.`,
+          content: `Los usuarios recibirán **${role.name}** al alcanzar el nivel **${level}**.`,
           ephemeral: true,
         });
         break;
       }
 
-      case 'rewards': {
+      case 'recompensas': {
         const rewards = await prisma.levelReward.findMany({
           where: { guildId },
           orderBy: { level: 'asc' },
         });
 
         if (rewards.length === 0) {
-          await interaction.reply({ content: 'No level rewards configured.', ephemeral: true });
+          await interaction.reply({ content: 'No hay recompensas de nivel configuradas.', ephemeral: true });
           return;
         }
 
         const lines = rewards.map(
-          (r) => `Level **${r.level}** → <@&${r.roleId}>`
+          (r) => `Nivel **${r.level}** → <@&${r.roleId}>`
         );
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('leveling'))
-          .setTitle('Level Rewards')
+          .setTitle('Recompensas de Nivel')
           .setDescription(lines.join('\n'))
           .setTimestamp();
 
@@ -233,26 +233,26 @@ export default {
         break;
       }
 
-      case 'removereward': {
+      case 'quitarrecompensa': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles)) {
-          await interaction.reply({ content: 'You need the **Manage Roles** permission.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso **Gestionar Roles**.', ephemeral: true });
           return;
         }
 
-        const level = interaction.options.getInteger('level', true);
-        const role = interaction.options.getRole('role', true);
+        const level = interaction.options.getInteger('nivel', true);
+        const role = interaction.options.getRole('rol', true);
 
         const deleted = await prisma.levelReward.deleteMany({
           where: { guildId, level, roleId: role.id },
         });
 
         if (deleted.count === 0) {
-          await interaction.reply({ content: 'No matching level reward found.', ephemeral: true });
+          await interaction.reply({ content: 'No se encontró la recompensa de nivel.', ephemeral: true });
           return;
         }
 
         await interaction.reply({
-          content: `Removed **${role.name}** reward from level **${level}**.`,
+          content: `Se quitó la recompensa **${role.name}** del nivel **${level}**.`,
           ephemeral: true,
         });
         break;

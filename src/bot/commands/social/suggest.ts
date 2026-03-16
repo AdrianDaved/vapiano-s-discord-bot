@@ -13,37 +13,37 @@ import { moduleColor, getGuildConfig } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('suggest')
-    .setDescription('Suggestion system commands')
+    .setName('sugerencia')
+    .setDescription('Sistema de sugerencias')
     .addSubcommand((sub) =>
       sub
-        .setName('create')
-        .setDescription('Submit a new suggestion')
-        .addStringOption((opt) => opt.setName('content').setDescription('Your suggestion').setRequired(true))
+        .setName('crear')
+        .setDescription('Enviar una nueva sugerencia')
+        .addStringOption((opt) => opt.setName('contenido').setDescription('Tu sugerencia').setRequired(true))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('approve')
-        .setDescription('Approve a suggestion (mod only)')
-        .addStringOption((opt) => opt.setName('id').setDescription('Suggestion ID').setRequired(true))
-        .addStringOption((opt) => opt.setName('note').setDescription('Staff note').setRequired(false))
+        .setName('aprobar')
+        .setDescription('Aprobar una sugerencia (solo mods)')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID de la sugerencia').setRequired(true))
+        .addStringOption((opt) => opt.setName('nota').setDescription('Nota del staff').setRequired(false))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('deny')
-        .setDescription('Deny a suggestion (mod only)')
-        .addStringOption((opt) => opt.setName('id').setDescription('Suggestion ID').setRequired(true))
-        .addStringOption((opt) => opt.setName('note').setDescription('Reason for denial').setRequired(false))
+        .setName('rechazar')
+        .setDescription('Rechazar una sugerencia (solo mods)')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID de la sugerencia').setRequired(true))
+        .addStringOption((opt) => opt.setName('nota').setDescription('Razón del rechazo').setRequired(false))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('implement')
-        .setDescription('Mark a suggestion as implemented (mod only)')
-        .addStringOption((opt) => opt.setName('id').setDescription('Suggestion ID').setRequired(true))
-        .addStringOption((opt) => opt.setName('note').setDescription('Implementation notes').setRequired(false))
+        .setName('implementar')
+        .setDescription('Marcar una sugerencia como implementada (solo mods)')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID de la sugerencia').setRequired(true))
+        .addStringOption((opt) => opt.setName('nota').setDescription('Notas de implementación').setRequired(false))
     )
     .addSubcommand((sub) =>
-      sub.setName('list').setDescription('List recent suggestions')
+      sub.setName('lista').setDescription('Listar sugerencias recientes')
     ),
   module: 'suggestions',
   cooldown: 10,
@@ -53,19 +53,19 @@ export default {
     const guildId = interaction.guildId!;
 
     switch (sub) {
-      case 'create': {
-        const content = interaction.options.getString('content', true);
+      case 'crear': {
+        const content = interaction.options.getString('contenido', true);
         const config = await getGuildConfig(guildId);
 
         const channelId = config.suggestionsChannelId || interaction.channelId;
         const channel = interaction.guild!.channels.cache.get(channelId) as TextChannel;
 
         if (!channel) {
-          await interaction.reply({ content: 'Suggestions channel not configured. Ask an admin to set it with `/config`.', ephemeral: true });
+          await interaction.reply({ content: 'Canal de sugerencias no configurado. Pide a un admin que lo configure con `/config`.', ephemeral: true });
           return;
         }
 
-        // Create the suggestion in DB first to get the ID
+        // Crear la sugerencia en BD primero para obtener el ID
         const suggestion = await prisma.suggestion.create({
           data: {
             guildId,
@@ -78,11 +78,11 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(moduleColor('suggestions'))
           .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
-          .setTitle('New Suggestion')
+          .setTitle('Nueva Sugerencia')
           .setDescription(content)
           .addFields(
-            { name: 'Status', value: '⏳ Pending', inline: true },
-            { name: 'Votes', value: '👍 0 | 👎 0', inline: true },
+            { name: 'Estado', value: '⏳ Pendiente', inline: true },
+            { name: 'Votos', value: '👍 0 | 👎 0', inline: true },
           )
           .setFooter({ text: `ID: ${suggestion.id.slice(0, 8)}` })
           .setTimestamp();
@@ -90,11 +90,11 @@ export default {
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId(`suggest_up_${suggestion.id}`)
-            .setLabel('👍 Upvote')
+            .setLabel('👍 A favor')
             .setStyle(ButtonStyle.Success),
           new ButtonBuilder()
             .setCustomId(`suggest_down_${suggestion.id}`)
-            .setLabel('👎 Downvote')
+            .setLabel('👎 En contra')
             .setStyle(ButtonStyle.Danger),
         );
 
@@ -106,25 +106,25 @@ export default {
         });
 
         if (channelId !== interaction.channelId) {
-          await interaction.reply({ content: `Your suggestion has been submitted in ${channel}!`, ephemeral: true });
+          await interaction.reply({ content: `¡Tu sugerencia ha sido enviada en ${channel}!`, ephemeral: true });
         } else {
-          await interaction.reply({ content: 'Suggestion submitted!', ephemeral: true });
+          await interaction.reply({ content: '¡Sugerencia enviada!', ephemeral: true });
         }
         break;
       }
 
-      case 'approve':
-      case 'deny':
-      case 'implement': {
+      case 'aprobar':
+      case 'rechazar':
+      case 'implementar': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-          await interaction.reply({ content: 'You need the **Manage Server** permission.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso **Gestionar Servidor**.', ephemeral: true });
           return;
         }
 
         const id = interaction.options.getString('id', true);
-        const note = interaction.options.getString('note');
+        const note = interaction.options.getString('nota');
 
-        // Find suggestion by partial ID match
+        // Buscar sugerencia por coincidencia parcial de ID
         const suggestion = await prisma.suggestion.findFirst({
           where: {
             guildId,
@@ -133,20 +133,20 @@ export default {
         });
 
         if (!suggestion) {
-          await interaction.reply({ content: 'Suggestion not found.', ephemeral: true });
+          await interaction.reply({ content: 'Sugerencia no encontrada.', ephemeral: true });
           return;
         }
 
         const statusMap: Record<string, string> = {
-          approve: 'approved',
-          deny: 'denied',
-          implement: 'implemented',
+          aprobar: 'approved',
+          rechazar: 'denied',
+          implementar: 'implemented',
         };
 
         const statusEmojiMap: Record<string, string> = {
-          approved: '✅ Approved',
-          denied: '❌ Denied',
-          implemented: '🚀 Implemented',
+          approved: '✅ Aprobada',
+          denied: '❌ Rechazada',
+          implemented: '🚀 Implementada',
         };
 
         const colorMap: Record<string, number> = {
@@ -166,7 +166,7 @@ export default {
           },
         });
 
-        // Update the original message
+        // Actualizar el mensaje original
         try {
           const channel = interaction.guild!.channels.cache.get(suggestion.channelId) as TextChannel;
           if (channel && suggestion.messageId) {
@@ -174,23 +174,29 @@ export default {
             const embed = EmbedBuilder.from(msg.embeds[0])
               .setColor(colorMap[newStatus])
               .setFields(
-                { name: 'Status', value: statusEmojiMap[newStatus], inline: true },
-                { name: 'Votes', value: `👍 ${suggestion.upvotes.length} | 👎 ${suggestion.downvotes.length}`, inline: true },
-                ...(note ? [{ name: 'Staff Note', value: note }] : []),
+                { name: 'Estado', value: statusEmojiMap[newStatus], inline: true },
+                { name: 'Votos', value: `👍 ${suggestion.upvotes.length} | 👎 ${suggestion.downvotes.length}`, inline: true },
+                ...(note ? [{ name: 'Nota del Staff', value: note }] : []),
               );
 
             await msg.edit({ embeds: [embed] });
           }
-        } catch { /* message may not exist */ }
+        } catch { /* el mensaje puede no existir */ }
+
+        const statusNames: Record<string, string> = {
+          approved: 'aprobada',
+          denied: 'rechazada',
+          implemented: 'implementada',
+        };
 
         await interaction.reply({
-          content: `Suggestion \`${suggestion.id.slice(0, 8)}\` has been **${newStatus}**.`,
+          content: `La sugerencia \`${suggestion.id.slice(0, 8)}\` ha sido **${statusNames[newStatus]}**.`,
           ephemeral: true,
         });
         break;
       }
 
-      case 'list': {
+      case 'lista': {
         const suggestions = await prisma.suggestion.findMany({
           where: { guildId },
           orderBy: { createdAt: 'desc' },
@@ -198,7 +204,7 @@ export default {
         });
 
         if (suggestions.length === 0) {
-          await interaction.reply({ content: 'No suggestions yet.', ephemeral: true });
+          await interaction.reply({ content: 'Aún no hay sugerencias.', ephemeral: true });
           return;
         }
 
@@ -217,7 +223,7 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('suggestions'))
-          .setTitle('Recent Suggestions')
+          .setTitle('Sugerencias Recientes')
           .setDescription(lines.join('\n'))
           .setTimestamp();
 

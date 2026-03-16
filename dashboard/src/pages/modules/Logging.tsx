@@ -35,7 +35,7 @@ export default function Logging() {
         setAuditLogChannelId(data.auditLogChannelId ?? '');
         setVoiceLogChannelId(data.voiceLogChannelId ?? '');
       })
-      .catch((err) => setError(err.message || 'Failed to load logging settings'))
+      .catch((err) => setError(err.message || 'No se pudo cargar la configuracion de registros'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
@@ -50,22 +50,22 @@ export default function Logging() {
         auditLogChannelId: auditLogChannelId || null,
         voiceLogChannelId: voiceLogChannelId || null,
       });
-      toast.success('Logging settings saved');
+      toast.success('Configuracion de registros guardada');
     } catch {
-      toast.error('Failed to save settings');
+      toast.error('No se pudo guardar la configuracion');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <Loader text="Loading logging settings..." />;
+  if (loading) return <Loader text="Cargando configuracion de registros..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">Failed to load logging settings</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudo cargar la configuracion de registros</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
-        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Retry</button>
+        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
     );
   }
@@ -73,63 +73,63 @@ export default function Logging() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Logging</h1>
-        <p className="text-discord-muted mt-1">Configure where different events are logged</p>
+        <h1 className="text-2xl font-bold text-discord-white">Registros</h1>
+        <p className="text-discord-muted mt-1">Configura donde se registran diferentes eventos</p>
       </div>
 
       <div className="space-y-6">
         <Card title="General">
           <div className="mt-3">
             <Toggle
-              label="Enable Logging"
-              description="Master toggle for all server event logging (role/channel/voice changes)"
+               label="Activar registros"
+               description="Interruptor principal para todo registro de eventos del servidor (cambios de rol/canal/voz)"
               enabled={loggingEnabled}
               onChange={(v) => {
                 setLoggingEnabled(v);
                 if (guildId) configApi.update(guildId, { loggingEnabled: v }).then(
-                  () => toast.success(`Logging ${v ? 'enabled' : 'disabled'}`),
-                  () => toast.error('Failed to update'),
+                  () => toast.success(`Registros ${v ? 'activados' : 'desactivados'}`),
+                  () => toast.error('No se pudo actualizar'),
                 );
               }}
             />
           </div>
         </Card>
 
-        <Card title="Log Channels" description="Set channel IDs for each log type. Leave empty to disable.">
+        <Card title="Canales de registro" description="Define IDs de canal para cada tipo de registro. Deja vacio para desactivar.">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
             <Input
-              label="Moderation Log Channel"
-              placeholder="Bans, kicks, mutes, warnings"
+               label="Canal de registro de moderacion"
+               placeholder="Baneos, expulsiones, silencios, advertencias"
               value={modLogChannelId}
               onChange={(e) => setModLogChannelId(e.target.value)}
             />
             <Input
-              label="Message Log Channel"
-              placeholder="Message edits & deletions"
+               label="Canal de registro de mensajes"
+               placeholder="Ediciones y eliminaciones de mensajes"
               value={messageLogChannelId}
               onChange={(e) => setMessageLogChannelId(e.target.value)}
             />
             <Input
-              label="Join/Leave Log Channel"
-              placeholder="Member joins & leaves"
+               label="Canal de registro de entradas/salidas"
+               placeholder="Entradas y salidas de miembros"
               value={joinLeaveLogChannelId}
               onChange={(e) => setJoinLeaveLogChannelId(e.target.value)}
             />
             <Input
-              label="Audit Log Channel"
-              placeholder="Role/channel/nickname changes"
+               label="Canal de registro de auditoria"
+               placeholder="Cambios de rol/canal/apodo"
               value={auditLogChannelId}
               onChange={(e) => setAuditLogChannelId(e.target.value)}
             />
             <Input
-              label="Voice Log Channel"
-              placeholder="Voice joins, leaves, moves"
+               label="Canal de registro de voz"
+               placeholder="Entradas, salidas y movimientos de voz"
               value={voiceLogChannelId}
               onChange={(e) => setVoiceLogChannelId(e.target.value)}
             />
           </div>
           <div className="flex justify-end mt-4">
-            <Button onClick={save} loading={saving}>Save Changes</Button>
+            <Button onClick={save} loading={saving}>Guardar cambios</Button>
           </div>
         </Card>
       </div>

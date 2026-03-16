@@ -8,15 +8,15 @@ import { moduleColor } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('userinfo')
-    .setDescription('View information about a user')
+    .setName('usuario')
+    .setDescription('Ver información sobre un usuario')
     .addUserOption((opt) =>
-      opt.setName('user').setDescription('User to check (default: yourself)').setRequired(false)
+      opt.setName('usuario').setDescription('Usuario a consultar (por defecto: tú mismo)').setRequired(false)
     ),
   cooldown: 5,
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const user = interaction.options.getUser('user') || interaction.user;
+    const user = interaction.options.getUser('usuario') || interaction.user;
     const member = interaction.guild?.members.cache.get(user.id) as GuildMember | undefined;
 
     const badges: Record<string, string> = {
@@ -25,16 +25,16 @@ export default {
       Hypesquad: '🏠',
       BugHunterLevel1: '🐛',
       BugHunterLevel2: '🐛',
-      HypeSquadOnlineHouse1: '🟣 Bravery',
-      HypeSquadOnlineHouse2: '🟢 Brilliance',
-      HypeSquadOnlineHouse3: '🟡 Balance',
-      PremiumEarlySupporter: '👑 Early Supporter',
-      VerifiedDeveloper: '✅ Verified Dev',
-      ActiveDeveloper: '💻 Active Dev',
+      HypeSquadOnlineHouse1: '🟣 Valentía',
+      HypeSquadOnlineHouse2: '🟢 Brillantez',
+      HypeSquadOnlineHouse3: '🟡 Equilibrio',
+      PremiumEarlySupporter: '👑 Supporter Temprano',
+      VerifiedDeveloper: '✅ Dev Verificado',
+      ActiveDeveloper: '💻 Dev Activo',
     };
 
     const userFlags = user.flags?.toArray() || [];
-    const badgeList = userFlags.map((f) => badges[f] || f).join(', ') || 'None';
+    const badgeList = userFlags.map((f) => badges[f] || f).join(', ') || 'Ninguna';
 
     const createdTimestamp = Math.floor(user.createdTimestamp / 1000);
 
@@ -44,9 +44,9 @@ export default {
       .setThumbnail(user.displayAvatarURL({ size: 512 }))
       .addFields(
         { name: 'ID', value: user.id, inline: true },
-        { name: 'Bot', value: user.bot ? 'Yes' : 'No', inline: true },
-        { name: 'Created', value: `<t:${createdTimestamp}:F>\n(<t:${createdTimestamp}:R>)`, inline: true },
-        { name: 'Badges', value: badgeList, inline: false },
+        { name: 'Bot', value: user.bot ? 'Sí' : 'No', inline: true },
+        { name: 'Creado', value: `<t:${createdTimestamp}:F>\n(<t:${createdTimestamp}:R>)`, inline: true },
+        { name: 'Insignias', value: badgeList, inline: false },
       );
 
     if (member) {
@@ -59,17 +59,17 @@ export default {
 
       const boostSince = member.premiumSince
         ? `<t:${Math.floor(member.premiumSinceTimestamp! / 1000)}:R>`
-        : 'Not boosting';
+        : 'No está boosteando';
 
       embed.addFields(
-        { name: 'Joined Server', value: `<t:${joinedTimestamp}:F>\n(<t:${joinedTimestamp}:R>)`, inline: true },
-        { name: 'Nickname', value: member.nickname || 'None', inline: true },
-        { name: 'Boosting', value: boostSince, inline: true },
-        { name: `Roles [${roles.length}]`, value: roles.join(', ') || 'None', inline: false },
+        { name: 'Se unió al servidor', value: `<t:${joinedTimestamp}:F>\n(<t:${joinedTimestamp}:R>)`, inline: true },
+        { name: 'Apodo', value: member.nickname || 'Ninguno', inline: true },
+        { name: 'Boosteando', value: boostSince, inline: true },
+        { name: `Roles [${roles.length}]`, value: roles.join(', ') || 'Ninguno', inline: false },
       );
 
       if (member.displayColor) {
-        embed.addFields({ name: 'Display Color', value: `#${member.displayColor.toString(16).padStart(6, '0')}`, inline: true });
+        embed.addFields({ name: 'Color de visualización', value: `#${member.displayColor.toString(16).padStart(6, '0')}`, inline: true });
       }
     }
 

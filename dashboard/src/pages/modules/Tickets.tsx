@@ -114,11 +114,11 @@ type Tab = 'overview' | 'panels' | 'tickets' | 'transcripts';
 
 // ─── Default Panel Data ──────────────────────────────────
 const DEFAULT_PANEL: Partial<TicketPanel> = {
-  name: 'Default',
-  title: 'Support Tickets',
-  description: 'Click the button below to create a ticket.',
+  name: 'Predeterminado',
+  title: 'Tickets de soporte',
+  description: 'Haz clic en el boton de abajo para crear un ticket.',
   embedColor: '#5865F2',
-  buttonLabel: 'Create Ticket',
+  buttonLabel: 'Crear ticket',
   buttonEmoji: '🎫',
   buttonColor: 'Primary',
   style: 'button',
@@ -128,11 +128,11 @@ const DEFAULT_PANEL: Partial<TicketPanel> = {
   ticketLimit: 1,
   mentionStaff: true,
   mentionCreator: true,
-  welcomeTitle: 'Ticket Opened',
-  welcomeMessage: 'Welcome! Please describe your issue.\nA staff member will assist you shortly.',
+  welcomeTitle: 'Ticket abierto',
+  welcomeMessage: 'Bienvenido! Describe tu problema.\nUn miembro del staff te ayudara pronto.',
   welcomeColor: '#5865F2',
   closeRequestEnabled: true,
-  closeRequestMessage: 'Are you sure you want to close this ticket?',
+  closeRequestMessage: 'Seguro que quieres cerrar este ticket?',
   claimEnabled: true,
   claimLockOthers: false,
   transcriptEnabled: true,
@@ -142,10 +142,10 @@ const DEFAULT_PANEL: Partial<TicketPanel> = {
   showClaimButton: true,
   showTranscriptButton: true,
   formEnabled: false,
-  formTitle: 'Ticket Form',
+  formTitle: 'Formulario de ticket',
   formQuestions: [],
   feedbackEnabled: false,
-  feedbackMessage: 'How would you rate the support you received?',
+  feedbackMessage: 'Como calificarias el soporte que recibiste?',
 };
 
 // ─── Priority helpers ────────────────────────────────────
@@ -157,17 +157,17 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const PRIORITY_OPTIONS = [
-  { value: '', label: 'All Priorities' },
-  { value: 'low', label: 'Low' },
+  { value: '', label: 'Todas las prioridades' },
+  { value: 'low', label: 'Baja' },
   { value: 'normal', label: 'Normal' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
+  { value: 'high', label: 'Alta' },
+  { value: 'urgent', label: 'Urgente' },
 ];
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'open', label: 'Open' },
-  { value: 'closed', label: 'Closed' },
+  { value: '', label: 'Todos los estados' },
+  { value: 'open', label: 'Abierto' },
+  { value: 'closed', label: 'Cerrado' },
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -282,21 +282,21 @@ export default function Tickets() {
       if (editingPanelId) {
         const updated = await ticketsApi.updatePanel(guildId, editingPanelId, editingPanel);
         setPanels((prev) => prev.map((p) => (p.id === editingPanelId ? updated : p)));
-        toast.success('Panel updated');
+          toast.success('Panel actualizado');
       } else {
         if (!editingPanel.channelId) {
-          toast.error('Channel ID is required');
+          toast.error('El ID del canal es obligatorio');
           setSavingPanel(false);
           return;
         }
         const created = await ticketsApi.createPanel(guildId, editingPanel);
         setPanels((prev) => [...prev, created]);
-        toast.success('Panel created');
+        toast.success('Panel creado');
       }
       setShowPanelModal(false);
       fetchOverview();
     } catch {
-      toast.error('Failed to save panel');
+      toast.error('No se pudo guardar el panel');
     } finally {
       setSavingPanel(false);
     }
@@ -307,10 +307,10 @@ export default function Tickets() {
     try {
       await ticketsApi.deletePanel(guildId, id);
       setPanels((prev) => prev.filter((p) => p.id !== id));
-      toast.success('Panel deleted');
+      toast.success('Panel eliminado');
       fetchOverview();
     } catch {
-      toast.error('Failed to delete panel');
+      toast.error('No se pudo eliminar el panel');
     }
   };
 
@@ -322,7 +322,7 @@ export default function Tickets() {
       const data = await ticketsApi.getTranscript(guildId, id);
       setViewingTranscript(data);
     } catch {
-      toast.error('Failed to load transcript');
+      toast.error('No se pudo cargar la transcripcion');
     } finally {
       setLoadingTranscript(false);
     }
@@ -342,7 +342,7 @@ export default function Tickets() {
   };
 
   // ─── Loading state ───────────────────────────────────
-  if (configLoading || loading) return <Loader text="Loading tickets..." />;
+  if (configLoading || loading) return <Loader text="Cargando tickets..." />;
 
   // ═══════════════════════════════════════════════════════
   // RENDER
@@ -351,17 +351,17 @@ export default function Tickets() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-discord-white">Ticket System</h1>
-        <p className="text-discord-muted mt-1">Manage ticket panels, view tickets, and browse transcripts</p>
+        <h1 className="text-2xl font-bold text-discord-white">Sistema de tickets</h1>
+        <p className="text-discord-muted mt-1">Administra paneles, revisa tickets y consulta transcripciones</p>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-discord-darker rounded-lg p-1">
         {([
-          { key: 'overview', label: 'Overview', icon: TrendingUp },
-          { key: 'panels', label: 'Panels', icon: Settings },
+          { key: 'overview', label: 'Resumen', icon: TrendingUp },
+          { key: 'panels', label: 'Paneles', icon: Settings },
           { key: 'tickets', label: 'Tickets', icon: Ticket },
-          { key: 'transcripts', label: 'Transcripts', icon: FileText },
+          { key: 'transcripts', label: 'Transcripciones', icon: FileText },
         ] as const).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -382,25 +382,25 @@ export default function Tickets() {
       {tab === 'overview' && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard label="Open Tickets" value={ticketStats?.open ?? 0} icon={FolderOpen} color="text-discord-green" />
-            <StatCard label="Closed Tickets" value={ticketStats?.closed ?? 0} icon={FolderClosed} color="text-discord-muted" />
-            <StatCard label="This Week" value={ticketStats?.thisWeek ?? 0} icon={TrendingUp} color="text-discord-blurple" />
-            <StatCard label="Avg Rating" value={ticketStats?.avgRating ? `${ticketStats.avgRating}/5` : 'N/A'} icon={Star} color="text-yellow-400" />
+            <StatCard label="Tickets abiertos" value={ticketStats?.open ?? 0} icon={FolderOpen} color="text-discord-green" />
+            <StatCard label="Tickets cerrados" value={ticketStats?.closed ?? 0} icon={FolderClosed} color="text-discord-muted" />
+            <StatCard label="Esta semana" value={ticketStats?.thisWeek ?? 0} icon={TrendingUp} color="text-discord-blurple" />
+            <StatCard label="Promedio" value={ticketStats?.avgRating ? `${ticketStats.avgRating}/5` : 'N/D'} icon={Star} color="text-yellow-400" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <StatCard label="Total Tickets" value={ticketStats?.total ?? 0} icon={Ticket} color="text-discord-blurple" />
-            <StatCard label="Panels" value={ticketStats?.panels ?? 0} icon={Settings} color="text-purple-400" />
-            <StatCard label="Transcripts" value={ticketStats?.transcripts ?? 0} icon={FileText} color="text-cyan-400" />
+            <StatCard label="Tickets totales" value={ticketStats?.total ?? 0} icon={Ticket} color="text-discord-blurple" />
+            <StatCard label="Paneles" value={ticketStats?.panels ?? 0} icon={Settings} color="text-purple-400" />
+            <StatCard label="Transcripciones" value={ticketStats?.transcripts ?? 0} icon={FileText} color="text-cyan-400" />
           </div>
 
           {/* Quick panel list */}
-          <Card title="Ticket Panels" description="Quick overview of configured panels">
+          <Card title="Paneles de tickets" description="Resumen rapido de paneles configurados">
             {panels.length === 0 ? (
               <div className="text-center py-8 text-discord-muted">
-                <p>No ticket panels configured.</p>
+                <p>No hay paneles de tickets configurados.</p>
                 <Button size="sm" className="mt-3" onClick={() => { setTab('panels'); openNewPanel(); }}>
-                  <Plus size={14} /> Create First Panel
+                  <Plus size={14} /> Crear primer panel
                 </Button>
               </div>
             ) : (
@@ -409,7 +409,7 @@ export default function Tickets() {
                   <div key={panel.id} className="flex items-center justify-between p-3 rounded-lg bg-discord-darker">
                     <div>
                       <p className="text-sm font-medium text-discord-white">{panel.name}</p>
-                      <p className="text-xs text-discord-muted">{panel.title} &middot; {panel._count?.tickets ?? 0} tickets &middot; {panel._count?.transcripts ?? 0} transcripts</p>
+                       <p className="text-xs text-discord-muted">{panel.title} &middot; {panel._count?.tickets ?? 0} tickets &middot; {panel._count?.transcripts ?? 0} transcripciones</p>
                     </div>
                     <Button size="sm" variant="ghost" onClick={() => { setTab('panels'); openEditPanel(panel); }}>
                       <Edit3 size={14} />
@@ -425,17 +425,17 @@ export default function Tickets() {
       {/* ═══════ PANELS TAB ═══════ */}
       {tab === 'panels' && (
         <Card
-          title="Ticket Panels"
-          description="Configure panels that users interact with to create tickets"
+          title="Paneles de tickets"
+          description="Configura paneles con los que los usuarios interactuan para crear tickets"
           action={
             <Button size="sm" onClick={openNewPanel}>
-              <Plus size={14} /> New Panel
+              <Plus size={14} /> Nuevo panel
             </Button>
           }
         >
           {panels.length === 0 ? (
             <div className="text-center py-8 text-discord-muted">
-              <p>No panels yet. Create one to get started.</p>
+              <p>Aun no hay paneles. Crea uno para empezar.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -447,19 +447,19 @@ export default function Tickets() {
                       <p className="text-sm font-semibold text-discord-white truncate">{panel.name}</p>
                       <span className="text-xs px-2 py-0.5 rounded-full bg-discord-lighter text-discord-muted">{panel.style}</span>
                     </div>
-                    <p className="text-xs text-discord-muted mt-1 truncate">{panel.title} &middot; Channel: {panel.channelId}</p>
+                     <p className="text-xs text-discord-muted mt-1 truncate">{panel.title} &middot; Canal: {panel.channelId}</p>
                     <div className="flex gap-3 mt-1 text-xs text-discord-muted">
                       <span>{panel._count?.tickets ?? 0} tickets</span>
-                      <span>{panel._count?.transcripts ?? 0} transcripts</span>
-                      <span>Limit: {panel.ticketLimit}/user</span>
-                      {panel.claimEnabled && <span>Claiming ON</span>}
-                      {panel.formEnabled && <span>Form ON</span>}
-                      {panel.feedbackEnabled && <span>Feedback ON</span>}
+                      <span>{panel._count?.transcripts ?? 0} transcripciones</span>
+                      <span>Limite: {panel.ticketLimit}/usuario</span>
+                      {panel.claimEnabled && <span>Asignacion ACTIVA</span>}
+                      {panel.formEnabled && <span>Formulario ACTIVO</span>}
+                      {panel.feedbackEnabled && <span>Feedback ACTIVO</span>}
                     </div>
                   </div>
                   <div className="flex gap-2 ml-3">
                     <Button size="sm" variant="secondary" onClick={() => openEditPanel(panel)}>
-                      <Edit3 size={14} /> Edit
+                      <Edit3 size={14} /> Editar
                     </Button>
                     <Button size="sm" variant="danger" onClick={() => deletePanel(panel.id)}>
                       <Trash2 size={14} />
@@ -474,12 +474,12 @@ export default function Tickets() {
 
       {/* ═══════ TICKETS TAB ═══════ */}
       {tab === 'tickets' && (
-        <Card title={`Tickets (${ticketTotal})`} description="Browse and filter all tickets">
+         <Card title={`Tickets (${ticketTotal})`} description="Explora y filtra todos los tickets">
           {/* Filters */}
           <div className="flex flex-wrap gap-3 mb-4">
             <div className="w-40">
               <Select
-                label="Status"
+                 label="Estado"
                 options={STATUS_OPTIONS}
                 value={filterStatus}
                 onChange={(e) => { setFilterStatus(e.target.value); setTicketPage(1); }}
@@ -487,7 +487,7 @@ export default function Tickets() {
             </div>
             <div className="w-40">
               <Select
-                label="Priority"
+                 label="Prioridad"
                 options={PRIORITY_OPTIONS}
                 value={filterPriority}
                 onChange={(e) => { setFilterPriority(e.target.value); setTicketPage(1); }}
@@ -496,8 +496,8 @@ export default function Tickets() {
             {panels.length > 0 && (
               <div className="w-48">
                 <Select
-                  label="Panel"
-                  options={[{ value: '', label: 'All Panels' }, ...panels.map((p) => ({ value: p.id, label: p.name }))]}
+                   label="Panel"
+                   options={[{ value: '', label: 'Todos los paneles' }, ...panels.map((p) => ({ value: p.id, label: p.name }))]}
                   value={filterPanel}
                   onChange={(e) => { setFilterPanel(e.target.value); setTicketPage(1); }}
                 />
@@ -505,7 +505,7 @@ export default function Tickets() {
             )}
             <div className="flex items-end">
               <Button size="sm" variant="secondary" onClick={() => fetchTickets(ticketPage)}>
-                <Search size={14} /> Search
+                 <Search size={14} /> Buscar
               </Button>
             </div>
           </div>
@@ -519,7 +519,7 @@ export default function Tickets() {
               },
               {
                 key: 'status',
-                label: 'Status',
+                 label: 'Estado',
                 render: (t: TicketEntry) => (
                   <span className={`text-xs font-semibold uppercase px-2 py-0.5 rounded-full ${
                     t.status === 'open' ? 'bg-discord-green/20 text-discord-green' : 'bg-discord-lighter text-discord-muted'
@@ -530,7 +530,7 @@ export default function Tickets() {
               },
               {
                 key: 'priority',
-                label: 'Priority',
+                 label: 'Prioridad',
                 render: (t: TicketEntry) => (
                   <span className={`text-xs font-medium uppercase ${PRIORITY_COLORS[t.priority] || 'text-discord-white'}`}>
                     {t.priority === 'urgent' && <AlertTriangle size={12} className="inline mr-1" />}
@@ -538,34 +538,34 @@ export default function Tickets() {
                   </span>
                 ),
               },
-              { key: 'userId', label: 'User', render: (t: TicketEntry) => <code className="text-xs text-discord-muted">{t.userId}</code> },
+               { key: 'userId', label: 'Usuario', render: (t: TicketEntry) => <code className="text-xs text-discord-muted">{t.userId}</code> },
               {
                 key: 'panel',
-                label: 'Panel',
+                 label: 'Panel',
                 render: (t: TicketEntry) => <span className="text-xs text-discord-muted">{t.panel?.name || '-'}</span>,
               },
-              { key: 'claimedBy', label: 'Claimed', render: (t: TicketEntry) => <span className="text-xs text-discord-muted">{t.claimedBy || '-'}</span> },
+               { key: 'claimedBy', label: 'Asignado', render: (t: TicketEntry) => <span className="text-xs text-discord-muted">{t.claimedBy || '-'}</span> },
               {
                 key: 'rating',
-                label: 'Rating',
+                 label: 'Valoracion',
                 render: (t: TicketEntry) => t.rating ? (
                   <span className="text-yellow-400 text-xs">{'★'.repeat(t.rating)}{'☆'.repeat(5 - t.rating)}</span>
                 ) : <span className="text-discord-muted text-xs">-</span>,
               },
               {
                 key: 'createdAt',
-                label: 'Created',
+                 label: 'Creado',
                 render: (t: TicketEntry) => <span className="text-xs text-discord-muted">{new Date(t.createdAt).toLocaleDateString()}</span>,
               },
             ]}
             data={ticketList}
-            emptyMessage="No tickets match your filters."
+            emptyMessage="Ningun ticket coincide con tus filtros."
           />
 
           {/* Pagination */}
           {ticketPages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-discord-lighter">
-              <span className="text-xs text-discord-muted">Page {ticketPage} of {ticketPages} ({ticketTotal} total)</span>
+              <span className="text-xs text-discord-muted">Pagina {ticketPage} de {ticketPages} ({ticketTotal} total)</span>
               <div className="flex gap-2">
                 <Button size="sm" variant="secondary" disabled={ticketPage <= 1} onClick={() => fetchTickets(ticketPage - 1)}>
                   <ChevronLeft size={14} />
@@ -581,20 +581,20 @@ export default function Tickets() {
 
       {/* ═══════ TRANSCRIPTS TAB ═══════ */}
       {tab === 'transcripts' && (
-        <Card title={`Transcripts (${transcriptTotal})`} description="Browse saved ticket transcripts">
+         <Card title={`Transcripciones (${transcriptTotal})`} description="Explora transcripciones guardadas de tickets">
           <Table
             columns={[
               {
                 key: 'ticket',
-                label: 'Ticket',
+                 label: 'Ticket',
                 render: (t: TranscriptEntry) => <span className="text-discord-blurple font-mono">#{t.ticket?.number ?? '?'}</span>,
               },
-              { key: 'userId', label: 'Creator', render: (t: TranscriptEntry) => <code className="text-xs text-discord-muted">{t.userId}</code> },
-              { key: 'closedBy', label: 'Closed By', render: (t: TranscriptEntry) => <code className="text-xs text-discord-muted">{t.closedBy || '-'}</code> },
-              { key: 'messageCount', label: 'Messages', render: (t: TranscriptEntry) => <span className="text-sm">{t.messageCount}</span> },
+               { key: 'userId', label: 'Creador', render: (t: TranscriptEntry) => <code className="text-xs text-discord-muted">{t.userId}</code> },
+               { key: 'closedBy', label: 'Cerrado por', render: (t: TranscriptEntry) => <code className="text-xs text-discord-muted">{t.closedBy || '-'}</code> },
+               { key: 'messageCount', label: 'Mensajes', render: (t: TranscriptEntry) => <span className="text-sm">{t.messageCount}</span> },
               {
                 key: 'createdAt',
-                label: 'Date',
+                 label: 'Fecha',
                 render: (t: TranscriptEntry) => <span className="text-xs text-discord-muted">{new Date(t.createdAt).toLocaleDateString()}</span>,
               },
               {
@@ -605,14 +605,14 @@ export default function Tickets() {
                     <button
                       onClick={() => viewTranscript(t.id)}
                       className="p-1.5 hover:bg-discord-lighter rounded text-discord-muted hover:text-discord-white transition-colors"
-                      title="View messages"
+                       title="Ver mensajes"
                     >
                       <Eye size={14} />
                     </button>
                     <button
                       onClick={() => downloadTranscriptHtml(t.id)}
                       className="p-1.5 hover:bg-discord-lighter rounded text-discord-muted hover:text-discord-white transition-colors"
-                      title="Download HTML"
+                       title="Descargar HTML"
                     >
                       <Download size={14} />
                     </button>
@@ -621,13 +621,13 @@ export default function Tickets() {
               },
             ]}
             data={transcriptList}
-            emptyMessage="No transcripts yet."
+            emptyMessage="Aun no hay transcripciones."
           />
 
           {/* Pagination */}
           {transcriptPages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-discord-lighter">
-              <span className="text-xs text-discord-muted">Page {transcriptPage} of {transcriptPages} ({transcriptTotal} total)</span>
+              <span className="text-xs text-discord-muted">Pagina {transcriptPage} de {transcriptPages} ({transcriptTotal} total)</span>
               <div className="flex gap-2">
                 <Button size="sm" variant="secondary" disabled={transcriptPage <= 1} onClick={() => fetchTranscripts(transcriptPage - 1)}>
                   <ChevronLeft size={14} />
@@ -645,20 +645,20 @@ export default function Tickets() {
       <Modal
         open={showPanelModal}
         onClose={() => setShowPanelModal(false)}
-        title={editingPanelId ? 'Edit Panel' : 'Create Panel'}
+        title={editingPanelId ? 'Editar panel' : 'Crear panel'}
         maxWidth="max-w-3xl"
       >
         {/* Section tabs */}
         <div className="flex flex-wrap gap-1 mb-4 -mt-1">
           {([
             { key: 'general', label: 'General' },
-            { key: 'categories', label: 'Categories' },
-            { key: 'permissions', label: 'Permissions' },
-            { key: 'messages', label: 'Messages' },
-            { key: 'buttons', label: 'Buttons' },
-            { key: 'transcripts', label: 'Transcripts' },
-            { key: 'forms', label: 'Forms' },
-            { key: 'advanced', label: 'Advanced' },
+            { key: 'categories', label: 'Categorias' },
+            { key: 'permissions', label: 'Permisos' },
+            { key: 'messages', label: 'Mensajes' },
+            { key: 'buttons', label: 'Botones' },
+            { key: 'transcripts', label: 'Transcripciones' },
+            { key: 'forms', label: 'Formularios' },
+            { key: 'advanced', label: 'Avanzado' },
           ] as const).map(({ key, label }) => (
             <button
               key={key}
@@ -679,63 +679,63 @@ export default function Tickets() {
           {panelSection === 'general' && (
             <>
               <Input
-                label="Panel Name (internal)"
-                placeholder="e.g. General Support"
+                label="Nombre del panel (interno)"
+                placeholder="ej. Soporte general"
                 value={editingPanel.name || ''}
                 onChange={(e) => updateField('name', e.target.value)}
               />
               <Input
-                label="Channel ID"
-                placeholder="Channel to send the panel embed"
+                label="ID del canal"
+                placeholder="Canal para enviar el embed del panel"
                 value={editingPanel.channelId || ''}
                 onChange={(e) => updateField('channelId', e.target.value)}
               />
               <Input
-                label="Embed Title"
-                placeholder="Support Tickets"
+                label="Titulo del embed"
+                placeholder="Tickets de soporte"
                 value={editingPanel.title || ''}
                 onChange={(e) => updateField('title', e.target.value)}
               />
               <Textarea
-                label="Embed Description"
-                placeholder="Click the button below to create a ticket."
+                label="Descripcion del embed"
+                placeholder="Haz clic en el boton de abajo para crear un ticket."
                 value={editingPanel.description || ''}
                 onChange={(e) => updateField('description', e.target.value)}
               />
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Embed Color (hex)"
+                  label="Color del embed (hex)"
                   type="color"
                   value={editingPanel.embedColor || '#5865F2'}
                   onChange={(e) => updateField('embedColor', e.target.value)}
                 />
                 <Input
-                  label="Footer Text"
-                  placeholder="Optional footer"
+                  label="Texto del pie"
+                  placeholder="Pie opcional"
                   value={editingPanel.footerText || ''}
                   onChange={(e) => updateField('footerText', e.target.value)}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Select
-                  label="Style"
+                  label="Estilo"
                   options={[
-                    { value: 'button', label: 'Button' },
-                    { value: 'dropdown', label: 'Dropdown Menu' },
-                    { value: 'command', label: 'Command Only' },
+                    { value: 'button', label: 'Boton' },
+                    { value: 'dropdown', label: 'Menu desplegable' },
+                    { value: 'command', label: 'Solo comando' },
                   ]}
                   value={editingPanel.style || 'button'}
                   onChange={(e) => updateField('style', e.target.value)}
                 />
                 <Input
-                  label="Naming Pattern"
+                  label="Patron de nombre"
                   placeholder="ticket-{number}"
                   value={editingPanel.namingPattern || ''}
                   onChange={(e) => updateField('namingPattern', e.target.value)}
                 />
               </div>
               <Input
-                label="Max Open Tickets Per User"
+                label="Maximo de tickets abiertos por usuario"
                 type="number"
                 min={1}
                 max={25}
@@ -749,19 +749,19 @@ export default function Tickets() {
           {panelSection === 'categories' && (
             <>
               <Input
-                label="Open Tickets Category ID"
-                placeholder="Category for new tickets"
+                label="ID de categoria de tickets abiertos"
+                placeholder="Categoria para tickets nuevos"
                 value={editingPanel.categoryId || ''}
                 onChange={(e) => updateField('categoryId', e.target.value)}
               />
               <Input
-                label="Closed Tickets Category ID"
-                placeholder="Category to move closed tickets (optional)"
+                label="ID de categoria de tickets cerrados"
+                placeholder="Categoria para mover tickets cerrados (opcional)"
                 value={editingPanel.closedCategoryId || ''}
                 onChange={(e) => updateField('closedCategoryId', e.target.value)}
               />
               <p className="text-xs text-discord-muted">
-                When a ticket is closed, it can be moved to a separate category. Leave empty to keep it in the same category.
+                Cuando se cierra un ticket, se puede mover a una categoria separada. Dejalo vacio para mantenerlo en la misma categoria.
               </p>
             </>
           )}
@@ -770,30 +770,30 @@ export default function Tickets() {
           {panelSection === 'permissions' && (
             <>
               <Input
-                label="Staff Role IDs (comma-separated)"
-                placeholder="e.g. 123456789,987654321"
+                label="IDs de roles del staff (separados por coma)"
+                placeholder="ej. 123456789,987654321"
                 value={(editingPanel.staffRoleIds || []).join(',')}
                 onChange={(e) => updateField('staffRoleIds', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
               />
-              <p className="text-xs text-discord-muted mb-3">Staff can view and reply in tickets.</p>
+              <p className="text-xs text-discord-muted mb-3">El staff puede ver y responder en tickets.</p>
               <Input
-                label="Admin Role IDs (comma-separated)"
-                placeholder="e.g. 123456789"
+                label="IDs de roles admin (separados por coma)"
+                placeholder="ej. 123456789"
                 value={(editingPanel.adminRoleIds || []).join(',')}
                 onChange={(e) => updateField('adminRoleIds', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
               />
-              <p className="text-xs text-discord-muted">Admins can delete tickets and manage panel settings.</p>
+              <p className="text-xs text-discord-muted">Los admins pueden eliminar tickets y administrar ajustes del panel.</p>
 
               <div className="border-t border-discord-lighter pt-4 mt-4 space-y-3">
                 <Toggle
-                  label="Mention Staff on Open"
-                  description="Ping staff roles when a new ticket is created"
+                  label="Mencionar staff al abrir"
+                  description="Mencionar roles de staff cuando se crea un ticket nuevo"
                   enabled={editingPanel.mentionStaff ?? true}
                   onChange={(v) => updateField('mentionStaff', v)}
                 />
                 <Toggle
-                  label="Mention Creator"
-                  description="Ping the ticket creator in the welcome message"
+                  label="Mencionar creador"
+                  description="Mencionar al creador del ticket en el mensaje de bienvenida"
                   enabled={editingPanel.mentionCreator ?? true}
                   onChange={(v) => updateField('mentionCreator', v)}
                 />
@@ -805,19 +805,19 @@ export default function Tickets() {
           {panelSection === 'messages' && (
             <>
               <Input
-                label="Welcome Embed Title"
-                placeholder="Ticket Opened"
+                label="Titulo del embed de bienvenida"
+                placeholder="Ticket abierto"
                 value={editingPanel.welcomeTitle || ''}
                 onChange={(e) => updateField('welcomeTitle', e.target.value)}
               />
               <Textarea
-                label="Welcome Message"
-                placeholder="Welcome! Please describe your issue."
+                label="Mensaje de bienvenida"
+                placeholder="Bienvenido! Describe tu problema."
                 value={editingPanel.welcomeMessage || ''}
                 onChange={(e) => updateField('welcomeMessage', e.target.value)}
               />
               <Input
-                label="Welcome Embed Color"
+                label="Color del embed de bienvenida"
                 type="color"
                 value={editingPanel.welcomeColor || '#5865F2'}
                 onChange={(e) => updateField('welcomeColor', e.target.value)}
@@ -825,15 +825,15 @@ export default function Tickets() {
 
               <div className="border-t border-discord-lighter pt-4 mt-4 space-y-3">
                 <Toggle
-                  label="Close Request Confirmation"
-                  description="Ask for confirmation before closing a ticket"
+                  label="Confirmacion al cerrar"
+                  description="Pedir confirmacion antes de cerrar un ticket"
                   enabled={editingPanel.closeRequestEnabled ?? true}
                   onChange={(v) => updateField('closeRequestEnabled', v)}
                 />
                 {editingPanel.closeRequestEnabled && (
                   <Input
-                    label="Close Request Message"
-                    placeholder="Are you sure you want to close this ticket?"
+                    label="Mensaje de confirmacion de cierre"
+                    placeholder="Seguro que quieres cerrar este ticket?"
                     value={editingPanel.closeRequestMessage || ''}
                     onChange={(e) => updateField('closeRequestMessage', e.target.value)}
                   />
@@ -842,15 +842,15 @@ export default function Tickets() {
 
               <div className="border-t border-discord-lighter pt-4 mt-4 space-y-3">
                 <Toggle
-                  label="Feedback / Rating"
-                  description="Ask for a 1-5 star rating after ticket is closed"
+                  label="Feedback / valoracion"
+                  description="Pedir una valoracion de 1-5 estrellas despues de cerrar el ticket"
                   enabled={editingPanel.feedbackEnabled ?? false}
                   onChange={(v) => updateField('feedbackEnabled', v)}
                 />
                 {editingPanel.feedbackEnabled && (
                   <Input
-                    label="Feedback Message"
-                    placeholder="How would you rate the support you received?"
+                    label="Mensaje de feedback"
+                    placeholder="Como calificarias el soporte que recibiste?"
                     value={editingPanel.feedbackMessage || ''}
                     onChange={(e) => updateField('feedbackMessage', e.target.value)}
                   />
@@ -863,43 +863,43 @@ export default function Tickets() {
           {panelSection === 'buttons' && (
             <>
               <Input
-                label="Button Label"
-                placeholder="Create Ticket"
+                label="Etiqueta del boton"
+                placeholder="Crear ticket"
                 value={editingPanel.buttonLabel || ''}
                 onChange={(e) => updateField('buttonLabel', e.target.value)}
               />
               <Input
-                label="Button Emoji"
+                label="Emoji del boton"
                 placeholder="🎫"
                 value={editingPanel.buttonEmoji || ''}
                 onChange={(e) => updateField('buttonEmoji', e.target.value)}
               />
               <Select
-                label="Button Color"
+                label="Color del boton"
                 options={[
-                  { value: 'Primary', label: 'Blurple (Primary)' },
-                  { value: 'Secondary', label: 'Gray (Secondary)' },
-                  { value: 'Success', label: 'Green (Success)' },
-                  { value: 'Danger', label: 'Red (Danger)' },
+                   { value: 'Primary', label: 'Blurple (Primario)' },
+                   { value: 'Secondary', label: 'Gris (Secundario)' },
+                   { value: 'Success', label: 'Verde (Exito)' },
+                   { value: 'Danger', label: 'Rojo (Peligro)' },
                 ]}
                 value={editingPanel.buttonColor || 'Primary'}
                 onChange={(e) => updateField('buttonColor', e.target.value)}
               />
 
               <div className="border-t border-discord-lighter pt-4 mt-4 space-y-3">
-                <p className="text-sm font-medium text-discord-white mb-2">Buttons Shown in Ticket Channel</p>
+                <p className="text-sm font-medium text-discord-white mb-2">Botones mostrados en el canal del ticket</p>
                 <Toggle
-                  label="Close Button"
+                  label="Boton cerrar"
                   enabled={editingPanel.showCloseButton ?? true}
                   onChange={(v) => updateField('showCloseButton', v)}
                 />
                 <Toggle
-                  label="Claim Button"
+                  label="Boton asignar"
                   enabled={editingPanel.showClaimButton ?? true}
                   onChange={(v) => updateField('showClaimButton', v)}
                 />
                 <Toggle
-                  label="Transcript Button"
+                  label="Boton transcripcion"
                   enabled={editingPanel.showTranscriptButton ?? true}
                   onChange={(v) => updateField('showTranscriptButton', v)}
                 />
@@ -907,15 +907,15 @@ export default function Tickets() {
 
               <div className="border-t border-discord-lighter pt-4 mt-4 space-y-3">
                 <Toggle
-                  label="Enable Claiming"
-                  description="Allow staff to claim individual tickets"
+                  label="Activar asignacion"
+                  description="Permitir al staff asignarse tickets individuales"
                   enabled={editingPanel.claimEnabled ?? true}
                   onChange={(v) => updateField('claimEnabled', v)}
                 />
                 {editingPanel.claimEnabled && (
                   <Toggle
-                    label="Lock Others on Claim"
-                    description="Only the claiming staff member can reply after claiming"
+                    label="Bloquear a otros al asignar"
+                    description="Solo el staff que se asigna puede responder despues"
                     enabled={editingPanel.claimLockOthers ?? false}
                     onChange={(v) => updateField('claimLockOthers', v)}
                   />
@@ -928,28 +928,28 @@ export default function Tickets() {
           {panelSection === 'transcripts' && (
             <>
               <Toggle
-                label="Auto-Generate Transcript"
-                description="Automatically generate an HTML transcript when a ticket is closed"
+                label="Generar transcripcion automatica"
+                description="Generar automaticamente una transcripcion HTML al cerrar un ticket"
                 enabled={editingPanel.transcriptEnabled ?? true}
                 onChange={(v) => updateField('transcriptEnabled', v)}
               />
               {editingPanel.transcriptEnabled && (
                 <>
                   <Input
-                    label="Transcript Channel ID"
-                    placeholder="Channel to post transcript links"
+                    label="ID del canal de transcripciones"
+                    placeholder="Canal para publicar enlaces de transcripciones"
                     value={editingPanel.transcriptChannelId || ''}
                     onChange={(e) => updateField('transcriptChannelId', e.target.value)}
                   />
                   <Toggle
-                    label="DM Transcript to User"
-                    description="Send the transcript HTML file to the ticket creator via DM"
+                    label="Enviar transcripcion por DM al usuario"
+                    description="Enviar el archivo HTML al creador del ticket por DM"
                     enabled={editingPanel.transcriptDMUser ?? true}
                     onChange={(v) => updateField('transcriptDMUser', v)}
                   />
                   <Toggle
-                    label="DM Transcript to Staff"
-                    description="Send the transcript to the claiming staff member"
+                    label="Enviar transcripcion por DM al staff"
+                    description="Enviar la transcripcion al miembro de staff asignado"
                     enabled={editingPanel.transcriptDMStaff ?? false}
                     onChange={(v) => updateField('transcriptDMStaff', v)}
                   />
@@ -958,12 +958,12 @@ export default function Tickets() {
 
               <div className="border-t border-discord-lighter pt-4 mt-4">
                 <Input
-                  label="Log Channel ID"
-                  placeholder="Override guild-level ticket log channel"
+                  label="ID del canal de registro"
+                  placeholder="Sobrescribir canal de registro de tickets del servidor"
                   value={editingPanel.logChannelId || ''}
                   onChange={(e) => updateField('logChannelId', e.target.value)}
                 />
-                <p className="text-xs text-discord-muted mt-1">Ticket open/close/delete events are logged here. Leave empty to use the guild default.</p>
+                <p className="text-xs text-discord-muted mt-1">Los eventos de abrir/cerrar/eliminar ticket se registran aqui. Deja vacio para usar el predeterminado del servidor.</p>
               </div>
             </>
           )}
@@ -972,26 +972,26 @@ export default function Tickets() {
           {panelSection === 'forms' && (
             <>
               <Toggle
-                label="Enable Form on Ticket Creation"
-                description="Show a modal form when users create a ticket"
+                label="Activar formulario al crear ticket"
+                description="Mostrar un formulario modal cuando los usuarios crean un ticket"
                 enabled={editingPanel.formEnabled ?? false}
                 onChange={(v) => updateField('formEnabled', v)}
               />
               {editingPanel.formEnabled && (
                 <>
                   <Input
-                    label="Form Title"
-                    placeholder="Ticket Form"
+                    label="Titulo del formulario"
+                    placeholder="Formulario de ticket"
                     value={editingPanel.formTitle || ''}
                     onChange={(e) => updateField('formTitle', e.target.value)}
                   />
 
                   <div className="space-y-3 mt-3">
-                    <p className="text-sm font-medium text-discord-white">Questions (max 5)</p>
+                      <p className="text-sm font-medium text-discord-white">Preguntas (max 5)</p>
                     {(editingPanel.formQuestions || []).map((q, i) => (
                       <div key={i} className="p-3 rounded-lg bg-discord-darker border border-discord-lighter/30 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-discord-muted font-medium">Question {i + 1}</span>
+                          <span className="text-xs text-discord-muted font-medium">Pregunta {i + 1}</span>
                           <button
                             onClick={() => {
                               const qs = [...(editingPanel.formQuestions || [])];
@@ -1004,7 +1004,7 @@ export default function Tickets() {
                           </button>
                         </div>
                         <Input
-                          placeholder="Question label"
+                          placeholder="Etiqueta de pregunta"
                           value={q.label}
                           onChange={(e) => {
                             const qs = [...(editingPanel.formQuestions || [])];
@@ -1013,7 +1013,7 @@ export default function Tickets() {
                           }}
                         />
                         <Input
-                          placeholder="Placeholder text"
+                          placeholder="Texto de ejemplo"
                           value={q.placeholder || ''}
                           onChange={(e) => {
                             const qs = [...(editingPanel.formQuestions || [])];
@@ -1024,8 +1024,8 @@ export default function Tickets() {
                         <div className="flex gap-3">
                           <Select
                             options={[
-                              { value: 'short', label: 'Short (1 line)' },
-                              { value: 'paragraph', label: 'Paragraph (multi-line)' },
+                               { value: 'short', label: 'Corta (1 linea)' },
+                               { value: 'paragraph', label: 'Parrafo (varias lineas)' },
                             ]}
                             value={q.style}
                             onChange={(e) => {
@@ -1035,7 +1035,7 @@ export default function Tickets() {
                             }}
                           />
                           <Toggle
-                            label="Required"
+                            label="Obligatoria"
                             enabled={q.required}
                             onChange={(v) => {
                               const qs = [...(editingPanel.formQuestions || [])];
@@ -1056,7 +1056,7 @@ export default function Tickets() {
                           updateField('formQuestions', qs);
                         }}
                       >
-                        <Plus size={14} /> Add Question
+                         <Plus size={14} /> Agregar pregunta
                       </Button>
                     )}
                   </div>
@@ -1069,17 +1069,17 @@ export default function Tickets() {
           {panelSection === 'advanced' && (
             <>
               <Input
-                label="Escalate to Panel ID"
-                placeholder="Panel ID to escalate tickets to (optional)"
+                label="Escalar a ID de panel"
+                placeholder="ID de panel al que escalar tickets (opcional)"
                 value={editingPanel.escalatePanelId || ''}
                 onChange={(e) => updateField('escalatePanelId', e.target.value)}
               />
               <p className="text-xs text-discord-muted">
-                When staff use /ticket escalate, the ticket will be moved to this panel's category and staff roles.
+                Cuando el staff use /ticket escalate, el ticket se movera a la categoria y roles de staff de este panel.
               </p>
               {panels.length > 0 && (
                 <div className="mt-1">
-                  <p className="text-xs text-discord-muted">Available panels:</p>
+                  <p className="text-xs text-discord-muted">Paneles disponibles:</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {panels.filter(p => p.id !== editingPanelId).map(p => (
                       <button
@@ -1099,9 +1099,9 @@ export default function Tickets() {
 
         {/* Save / Cancel */}
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-discord-lighter">
-          <Button variant="secondary" onClick={() => setShowPanelModal(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setShowPanelModal(false)}>Cancelar</Button>
           <Button onClick={savePanel} loading={savingPanel}>
-            {editingPanelId ? 'Save Changes' : 'Create Panel'}
+            {editingPanelId ? 'Guardar cambios' : 'Crear panel'}
           </Button>
         </div>
       </Modal>
@@ -1110,26 +1110,26 @@ export default function Tickets() {
       <Modal
         open={!!viewingTranscript}
         onClose={() => setViewingTranscript(null)}
-        title={`Transcript — Ticket #${viewingTranscript?.ticket?.number ?? '?'}`}
+        title={`Transcripcion - Ticket #${viewingTranscript?.ticket?.number ?? '?'}`}
         maxWidth="max-w-4xl"
       >
         {loadingTranscript ? (
-          <Loader text="Loading transcript..." />
+          <Loader text="Cargando transcripcion..." />
         ) : viewingTranscript ? (
           <div>
             {/* Meta */}
             <div className="flex flex-wrap gap-4 mb-4 text-xs text-discord-muted">
-              <span>Creator: {viewingTranscript.userId}</span>
-              <span>Closed by: {viewingTranscript.closedBy || 'N/A'}</span>
-              <span>Messages: {viewingTranscript.messageCount}</span>
-              <span>Date: {new Date(viewingTranscript.createdAt).toLocaleString()}</span>
+               <span>Creador: {viewingTranscript.userId}</span>
+               <span>Cerrado por: {viewingTranscript.closedBy || 'N/D'}</span>
+               <span>Mensajes: {viewingTranscript.messageCount}</span>
+               <span>Fecha: {new Date(viewingTranscript.createdAt).toLocaleString()}</span>
             </div>
 
             {/* Download button */}
             {guildId && (
               <div className="mb-4">
                 <Button size="sm" variant="secondary" onClick={() => downloadTranscriptHtml(viewingTranscript.id)}>
-                  <Download size={14} /> Download HTML
+                  <Download size={14} /> Descargar HTML
                 </Button>
               </div>
             )}
@@ -1144,7 +1144,7 @@ export default function Tickets() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
                       <span className="text-sm font-medium text-discord-white">
-                        {msg.author?.username || msg.authorTag || 'Unknown'}
+                         {msg.author?.username || msg.authorTag || 'Desconocido'}
                       </span>
                       <span className="text-xs text-discord-muted">
                         {msg.timestamp ? new Date(msg.timestamp).toLocaleString() : ''}
@@ -1154,7 +1154,7 @@ export default function Tickets() {
                     {msg.attachments?.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {msg.attachments.map((a: any, j: number) => (
-                          <span key={j} className="text-xs text-discord-blurple underline">{a.name || a.url || 'attachment'}</span>
+                           <span key={j} className="text-xs text-discord-blurple underline">{a.name || a.url || 'adjunto'}</span>
                         ))}
                       </div>
                     )}
@@ -1162,7 +1162,7 @@ export default function Tickets() {
                 </div>
               ))}
               {(!viewingTranscript.messages || (Array.isArray(viewingTranscript.messages) && viewingTranscript.messages.length === 0)) && (
-                <p className="text-center text-discord-muted py-4">No messages in this transcript.</p>
+                <p className="text-center text-discord-muted py-4">No hay mensajes en esta transcripcion.</p>
               )}
             </div>
           </div>

@@ -63,7 +63,7 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
           <button
             onClick={onClose}
             className="p-1 rounded-lg hover:bg-discord-lighter text-discord-muted hover:text-discord-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-discord-blurple"
-            aria-label="Close dialog"
+            aria-label="Cerrar dialogo"
           >
             <X size={20} aria-hidden="true" />
           </button>

@@ -33,12 +33,12 @@ export default {
           const embed = new EmbedBuilder()
             .setColor(0x57f287)
             .setAuthor({ name: newMember.user.username, iconURL: newMember.user.displayAvatarURL() })
-            .setTitle('Roles Added')
+            .setTitle('Roles agregados')
             .addFields(
-              { name: 'User', value: `<@${newMember.id}>`, inline: true },
-              { name: 'Roles Added', value: addedRoles.map((r) => r.toString()).join(', '), inline: true },
+              { name: 'Usuario', value: `<@${newMember.id}>`, inline: true },
+              { name: 'Roles agregados', value: addedRoles.map((r) => r.toString()).join(', '), inline: true },
             )
-            .setFooter({ text: `User ID: ${newMember.id}` })
+            .setFooter({ text: `ID de usuario: ${newMember.id}` })
             .setTimestamp();
           await logChannel.send({ embeds: [embed] });
         }
@@ -47,12 +47,12 @@ export default {
           const embed = new EmbedBuilder()
             .setColor(0xed4245)
             .setAuthor({ name: newMember.user.username, iconURL: newMember.user.displayAvatarURL() })
-            .setTitle('Roles Removed')
+            .setTitle('Roles removidos')
             .addFields(
-              { name: 'User', value: `<@${newMember.id}>`, inline: true },
-              { name: 'Roles Removed', value: removedRoles.map((r) => r.toString()).join(', '), inline: true },
+              { name: 'Usuario', value: `<@${newMember.id}>`, inline: true },
+              { name: 'Roles removidos', value: removedRoles.map((r) => r.toString()).join(', '), inline: true },
             )
-            .setFooter({ text: `User ID: ${newMember.id}` })
+            .setFooter({ text: `ID de usuario: ${newMember.id}` })
             .setTimestamp();
           await logChannel.send({ embeds: [embed] });
         }
@@ -66,13 +66,13 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(0xfee75c)
           .setAuthor({ name: newMember.user.username, iconURL: newMember.user.displayAvatarURL() })
-          .setTitle('Nickname Changed')
+          .setTitle('Apodo cambiado')
           .addFields(
-            { name: 'User', value: `<@${newMember.id}>`, inline: true },
-            { name: 'Before', value: oldNick || '*None*', inline: true },
-            { name: 'After', value: newNick || '*None*', inline: true },
+            { name: 'Usuario', value: `<@${newMember.id}>`, inline: true },
+            { name: 'Antes', value: oldNick || '*Ninguno*', inline: true },
+            { name: 'Despues', value: newNick || '*Ninguno*', inline: true },
           )
-          .setFooter({ text: `User ID: ${newMember.id}` })
+          .setFooter({ text: `ID de usuario: ${newMember.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
       }
@@ -85,23 +85,23 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(0xeb459e)
           .setAuthor({ name: newMember.user.username, iconURL: newMember.user.displayAvatarURL() })
-          .setTitle('Member Timed Out')
+          .setTitle('Miembro en timeout')
           .addFields(
-            { name: 'User', value: `<@${newMember.id}>`, inline: true },
-            { name: 'Until', value: `<t:${Math.floor(newTimeout.getTime() / 1000)}:R>`, inline: true },
+            { name: 'Usuario', value: `<@${newMember.id}>`, inline: true },
+            { name: 'Hasta', value: `<t:${Math.floor(newTimeout.getTime() / 1000)}:R>`, inline: true },
           )
-          .setFooter({ text: `User ID: ${newMember.id}` })
+          .setFooter({ text: `ID de usuario: ${newMember.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
       } else if (oldTimeout && !newTimeout) {
         const embed = new EmbedBuilder()
           .setColor(0x57f287)
           .setAuthor({ name: newMember.user.username, iconURL: newMember.user.displayAvatarURL() })
-          .setTitle('Timeout Removed')
+          .setTitle('Timeout removido')
           .addFields(
-            { name: 'User', value: `<@${newMember.id}>`, inline: true },
+            { name: 'Usuario', value: `<@${newMember.id}>`, inline: true },
           )
-          .setFooter({ text: `User ID: ${newMember.id}` })
+          .setFooter({ text: `ID de usuario: ${newMember.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
       }

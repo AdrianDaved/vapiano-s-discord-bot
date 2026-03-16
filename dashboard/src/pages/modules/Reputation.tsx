@@ -38,18 +38,18 @@ export default function Reputation() {
         setLeaderboard(lb);
         setRecent(rc);
       })
-      .catch((err) => setError(err.message || 'Failed to load reputation data'))
+      .catch((err) => setError(err.message || 'No se pudieron cargar los datos de reputacion'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
-  if (loading) return <Loader text="Loading reputation..." />;
+  if (loading) return <Loader text="Cargando reputacion..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">Failed to load reputation</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudo cargar la reputacion</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
-        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Retry</button>
+        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
     );
   }
@@ -57,14 +57,14 @@ export default function Reputation() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Reputation</h1>
-        <p className="text-discord-muted mt-1">View reputation leaderboard and recent activity</p>
+        <h1 className="text-2xl font-bold text-discord-white">Reputacion</h1>
+        <p className="text-discord-muted mt-1">Ver clasificacion de reputacion y actividad reciente</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Leaderboard">
+        <Card title="Clasificacion">
           {leaderboard.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">No reputation data yet.</p>
+            <p className="text-discord-muted text-sm py-4">Aun no hay datos de reputacion.</p>
           ) : (
             <div className="space-y-2 mt-3">
               {leaderboard.slice(0, 20).map((entry, i) => (
@@ -82,9 +82,9 @@ export default function Reputation() {
           )}
         </Card>
 
-        <Card title="Recent Activity">
+        <Card title="Actividad reciente">
           {recent.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">No recent reputation activity.</p>
+            <p className="text-discord-muted text-sm py-4">No hay actividad reciente de reputacion.</p>
           ) : (
             <div className="space-y-2 mt-3">
               {recent.slice(0, 20).map((entry) => (

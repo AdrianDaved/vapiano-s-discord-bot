@@ -78,9 +78,9 @@ export default function Automation() {
       setResponses((prev) => [...prev, result.response || result]);
       setShowAddResponse(false);
       setNewResponse({ trigger: '', response: '', matchMode: 'contains' });
-      toast.success('Auto-response added');
+      toast.success('Autorespuesta agregada');
     } catch {
-      toast.error('Failed to add response');
+      toast.error('No se pudo agregar la respuesta');
     } finally {
       setAddingResponse(false);
     }
@@ -92,9 +92,9 @@ export default function Automation() {
     try {
       await autoApi.deleteResponse(guildId, id);
       setResponses((prev) => prev.filter((r) => r.id !== id));
-      toast.success('Response deleted');
+      toast.success('Respuesta eliminada');
     } catch {
-      toast.error('Failed to delete');
+      toast.error('No se pudo eliminar');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
@@ -109,9 +109,9 @@ export default function Automation() {
       setScheduled((prev) => [...prev, result.scheduled || result]);
       setShowAddScheduled(false);
       setNewScheduled({ channelId: '', message: '', cron: '' });
-      toast.success('Scheduled message added');
+      toast.success('Mensaje programado agregado');
     } catch {
-      toast.error('Failed to add scheduled message');
+      toast.error('No se pudo agregar el mensaje programado');
     } finally {
       setAddingScheduled(false);
     }
@@ -123,9 +123,9 @@ export default function Automation() {
     try {
       await autoApi.deleteScheduled(guildId, id);
       setScheduled((prev) => prev.filter((s) => s.id !== id));
-      toast.success('Scheduled message deleted');
+      toast.success('Mensaje programado eliminado');
     } catch {
-      toast.error('Failed to delete');
+      toast.error('No se pudo eliminar');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
@@ -145,9 +145,9 @@ export default function Automation() {
       const updated = result.response || result;
       setResponses((prev) => prev.map((r) => r.id === editResponse.id ? { ...r, ...updated } : r));
       setEditResponse(null);
-      toast.success('Auto-response updated');
+      toast.success('Autorespuesta actualizada');
     } catch {
-      toast.error('Failed to update response');
+      toast.error('No se pudo actualizar la respuesta');
     } finally {
       setSavingResponse(false);
     }
@@ -166,9 +166,9 @@ export default function Automation() {
       const updated = result.scheduled || result;
       setScheduled((prev) => prev.map((s) => s.id === editScheduled.id ? { ...s, ...updated } : s));
       setEditScheduled(null);
-      toast.success('Scheduled message updated');
+      toast.success('Mensaje programado actualizado');
     } catch {
-      toast.error('Failed to update scheduled message');
+      toast.error('No se pudo actualizar el mensaje programado');
     } finally {
       setSavingScheduled(false);
     }
@@ -179,19 +179,19 @@ export default function Automation() {
     try {
       await autoApi.updateResponse(guildId, r.id, { enabled: !r.enabled });
       setResponses((prev) => prev.map((item) => item.id === r.id ? { ...item, enabled: !item.enabled } : item));
-      toast.success(`Response ${!r.enabled ? 'enabled' : 'disabled'}`);
+      toast.success(`Respuesta ${!r.enabled ? 'activada' : 'desactivada'}`);
     } catch {
-      toast.error('Failed to toggle response');
+      toast.error('No se pudo cambiar el estado de la respuesta');
     }
   };
 
-  if (configLoading || loading) return <Loader text="Loading automation..." />;
+  if (configLoading || loading) return <Loader text="Cargando automatizacion..." />;
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Automation</h1>
-        <p className="text-discord-muted mt-1">Auto-responses and scheduled messages</p>
+        <h1 className="text-2xl font-bold text-discord-white">Automatizacion</h1>
+        <p className="text-discord-muted mt-1">Autorespuestas y mensajes programados</p>
       </div>
 
       {/* Tabs */}
@@ -202,7 +202,7 @@ export default function Automation() {
           onClick={() => setTab('responses')}
         >
           <MessageSquare size={14} />
-          Auto-Responses ({responses.length})
+          Autorespuestas ({responses.length})
         </Button>
         <Button
           variant={tab === 'scheduled' ? 'primary' : 'secondary'}
@@ -210,19 +210,19 @@ export default function Automation() {
           onClick={() => setTab('scheduled')}
         >
           <Clock size={14} />
-          Scheduled ({scheduled.length})
+          Programados ({scheduled.length})
         </Button>
       </div>
 
       {/* Auto-Responses */}
       {tab === 'responses' && (
         <Card
-          title="Auto-Responses"
-          description="Automatically reply when a trigger is matched"
+          title="Autorespuestas"
+          description="Responder automaticamente cuando coincide un disparador"
           action={
             <Button size="sm" onClick={() => setShowAddResponse(true)}>
               <Plus size={14} />
-              Add Response
+               Agregar respuesta
             </Button>
           }
         >
@@ -235,7 +235,7 @@ export default function Automation() {
                   <button
                     onClick={() => toggleResponseEnabled(r)}
                     className={`${r.enabled ? 'text-discord-green' : 'text-discord-muted'} hover:opacity-70 transition-opacity`}
-                    title={r.enabled ? 'Disable' : 'Enable'}
+                     title={r.enabled ? 'Desactivar' : 'Activar'}
                   >
                     <ToggleLeft size={16} />
                   </button>
@@ -243,21 +243,21 @@ export default function Automation() {
               },
               {
                 key: 'trigger',
-                label: 'Trigger',
+                 label: 'Disparador',
                 render: (r: AutoResponse) => (
                   <code className="text-sm bg-discord-darker px-2 py-0.5 rounded">{r.trigger}</code>
                 ),
               },
               {
                 key: 'matchMode',
-                label: 'Mode',
+                 label: 'Modo',
                 render: (r: AutoResponse) => (
                   <span className="text-xs text-discord-muted uppercase">{r.matchMode}</span>
                 ),
               },
               {
                 key: 'response',
-                label: 'Response',
+                 label: 'Respuesta',
                 render: (r: AutoResponse) => (
                   <span className="text-discord-muted truncate max-w-xs block">{r.response}</span>
                 ),
@@ -267,10 +267,10 @@ export default function Automation() {
                 label: '',
                 render: (r: AutoResponse) => (
                   <div className="flex gap-1">
-                    <button onClick={() => openEditResponse(r)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Edit">
+                    <button onClick={() => openEditResponse(r)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Editar">
                       <Pencil size={16} />
                     </button>
-                    <button onClick={() => setDeleteTarget({ id: r.id, type: 'response' })} className="p-1 hover:text-discord-red text-discord-muted transition-colors" title="Delete">
+                    <button onClick={() => setDeleteTarget({ id: r.id, type: 'response' })} className="p-1 hover:text-discord-red text-discord-muted transition-colors" title="Eliminar">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -278,7 +278,7 @@ export default function Automation() {
               },
             ]}
             data={responses}
-            emptyMessage="No auto-responses configured."
+            emptyMessage="No hay autorespuestas configuradas."
           />
         </Card>
       )}
@@ -286,12 +286,12 @@ export default function Automation() {
       {/* Scheduled Messages */}
       {tab === 'scheduled' && (
         <Card
-          title="Scheduled Messages"
-          description="Send messages on a cron schedule"
+          title="Mensajes programados"
+          description="Enviar mensajes segun una programacion cron"
           action={
             <Button size="sm" onClick={() => setShowAddScheduled(true)}>
               <Plus size={14} />
-              Add Message
+               Agregar mensaje
             </Button>
           }
         >
@@ -299,21 +299,21 @@ export default function Automation() {
             columns={[
               {
                 key: 'cron',
-                label: 'Schedule',
+                 label: 'Programacion',
                 render: (s: ScheduledMessage) => (
                   <code className="text-sm bg-discord-darker px-2 py-0.5 rounded">{s.cron}</code>
                 ),
               },
               {
                 key: 'channelId',
-                label: 'Channel',
+                 label: 'Canal',
                 render: (s: ScheduledMessage) => (
                   <code className="text-xs text-discord-muted">{s.channelId}</code>
                 ),
               },
               {
                 key: 'message',
-                label: 'Message',
+                 label: 'Mensaje',
                 render: (s: ScheduledMessage) => (
                   <span className="text-discord-muted truncate max-w-xs block">{s.message}</span>
                 ),
@@ -323,10 +323,10 @@ export default function Automation() {
                 label: '',
                 render: (s: ScheduledMessage) => (
                   <div className="flex gap-1">
-                    <button onClick={() => openEditScheduled(s)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Edit">
+                    <button onClick={() => openEditScheduled(s)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Editar">
                       <Pencil size={16} />
                     </button>
-                    <button onClick={() => setDeleteTarget({ id: s.id, type: 'scheduled' })} className="p-1 hover:text-discord-red text-discord-muted transition-colors" title="Delete">
+                    <button onClick={() => setDeleteTarget({ id: s.id, type: 'scheduled' })} className="p-1 hover:text-discord-red text-discord-muted transition-colors" title="Eliminar">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -334,143 +334,151 @@ export default function Automation() {
               },
             ]}
             data={scheduled}
-            emptyMessage="No scheduled messages."
+            emptyMessage="No hay mensajes programados."
           />
         </Card>
       )}
 
       {/* Add Response Modal */}
-      <Modal open={showAddResponse} onClose={() => setShowAddResponse(false)} title="Add Auto-Response">
+      <Modal open={showAddResponse} onClose={() => setShowAddResponse(false)} title="Agregar autorespuesta">
         <div className="space-y-4">
           <Input
-            label="Trigger"
-            placeholder="hello"
+            label="Disparador"
+            placeholder="hola"
             value={newResponse.trigger}
             onChange={(e) => setNewResponse({ ...newResponse, trigger: e.target.value })}
           />
           <div>
-            <label className="block text-sm font-medium text-discord-muted mb-1.5">Match Mode</label>
+            <label className="block text-sm font-medium text-discord-muted mb-1.5">Modo de coincidencia</label>
             <div className="flex gap-2">
-              {['contains', 'exact', 'startsWith'].map((mode) => (
+              {[
+                { value: 'contains', label: 'contiene' },
+                { value: 'exact', label: 'exacto' },
+                { value: 'startsWith', label: 'empieza con' },
+              ].map((mode) => (
                 <Button
-                  key={mode}
+                  key={mode.value}
                   size="sm"
-                  variant={newResponse.matchMode === mode ? 'primary' : 'secondary'}
-                  onClick={() => setNewResponse({ ...newResponse, matchMode: mode })}
+                  variant={newResponse.matchMode === mode.value ? 'primary' : 'secondary'}
+                  onClick={() => setNewResponse({ ...newResponse, matchMode: mode.value })}
                 >
-                  {mode}
+                  {mode.label}
                 </Button>
               ))}
             </div>
           </div>
           <Textarea
-            label="Response"
-            placeholder="Hey there! How can I help?"
+            label="Respuesta"
+            placeholder="Hola! Como puedo ayudarte?"
             value={newResponse.response}
             onChange={(e) => setNewResponse({ ...newResponse, response: e.target.value })}
           />
           <div className="flex justify-end gap-3 mt-4">
-            <Button variant="secondary" onClick={() => setShowAddResponse(false)}>Cancel</Button>
-            <Button onClick={addResponse} loading={addingResponse}>Add Response</Button>
+            <Button variant="secondary" onClick={() => setShowAddResponse(false)}>Cancelar</Button>
+            <Button onClick={addResponse} loading={addingResponse}>Agregar respuesta</Button>
           </div>
         </div>
       </Modal>
 
       {/* Add Scheduled Modal */}
-      <Modal open={showAddScheduled} onClose={() => setShowAddScheduled(false)} title="Add Scheduled Message">
+      <Modal open={showAddScheduled} onClose={() => setShowAddScheduled(false)} title="Agregar mensaje programado">
         <div className="space-y-4">
           <Input
-            label="Channel ID"
-            placeholder="Channel to send the message"
+            label="ID del canal"
+            placeholder="Canal para enviar el mensaje"
             value={newScheduled.channelId}
             onChange={(e) => setNewScheduled({ ...newScheduled, channelId: e.target.value })}
           />
           <Input
-            label="Cron Schedule"
-            placeholder="0 9 * * * (every day at 9 AM)"
+            label="Programacion cron"
+            placeholder="0 9 * * * (cada dia a las 9 AM)"
             value={newScheduled.cron}
             onChange={(e) => setNewScheduled({ ...newScheduled, cron: e.target.value })}
           />
           <Textarea
-            label="Message"
-            placeholder="Good morning everyone!"
+            label="Mensaje"
+            placeholder="Buenos dias a todos!"
             value={newScheduled.message}
             onChange={(e) => setNewScheduled({ ...newScheduled, message: e.target.value })}
           />
           <p className="text-xs text-discord-muted">
-            Cron format: minute hour day month weekday. Example: "0 9 * * 1-5" = weekdays at 9 AM.
+            Formato cron: minuto hora dia mes dia-semana. Ejemplo: "0 9 * * 1-5" = dias laborables a las 9 AM.
           </p>
           <div className="flex justify-end gap-3 mt-4">
-            <Button variant="secondary" onClick={() => setShowAddScheduled(false)}>Cancel</Button>
-            <Button onClick={addScheduledMsg} loading={addingScheduled}>Add Message</Button>
+            <Button variant="secondary" onClick={() => setShowAddScheduled(false)}>Cancelar</Button>
+            <Button onClick={addScheduledMsg} loading={addingScheduled}>Agregar mensaje</Button>
           </div>
         </div>
       </Modal>
 
       {/* Edit Response Modal */}
-      <Modal open={!!editResponse} onClose={() => setEditResponse(null)} title="Edit Auto-Response">
+      <Modal open={!!editResponse} onClose={() => setEditResponse(null)} title="Editar autorespuesta">
         <div className="space-y-4">
           <Input
-            label="Trigger"
-            placeholder="hello"
+            label="Disparador"
+            placeholder="hola"
             value={editResponseData.trigger}
             onChange={(e) => setEditResponseData({ ...editResponseData, trigger: e.target.value })}
           />
           <div>
-            <label className="block text-sm font-medium text-discord-muted mb-1.5">Match Mode</label>
+            <label className="block text-sm font-medium text-discord-muted mb-1.5">Modo de coincidencia</label>
             <div className="flex gap-2">
-              {['contains', 'exact', 'startsWith'].map((mode) => (
+              {[
+                { value: 'contains', label: 'contiene' },
+                { value: 'exact', label: 'exacto' },
+                { value: 'startsWith', label: 'empieza con' },
+              ].map((mode) => (
                 <Button
-                  key={mode}
+                  key={mode.value}
                   size="sm"
-                  variant={editResponseData.matchMode === mode ? 'primary' : 'secondary'}
-                  onClick={() => setEditResponseData({ ...editResponseData, matchMode: mode })}
+                  variant={editResponseData.matchMode === mode.value ? 'primary' : 'secondary'}
+                  onClick={() => setEditResponseData({ ...editResponseData, matchMode: mode.value })}
                 >
-                  {mode}
+                  {mode.label}
                 </Button>
               ))}
             </div>
           </div>
           <Textarea
-            label="Response"
-            placeholder="Hey there! How can I help?"
+            label="Respuesta"
+            placeholder="Hola! Como puedo ayudarte?"
             value={editResponseData.response}
             onChange={(e) => setEditResponseData({ ...editResponseData, response: e.target.value })}
           />
           <div className="flex justify-end gap-3 mt-4">
-            <Button variant="secondary" onClick={() => setEditResponse(null)}>Cancel</Button>
-            <Button onClick={saveEditResponse} loading={savingResponse}>Save Changes</Button>
+            <Button variant="secondary" onClick={() => setEditResponse(null)}>Cancelar</Button>
+            <Button onClick={saveEditResponse} loading={savingResponse}>Guardar cambios</Button>
           </div>
         </div>
       </Modal>
 
       {/* Edit Scheduled Modal */}
-      <Modal open={!!editScheduled} onClose={() => setEditScheduled(null)} title="Edit Scheduled Message">
+      <Modal open={!!editScheduled} onClose={() => setEditScheduled(null)} title="Editar mensaje programado">
         <div className="space-y-4">
           <Input
-            label="Channel ID"
-            placeholder="Channel to send the message"
+            label="ID del canal"
+            placeholder="Canal para enviar el mensaje"
             value={editScheduledData.channelId}
             onChange={(e) => setEditScheduledData({ ...editScheduledData, channelId: e.target.value })}
           />
           <Input
-            label="Cron Schedule"
-            placeholder="0 9 * * * (every day at 9 AM)"
+            label="Programacion cron"
+            placeholder="0 9 * * * (cada dia a las 9 AM)"
             value={editScheduledData.cron}
             onChange={(e) => setEditScheduledData({ ...editScheduledData, cron: e.target.value })}
           />
           <Textarea
-            label="Message"
-            placeholder="Good morning everyone!"
+            label="Mensaje"
+            placeholder="Buenos dias a todos!"
             value={editScheduledData.message}
             onChange={(e) => setEditScheduledData({ ...editScheduledData, message: e.target.value })}
           />
           <p className="text-xs text-discord-muted">
-            Cron format: minute hour day month weekday. Example: "0 9 * * 1-5" = weekdays at 9 AM.
+            Formato cron: minuto hora dia mes dia-semana. Ejemplo: "0 9 * * 1-5" = dias laborables a las 9 AM.
           </p>
           <div className="flex justify-end gap-3 mt-4">
-            <Button variant="secondary" onClick={() => setEditScheduled(null)}>Cancel</Button>
-            <Button onClick={saveEditScheduled} loading={savingScheduled}>Save Changes</Button>
+            <Button variant="secondary" onClick={() => setEditScheduled(null)}>Cancelar</Button>
+            <Button onClick={saveEditScheduled} loading={savingScheduled}>Guardar cambios</Button>
           </div>
         </div>
       </Modal>
@@ -483,12 +491,12 @@ export default function Automation() {
           if (deleteTarget.type === 'response') deleteResponse(deleteTarget.id);
           else deleteScheduledMsg(deleteTarget.id);
         }}
-        title={deleteTarget?.type === 'response' ? 'Delete Auto-Response' : 'Delete Scheduled Message'}
+        title={deleteTarget?.type === 'response' ? 'Eliminar autorespuesta' : 'Eliminar mensaje programado'}
         message={deleteTarget?.type === 'response'
-          ? 'Are you sure you want to delete this auto-response?'
-          : 'Are you sure you want to delete this scheduled message?'
+          ? 'Seguro que quieres eliminar esta autorespuesta?'
+          : 'Seguro que quieres eliminar este mensaje programado?'
         }
-        confirmLabel="Delete"
+        confirmLabel="Eliminar"
         loading={deleting}
       />
     </div>

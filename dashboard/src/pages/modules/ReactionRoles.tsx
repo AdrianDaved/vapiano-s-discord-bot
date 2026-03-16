@@ -47,14 +47,14 @@ export default function ReactionRoles() {
     setError(null);
     rrApi.list(guildId)
       .then((data) => setRoles(data))
-      .catch((err) => setError(err.message || 'Failed to load reaction roles'))
+      .catch((err) => setError(err.message || 'No se pudieron cargar los roles por reaccion'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
   const createRole = async () => {
     if (!guildId) return;
     if (!channelId || !messageId || !emoji || !roleId) {
-      toast.error('All fields are required');
+      toast.error('Todos los campos son obligatorios');
       return;
     }
     setCreating(true);
@@ -66,9 +66,9 @@ export default function ReactionRoles() {
       setEmoji('');
       setRoleId('');
       setType('toggle');
-      toast.success('Reaction role created');
+      toast.success('Rol por reaccion creado');
     } catch (err: any) {
-      toast.error(err.message || 'Failed to create reaction role');
+      toast.error(err.message || 'No se pudo crear el rol por reaccion');
     } finally {
       setCreating(false);
     }
@@ -80,9 +80,9 @@ export default function ReactionRoles() {
     try {
       await rrApi.delete(guildId, id);
       setRoles((prev) => prev.filter((r) => r.id !== id));
-      toast.success('Reaction role deleted');
+      toast.success('Rol por reaccion eliminado');
     } catch {
-      toast.error('Failed to delete');
+      toast.error('No se pudo eliminar');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
@@ -102,22 +102,22 @@ export default function ReactionRoles() {
       const updated = result.reactionRole || result;
       setRoles((prev) => prev.map((r) => r.id === editTarget.id ? { ...r, ...updated } : r));
       setEditTarget(null);
-      toast.success('Reaction role updated');
+      toast.success('Rol por reaccion actualizado');
     } catch {
-      toast.error('Failed to update reaction role');
+      toast.error('No se pudo actualizar el rol por reaccion');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <Loader text="Loading reaction roles..." />;
+  if (loading) return <Loader text="Cargando roles por reaccion..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">Failed to load reaction roles</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudieron cargar los roles por reaccion</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
-        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Retry</button>
+        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
     );
   }
@@ -125,56 +125,56 @@ export default function ReactionRoles() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Reaction Roles</h1>
-        <p className="text-discord-muted mt-1">Manage reaction/button roles for your server</p>
+        <h1 className="text-2xl font-bold text-discord-white">Roles por reaccion</h1>
+        <p className="text-discord-muted mt-1">Administra roles por reaccion/boton para tu servidor</p>
       </div>
 
       <div className="space-y-6">
-        <Card title="Create Reaction Role">
+        <Card title="Crear rol por reaccion">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
             <Input
-              label="Channel ID"
-              placeholder="Channel containing the message"
+                label="ID del canal"
+                placeholder="Canal que contiene el mensaje"
               value={channelId}
               onChange={(e) => setChannelId(e.target.value)}
             />
             <Input
-              label="Message ID"
-              placeholder="Message to attach role to"
+                label="ID del mensaje"
+                placeholder="Mensaje al que se asigna el rol"
               value={messageId}
               onChange={(e) => setMessageId(e.target.value)}
             />
             <Input
-              label="Emoji"
-              placeholder="Emoji or emoji ID"
+                label="Emoji"
+                placeholder="Emoji o ID de emoji"
               value={emoji}
               onChange={(e) => setEmoji(e.target.value)}
             />
             <Input
-              label="Role ID"
-              placeholder="Role to assign"
+                label="ID del rol"
+                placeholder="Rol a asignar"
               value={roleId}
               onChange={(e) => setRoleId(e.target.value)}
             />
             <Select
-              label="Type"
+               label="Tipo"
               value={type}
               onChange={(e) => setType(e.target.value)}
               options={[
-                { value: 'toggle', label: 'Toggle (add/remove)' },
-                { value: 'give', label: 'Give only' },
-                { value: 'remove', label: 'Remove only' },
+                 { value: 'toggle', label: 'Alternar (agregar/quitar)' },
+                 { value: 'give', label: 'Solo dar' },
+                 { value: 'remove', label: 'Solo quitar' },
               ]}
             />
           </div>
           <div className="flex justify-end mt-4">
-            <Button onClick={createRole} loading={creating}>Create</Button>
+            <Button onClick={createRole} loading={creating}>Crear</Button>
           </div>
         </Card>
 
-        <Card title={`Existing Roles (${roles.length})`}>
+        <Card title={`Roles existentes (${roles.length})`}>
           {roles.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">No reaction roles configured.</p>
+            <p className="text-discord-muted text-sm py-4">No hay roles por reaccion configurados.</p>
           ) : (
             <div className="space-y-2 mt-3">
               {roles.map((rr) => (
@@ -183,18 +183,18 @@ export default function ReactionRoles() {
                     <div className="flex items-center gap-3">
                       <span className="text-lg">{rr.emoji}</span>
                       <div>
-                        <p className="text-sm text-discord-white font-mono">Role: {rr.roleId}</p>
+                         <p className="text-sm text-discord-white font-mono">Rol: {rr.roleId}</p>
                         <p className="text-xs text-discord-muted">
-                          Message: {rr.messageId.slice(0, 12)}... | Type: {rr.type} | Channel: {rr.channelId.slice(-6)}
+                           Mensaje: {rr.messageId.slice(0, 12)}... | Tipo: {rr.type} | Canal: {rr.channelId.slice(-6)}
                         </p>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => openEdit(rr)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Edit">
+                     <button onClick={() => openEdit(rr)} className="p-1 hover:text-discord-blurple text-discord-muted transition-colors" title="Editar">
                       <Pencil size={16} />
                     </button>
-                    <Button variant="danger" size="sm" onClick={() => setDeleteTarget(rr.id)}>Delete</Button>
+                     <Button variant="danger" size="sm" onClick={() => setDeleteTarget(rr.id)}>Eliminar</Button>
                   </div>
                 </div>
               ))}
@@ -204,39 +204,39 @@ export default function ReactionRoles() {
       </div>
 
       {/* Edit Modal */}
-      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Reaction Role">
+      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Editar rol por reaccion">
         <div className="space-y-4">
           <Input
             label="Emoji"
-            placeholder="Emoji or emoji ID"
+            placeholder="Emoji o ID de emoji"
             value={editData.emoji}
             onChange={(e) => setEditData({ ...editData, emoji: e.target.value })}
           />
           <Input
-            label="Role ID"
-            placeholder="Role to assign"
+            label="ID del rol"
+            placeholder="Rol a asignar"
             value={editData.roleId}
             onChange={(e) => setEditData({ ...editData, roleId: e.target.value })}
           />
           <Select
-            label="Type"
+            label="Tipo"
             value={editData.type}
             onChange={(e) => setEditData({ ...editData, type: e.target.value })}
             options={[
-              { value: 'toggle', label: 'Toggle (add/remove)' },
-              { value: 'give', label: 'Give only' },
-              { value: 'remove', label: 'Remove only' },
+               { value: 'toggle', label: 'Alternar (agregar/quitar)' },
+               { value: 'give', label: 'Solo dar' },
+               { value: 'remove', label: 'Solo quitar' },
             ]}
           />
           {editTarget && (
             <div className="text-xs text-discord-muted">
-              <p>Channel: {editTarget.channelId}</p>
-              <p>Message: {editTarget.messageId}</p>
+               <p>Canal: {editTarget.channelId}</p>
+               <p>Mensaje: {editTarget.messageId}</p>
             </div>
           )}
           <div className="flex justify-end gap-3 mt-4">
-            <Button variant="secondary" onClick={() => setEditTarget(null)}>Cancel</Button>
-            <Button onClick={saveEdit} loading={saving}>Save Changes</Button>
+            <Button variant="secondary" onClick={() => setEditTarget(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} loading={saving}>Guardar cambios</Button>
           </div>
         </div>
       </Modal>
@@ -245,9 +245,9 @@ export default function ReactionRoles() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteRole(deleteTarget)}
-        title="Delete Reaction Role"
-        message="Are you sure you want to delete this reaction role? Users will no longer be able to get this role by reacting."
-        confirmLabel="Delete"
+        title="Eliminar rol por reaccion"
+        message="Seguro que quieres eliminar este rol por reaccion? Los usuarios ya no podran obtener este rol reaccionando."
+        confirmLabel="Eliminar"
         loading={deleting}
       />
     </div>

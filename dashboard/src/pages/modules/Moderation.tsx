@@ -57,16 +57,16 @@ export default function Moderation() {
     try {
       await modApi.deleteWarning(guildId, id);
       setWarnings((prev) => prev.filter((w) => w.id !== id));
-      toast.success('Warning removed');
+      toast.success('Advertencia eliminada');
     } catch {
-      toast.error('Failed to remove warning');
+      toast.error('No se pudo eliminar la advertencia');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
     }
   };
 
-  if (configLoading || loading) return <Loader text="Loading moderation..." />;
+  if (configLoading || loading) return <Loader text="Cargando moderacion..." />;
 
   const typeColor: Record<string, string> = {
     warn: 'text-discord-yellow',
@@ -82,15 +82,15 @@ export default function Moderation() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Moderation</h1>
-        <p className="text-discord-muted mt-1">View moderation actions and warnings</p>
+        <h1 className="text-2xl font-bold text-discord-white">Moderacion</h1>
+        <p className="text-discord-muted mt-1">Ver acciones de moderacion y advertencias</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard label="Total Actions" value={actions.length} icon={Gavel} color="text-discord-blurple" />
-        <StatCard label="Active Warnings" value={warnings.length} icon={AlertTriangle} color="text-discord-yellow" />
+        <StatCard label="Acciones totales" value={actions.length} icon={Gavel} color="text-discord-blurple" />
+        <StatCard label="Advertencias activas" value={warnings.length} icon={AlertTriangle} color="text-discord-yellow" />
         <StatCard
-          label="Bans"
+          label="Baneos"
           value={actions.filter((a) => a.type === 'ban' || a.type === 'tempban').length}
           icon={Shield}
           color="text-discord-red"
@@ -104,14 +104,14 @@ export default function Moderation() {
           size="sm"
           onClick={() => setTab('actions')}
         >
-          Mod Actions ({actions.length})
+          Acciones de mod ({actions.length})
         </Button>
         <Button
           variant={tab === 'warnings' ? 'primary' : 'secondary'}
           size="sm"
           onClick={() => setTab('warnings')}
         >
-          Warnings ({warnings.length})
+          Advertencias ({warnings.length})
         </Button>
       </div>
 
@@ -121,25 +121,25 @@ export default function Moderation() {
             columns={[
               {
                 key: 'type',
-                label: 'Action',
+                label: 'Accion',
                 render: (a: ModAction) => (
                   <span className={`font-medium uppercase text-xs ${typeColor[a.type] || ''}`}>
                     {a.type}
                   </span>
                 ),
               },
-              { key: 'userTag', label: 'User' },
-              { key: 'moderatorTag', label: 'Moderator' },
+               { key: 'userTag', label: 'Usuario' },
+               { key: 'moderatorTag', label: 'Moderador' },
               {
                 key: 'reason',
-                label: 'Reason',
+                 label: 'Razon',
                 render: (a: ModAction) => (
-                  <span className="text-discord-muted">{a.reason || 'No reason'}</span>
+                   <span className="text-discord-muted">{a.reason || 'Sin razon'}</span>
                 ),
               },
               {
                 key: 'createdAt',
-                label: 'Date',
+                 label: 'Fecha',
                 render: (a: ModAction) => (
                   <span className="text-discord-muted text-xs">
                     {new Date(a.createdAt).toLocaleDateString()}
@@ -148,7 +148,7 @@ export default function Moderation() {
               },
             ]}
             data={actions}
-            emptyMessage="No moderation actions recorded."
+            emptyMessage="No hay acciones de moderacion registradas."
           />
         </Card>
       )}
@@ -157,12 +157,12 @@ export default function Moderation() {
         <Card>
           <Table
             columns={[
-              { key: 'userTag', label: 'User' },
-              { key: 'moderatorTag', label: 'Issued By' },
-              { key: 'reason', label: 'Reason' },
+               { key: 'userTag', label: 'Usuario' },
+               { key: 'moderatorTag', label: 'Emitida por' },
+               { key: 'reason', label: 'Razon' },
               {
                 key: 'createdAt',
-                label: 'Date',
+                 label: 'Fecha',
                 render: (w: Warning) => (
                   <span className="text-discord-muted text-xs">
                     {new Date(w.createdAt).toLocaleDateString()}
@@ -183,7 +183,7 @@ export default function Moderation() {
               },
             ]}
             data={warnings}
-            emptyMessage="No active warnings."
+            emptyMessage="No hay advertencias activas."
           />
         </Card>
       )}
@@ -192,9 +192,9 @@ export default function Moderation() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteWarning(deleteTarget)}
-        title="Remove Warning"
-        message="Are you sure you want to remove this warning? This action cannot be undone."
-        confirmLabel="Remove"
+        title="Eliminar advertencia"
+        message="Seguro que quieres eliminar esta advertencia? Esta accion no se puede deshacer."
+        confirmLabel="Eliminar"
         loading={deleting}
       />
     </div>

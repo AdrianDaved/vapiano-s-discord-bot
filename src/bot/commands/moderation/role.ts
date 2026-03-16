@@ -1,5 +1,5 @@
 /**
- * /role command — Mass role management.
+ * /rol command — Gestión masiva de roles.
  */
 import {
   SlashCommandBuilder,
@@ -14,44 +14,44 @@ import logger from '../../../shared/logger';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('role')
-    .setDescription('Manage roles for members')
+    .setName('rol')
+    .setDescription('Gestionar roles de los miembros')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addSubcommand((sub) =>
       sub
-        .setName('add')
-        .setDescription('Add a role to a member')
-        .addUserOption((opt) => opt.setName('user').setDescription('Target user').setRequired(true))
-        .addRoleOption((opt) => opt.setName('role').setDescription('Role to add').setRequired(true))
+        .setName('dar')
+        .setDescription('Dar un rol a un miembro')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario objetivo').setRequired(true))
+        .addRoleOption((opt) => opt.setName('rol').setDescription('Rol a dar').setRequired(true))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('remove')
-        .setDescription('Remove a role from a member')
-        .addUserOption((opt) => opt.setName('user').setDescription('Target user').setRequired(true))
-        .addRoleOption((opt) => opt.setName('role').setDescription('Role to remove').setRequired(true))
+        .setName('quitar')
+        .setDescription('Quitar un rol a un miembro')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario objetivo').setRequired(true))
+        .addRoleOption((opt) => opt.setName('rol').setDescription('Rol a quitar').setRequired(true))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('all')
-        .setDescription('Add or remove a role from all members')
-        .addRoleOption((opt) => opt.setName('role').setDescription('Role to add/remove').setRequired(true))
+        .setName('todos')
+        .setDescription('Dar o quitar un rol a todos los miembros')
+        .addRoleOption((opt) => opt.setName('rol').setDescription('Rol a dar/quitar').setRequired(true))
         .addStringOption((opt) =>
           opt
-            .setName('action')
-            .setDescription('Add or remove')
+            .setName('accion')
+            .setDescription('Dar o quitar')
             .setRequired(true)
             .addChoices(
-              { name: 'Add to all', value: 'add' },
-              { name: 'Remove from all', value: 'remove' },
+              { name: 'Dar a todos', value: 'add' },
+              { name: 'Quitar a todos', value: 'remove' },
             )
         )
     )
     .addSubcommand((sub) =>
       sub
         .setName('info')
-        .setDescription('View info about a role')
-        .addRoleOption((opt) => opt.setName('role').setDescription('Role to inspect').setRequired(true))
+        .setDescription('Ver información de un rol')
+        .addRoleOption((opt) => opt.setName('rol').setDescription('Rol a inspeccionar').setRequired(true))
     ),
   module: 'moderation',
   cooldown: 5,
@@ -62,18 +62,18 @@ export default {
     const guild = interaction.guild!;
 
     switch (sub) {
-      case 'add': {
-        const user = interaction.options.getUser('user', true);
-        const role = interaction.options.getRole('role', true) as Role;
+      case 'dar': {
+        const user = interaction.options.getUser('usuario', true);
+        const role = interaction.options.getRole('rol', true) as Role;
         const member = await guild.members.fetch(user.id).catch(() => null);
 
         if (!member) {
-          await interaction.reply({ content: 'User not found in this server.', ephemeral: true });
+          await interaction.reply({ content: 'Usuario no encontrado en este servidor.', ephemeral: true });
           return;
         }
 
         if (!canManageRole(interaction.member as GuildMember, role, guild)) {
-          await interaction.reply({ content: 'You cannot manage this role (it may be higher than yours).', ephemeral: true });
+          await interaction.reply({ content: 'No puedes gestionar este rol (puede ser superior al tuyo).', ephemeral: true });
           return;
         }
 
@@ -82,25 +82,25 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(moduleColor('moderation'))
-              .setDescription(`Added ${role} to ${member}.`)
+              .setDescription(`Se dio ${role} a ${member}.`)
               .setTimestamp(),
           ],
         });
         break;
       }
 
-      case 'remove': {
-        const user = interaction.options.getUser('user', true);
-        const role = interaction.options.getRole('role', true) as Role;
+      case 'quitar': {
+        const user = interaction.options.getUser('usuario', true);
+        const role = interaction.options.getRole('rol', true) as Role;
         const member = await guild.members.fetch(user.id).catch(() => null);
 
         if (!member) {
-          await interaction.reply({ content: 'User not found in this server.', ephemeral: true });
+          await interaction.reply({ content: 'Usuario no encontrado en este servidor.', ephemeral: true });
           return;
         }
 
         if (!canManageRole(interaction.member as GuildMember, role, guild)) {
-          await interaction.reply({ content: 'You cannot manage this role.', ephemeral: true });
+          await interaction.reply({ content: 'No puedes gestionar este rol.', ephemeral: true });
           return;
         }
 
@@ -109,19 +109,19 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(moduleColor('moderation'))
-              .setDescription(`Removed ${role} from ${member}.`)
+              .setDescription(`Se quitó ${role} de ${member}.`)
               .setTimestamp(),
           ],
         });
         break;
       }
 
-      case 'all': {
-        const role = interaction.options.getRole('role', true) as Role;
-        const action = interaction.options.getString('action', true);
+      case 'todos': {
+        const role = interaction.options.getRole('rol', true) as Role;
+        const action = interaction.options.getString('accion', true);
 
         if (!canManageRole(interaction.member as GuildMember, role, guild)) {
-          await interaction.reply({ content: 'You cannot manage this role.', ephemeral: true });
+          await interaction.reply({ content: 'No puedes gestionar este rol.', ephemeral: true });
           return;
         }
 
@@ -140,7 +140,7 @@ export default {
               count++;
             }
           } catch {
-            // Skip members we can't modify
+            // Omitir miembros que no se pueden modificar
           }
         }
 
@@ -150,8 +150,8 @@ export default {
               .setColor(moduleColor('moderation'))
               .setDescription(
                 action === 'add'
-                  ? `Added ${role} to **${count}** member(s).`
-                  : `Removed ${role} from **${count}** member(s).`
+                  ? `Se dio ${role} a **${count}** miembro(s).`
+                  : `Se quitó ${role} de **${count}** miembro(s).`
               )
               .setTimestamp(),
           ],
@@ -160,20 +160,20 @@ export default {
       }
 
       case 'info': {
-        const role = interaction.options.getRole('role', true) as Role;
+        const role = interaction.options.getRole('rol', true) as Role;
 
         const embed = new EmbedBuilder()
           .setColor(role.color || 0x99aab5)
-          .setTitle(`Role: ${role.name}`)
+          .setTitle(`Rol: ${role.name}`)
           .addFields(
             { name: 'ID', value: role.id, inline: true },
             { name: 'Color', value: role.hexColor, inline: true },
-            { name: 'Position', value: role.position.toString(), inline: true },
-            { name: 'Members', value: role.members.size.toString(), inline: true },
-            { name: 'Mentionable', value: role.mentionable ? 'Yes' : 'No', inline: true },
-            { name: 'Hoisted', value: role.hoist ? 'Yes' : 'No', inline: true },
-            { name: 'Created', value: `<t:${Math.floor(role.createdTimestamp / 1000)}:R>`, inline: true },
-            { name: 'Managed', value: role.managed ? 'Yes (bot/integration)' : 'No', inline: true },
+            { name: 'Posición', value: role.position.toString(), inline: true },
+            { name: 'Miembros', value: role.members.size.toString(), inline: true },
+            { name: 'Mencionable', value: role.mentionable ? 'Sí' : 'No', inline: true },
+            { name: 'Separado', value: role.hoist ? 'Sí' : 'No', inline: true },
+            { name: 'Creado', value: `<t:${Math.floor(role.createdTimestamp / 1000)}:R>`, inline: true },
+            { name: 'Gestionado', value: role.managed ? 'Sí (bot/integración)' : 'No', inline: true },
           )
           .setTimestamp();
 
@@ -185,10 +185,10 @@ export default {
 };
 
 function canManageRole(member: GuildMember, role: Role, guild: any): boolean {
-  // Check the bot can manage this role
+  // Verificar que el bot puede gestionar este rol
   const botMember = guild.members.me;
   if (!botMember || role.position >= botMember.roles.highest.position) return false;
-  // Check the user's highest role is above the target role
+  // Verificar que el rol más alto del usuario está por encima del rol objetivo
   if (role.position >= member.roles.highest.position) return false;
   return true;
 }

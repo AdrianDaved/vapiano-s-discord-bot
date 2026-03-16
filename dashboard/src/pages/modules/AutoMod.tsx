@@ -29,15 +29,15 @@ export default function AutoMod() {
     setBlacklistWords((config.blacklistWords || []).join('\n'));
   }, [config]);
 
-  if (loading) return <Loader text="Loading automod..." />;
+  if (loading) return <Loader text="Cargando automod..." />;
   if (error) return <div className="text-discord-red text-center py-8">{error}</div>;
 
   const toggleSetting = async (key: string, value: boolean) => {
     try {
       await updateConfig({ [key]: value });
-      toast.success('Setting updated');
+      toast.success('Ajuste actualizado');
     } catch {
-      toast.error('Failed to update');
+      toast.error('No se pudo actualizar');
     }
   };
 
@@ -54,9 +54,9 @@ export default function AutoMod() {
           .map((w) => w.trim())
           .filter(Boolean),
       });
-      toast.success('AutoMod settings saved');
+      toast.success('Configuracion de AutoMod guardada');
     } catch {
-      toast.error('Failed to save');
+      toast.error('No se pudo guardar');
     } finally {
       setSaving(false);
     }
@@ -66,51 +66,51 @@ export default function AutoMod() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-discord-white">AutoMod</h1>
-        <p className="text-discord-muted mt-1">Configure automatic message filtering</p>
+        <p className="text-discord-muted mt-1">Configura el filtrado automatico de mensajes</p>
       </div>
 
       {/* Toggles */}
-      <Card title="Filters" description="Enable or disable individual filters" className="mb-6">
+      <Card title="Filtros" description="Activa o desactiva filtros individuales" className="mb-6">
         <div className="space-y-4">
           <Toggle
             enabled={config?.antiSpamEnabled ?? false}
             onChange={(v) => toggleSetting('antiSpamEnabled', v)}
-            label="Anti-Spam"
-            description="Delete messages from users sending too fast"
+             label="Anti-spam"
+             description="Elimina mensajes de usuarios que envian demasiado rapido"
           />
           <Toggle
             enabled={config?.antiCapsEnabled ?? false}
             onChange={(v) => toggleSetting('antiCapsEnabled', v)}
-            label="Anti-Caps"
-            description="Delete messages with excessive capital letters"
+             label="Anti-mayusculas"
+             description="Elimina mensajes con exceso de letras mayusculas"
           />
           <Toggle
             enabled={config?.antiLinksEnabled ?? false}
             onChange={(v) => toggleSetting('antiLinksEnabled', v)}
-            label="Anti-Links"
-            description="Delete messages containing URLs"
+             label="Anti-enlaces"
+             description="Elimina mensajes que contienen URLs"
           />
           <Toggle
             enabled={config?.blacklistEnabled ?? false}
             onChange={(v) => toggleSetting('blacklistEnabled', v)}
-            label="Word Blacklist"
-            description="Delete messages containing blacklisted words"
+             label="Lista negra de palabras"
+             description="Elimina mensajes con palabras en lista negra"
           />
         </div>
       </Card>
 
       {/* Anti-Spam Settings */}
-      <Card title="Anti-Spam Settings" className="mb-6">
+      <Card title="Ajustes de anti-spam" className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Max Messages"
+            label="Mensajes maximos"
             type="number"
             placeholder="5"
             value={antiSpamMax}
             onChange={(e) => setAntiSpamMax(e.target.value)}
           />
           <Input
-            label="Interval (seconds)"
+            label="Intervalo (segundos)"
             type="number"
             placeholder="5"
             value={antiSpamInterval}
@@ -118,22 +118,22 @@ export default function AutoMod() {
           />
         </div>
         <p className="text-xs text-discord-muted mt-2">
-          Users sending more than {antiSpamMax || 5} messages within {antiSpamInterval || 5} seconds will be flagged.
+          Usuarios que envien mas de {antiSpamMax || 5} mensajes dentro de {antiSpamInterval || 5} segundos seran marcados.
         </p>
       </Card>
 
       {/* Anti-Caps Settings */}
-      <Card title="Anti-Caps Settings" className="mb-6">
+      <Card title="Ajustes de anti-mayusculas" className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Caps Percentage Threshold"
+            label="Umbral de porcentaje en mayusculas"
             type="number"
             placeholder="70"
             value={antiCapsPercent}
             onChange={(e) => setAntiCapsPercent(e.target.value)}
           />
           <Input
-            label="Minimum Message Length"
+            label="Longitud minima del mensaje"
             type="number"
             placeholder="10"
             value={antiCapsMinLength}
@@ -143,7 +143,7 @@ export default function AutoMod() {
       </Card>
 
       {/* Blacklist */}
-      <Card title="Blacklisted Words" description="One word per line" className="mb-6">
+      <Card title="Palabras en lista negra" description="Una palabra por linea" className="mb-6">
         <Textarea
           placeholder="badword1&#10;badword2&#10;phrase to block"
           value={blacklistWords}
@@ -154,7 +154,7 @@ export default function AutoMod() {
 
       <div className="flex justify-end">
         <Button onClick={save} loading={saving}>
-          Save AutoMod Settings
+          Guardar configuracion de AutoMod
         </Button>
       </div>
     </div>

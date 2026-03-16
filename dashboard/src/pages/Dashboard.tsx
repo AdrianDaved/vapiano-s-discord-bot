@@ -7,32 +7,32 @@ import { Users, Hash, ShieldCheck, MessageSquare, UserPlus, Trophy, Ticket as Ti
 export default function Dashboard() {
   const { stats, loading, error } = useGuild();
 
-  if (loading) return <Loader text="Loading dashboard..." />;
+  if (loading) return <Loader text="Cargando panel..." />;
   if (error) return <div className="text-discord-red text-center py-8">{error}</div>;
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Server Dashboard</h1>
-        <p className="text-discord-muted mt-1">Overview of your server activity and stats</p>
+        <h1 className="text-2xl font-bold text-discord-white">Panel del servidor</h1>
+        <p className="text-discord-muted mt-1">Resumen de la actividad y estadisticas de tu servidor</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
-          label="Total Members"
+          label="Miembros totales"
           value={stats?.members ?? '-'}
           icon={Users}
           color="text-discord-blurple"
         />
         <StatCard
-          label="Online"
+          label="En linea"
           value={stats?.online ?? '-'}
           icon={Users}
           color="text-discord-green"
         />
         <StatCard
-          label="Channels"
+          label="Canales"
           value={stats?.channels ?? '-'}
           icon={Hash}
           color="text-discord-yellow"
@@ -47,33 +47,33 @@ export default function Dashboard() {
 
       {/* Module Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card title="Invites" className="text-center">
+        <Card title="Invitaciones" className="text-center">
           <div className="flex items-center justify-center gap-3 mt-2">
             <UserPlus size={20} className="text-discord-blurple" />
             <span className="text-2xl font-bold text-discord-white">
               {stats?.totalInvites ?? 0}
             </span>
-            <span className="text-sm text-discord-muted">total invites</span>
+            <span className="text-sm text-discord-muted">invitaciones totales</span>
           </div>
         </Card>
 
-        <Card title="Leveling" className="text-center">
+        <Card title="Niveles" className="text-center">
           <div className="flex items-center justify-center gap-3 mt-2">
             <Trophy size={20} className="text-discord-yellow" />
             <span className="text-2xl font-bold text-discord-white">
               {stats?.activeLeveling ?? 0}
             </span>
-            <span className="text-sm text-discord-muted">active members</span>
+            <span className="text-sm text-discord-muted">miembros activos</span>
           </div>
         </Card>
 
-        <Card title="Moderation" className="text-center">
+        <Card title="Moderacion" className="text-center">
           <div className="flex items-center justify-center gap-3 mt-2">
             <ShieldCheck size={20} className="text-discord-red" />
             <span className="text-2xl font-bold text-discord-white">
               {stats?.modActions ?? 0}
             </span>
-            <span className="text-sm text-discord-muted">mod actions</span>
+            <span className="text-sm text-discord-muted">acciones de mod</span>
           </div>
         </Card>
 
@@ -83,7 +83,7 @@ export default function Dashboard() {
             <span className="text-2xl font-bold text-discord-white">
               {stats?.openTickets ?? 0}
             </span>
-            <span className="text-sm text-discord-muted">open tickets</span>
+            <span className="text-sm text-discord-muted">tickets abiertos</span>
           </div>
         </Card>
       </div>

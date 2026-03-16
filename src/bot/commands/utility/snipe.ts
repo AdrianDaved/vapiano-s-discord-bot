@@ -1,6 +1,6 @@
 /**
- * /snipe command — View recently deleted messages in a channel.
- * Uses an in-memory cache populated by the messageDelete event.
+ * /snipe command — Ver mensajes eliminados recientemente en un canal.
+ * Usa una caché en memoria poblada por el evento messageDelete.
  */
 import {
   SlashCommandBuilder,
@@ -16,20 +16,20 @@ import { getDeletedMessage, deletedMessagesCache } from '../../modules/utility/s
 export default {
   data: new SlashCommandBuilder()
     .setName('snipe')
-    .setDescription('View the most recently deleted message in a channel')
+    .setDescription('Ver el último mensaje eliminado en un canal')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addIntegerOption((opt) =>
       opt
-        .setName('index')
-        .setDescription('Which deleted message to view (1 = most recent, up to 10)')
+        .setName('indice')
+        .setDescription('Qué mensaje eliminado ver (1 = más reciente, hasta 10)')
         .setMinValue(1)
         .setMaxValue(10)
         .setRequired(false)
     )
     .addChannelOption((opt) =>
       opt
-        .setName('channel')
-        .setDescription('Channel to snipe (defaults to current)')
+        .setName('canal')
+        .setDescription('Canal del que recuperar (por defecto el actual)')
         .addChannelTypes(ChannelType.GuildText)
         .setRequired(false)
     ),
@@ -38,14 +38,14 @@ export default {
   permissions: [PermissionFlagsBits.ManageMessages],
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const index = (interaction.options.getInteger('index') ?? 1) - 1; // 0-based
-    const channel = (interaction.options.getChannel('channel') || interaction.channel) as TextChannel;
+    const index = (interaction.options.getInteger('indice') ?? 1) - 1; // 0-based
+    const channel = (interaction.options.getChannel('canal') || interaction.channel) as TextChannel;
 
     const sniped = getDeletedMessage(channel.id, index);
 
     if (!sniped) {
       await interaction.reply({
-        content: 'Nothing to snipe — no recently deleted messages in this channel.',
+        content: 'Nada que recuperar — no hay mensajes eliminados recientemente en este canal.',
         ephemeral: true,
       });
       return;
@@ -59,8 +59,8 @@ export default {
         name: sniped.authorTag,
         iconURL: sniped.authorAvatar ?? undefined,
       })
-      .setDescription(sniped.content || '*No text content*')
-      .setFooter({ text: `${index + 1}/${total} • Deleted` })
+      .setDescription(sniped.content || '*Sin contenido de texto*')
+      .setFooter({ text: `${index + 1}/${total} • Eliminado` })
       .setTimestamp(sniped.deletedAt);
 
     if (sniped.attachmentUrl) {

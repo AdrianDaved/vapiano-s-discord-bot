@@ -7,12 +7,12 @@ import { getGuildConfig } from '../utils';
 import logger from '../../shared/logger';
 
 const channelTypeNames: Record<number, string> = {
-  [ChannelType.GuildText]: 'Text',
-  [ChannelType.GuildVoice]: 'Voice',
-  [ChannelType.GuildCategory]: 'Category',
-  [ChannelType.GuildAnnouncement]: 'Announcement',
-  [ChannelType.GuildForum]: 'Forum',
-  [ChannelType.GuildStageVoice]: 'Stage',
+  [ChannelType.GuildText]: 'Texto',
+  [ChannelType.GuildVoice]: 'Voz',
+  [ChannelType.GuildCategory]: 'Categoria',
+  [ChannelType.GuildAnnouncement]: 'Anuncios',
+  [ChannelType.GuildForum]: 'Foro',
+  [ChannelType.GuildStageVoice]: 'Escenario',
 };
 
 export default {
@@ -32,12 +32,12 @@ export default {
     try {
       const embed = new EmbedBuilder()
         .setColor(0xed4245)
-        .setTitle('Channel Deleted')
+        .setTitle('Canal eliminado')
         .addFields(
-          { name: 'Name', value: `#${channel.name}`, inline: true },
-          { name: 'Type', value: channelTypeNames[channel.type] || 'Unknown', inline: true },
+          { name: 'Nombre', value: `#${channel.name}`, inline: true },
+          { name: 'Tipo', value: channelTypeNames[channel.type] || 'Desconocido', inline: true },
         )
-        .setFooter({ text: `Channel ID: ${channel.id}` })
+        .setFooter({ text: `ID del canal: ${channel.id}` })
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });

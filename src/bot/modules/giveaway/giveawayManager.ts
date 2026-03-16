@@ -40,28 +40,28 @@ export function initGiveawayTimer(client: Client) {
 
             const winnersText = winners.length > 0
               ? winners.map((w) => `<@${w}>`).join(', ')
-              : 'No valid entries.';
+              : 'No hay participaciones validas.';
 
             const embed = new EmbedBuilder()
               .setColor(0x99aab5)
-              .setTitle('🎉 GIVEAWAY ENDED 🎉')
+              .setTitle('🎉 SORTEO FINALIZADO 🎉')
               .setDescription(
                 `**${giveaway.prize}**\n\n` +
-                `**Winner(s):** ${winnersText}\n` +
-                `**Hosted by:** <@${giveaway.hostId}>\n` +
-                `**Entries:** ${giveaway.entries.length}`
+                `**Ganador(es):** ${winnersText}\n` +
+                `**Organizado por:** <@${giveaway.hostId}>\n` +
+                `**Participaciones:** ${giveaway.entries.length}`
               )
-              .setFooter({ text: `Ended` })
+              .setFooter({ text: `Finalizado` })
               .setTimestamp();
 
             await msg.edit({ embeds: [embed], components: [] });
 
             if (winners.length > 0) {
               await channel.send(
-                `🎉 Congratulations ${winnersText}! You won **${giveaway.prize}**!`
+                `🎉 Felicidades ${winnersText}! Ganaste **${giveaway.prize}**!`
               );
             } else {
-              await channel.send(`The giveaway for **${giveaway.prize}** ended with no entries.`);
+              await channel.send(`El sorteo de **${giveaway.prize}** termino sin participaciones.`);
             }
           } catch {
             // Message may have been deleted
@@ -102,7 +102,7 @@ export async function handleGiveawayButton(
     });
 
     if (!giveaway) {
-      await interaction.reply({ content: 'This giveaway has ended.', ephemeral: true });
+      await interaction.reply({ content: 'Este sorteo ya termino.', ephemeral: true });
       return;
     }
 
@@ -123,7 +123,7 @@ export async function handleGiveawayButton(
 
       // Update button count
       await updateEntryCount(interaction, entries.length);
-      await interaction.reply({ content: 'You have left the giveaway.', ephemeral: true });
+      await interaction.reply({ content: 'Has salido del sorteo.', ephemeral: true });
     } else {
       // Add entry
       entries.push(userId);
@@ -134,7 +134,7 @@ export async function handleGiveawayButton(
       });
 
       await updateEntryCount(interaction, entries.length);
-      await interaction.reply({ content: '🎉 You have entered the giveaway! Good luck!', ephemeral: true });
+      await interaction.reply({ content: '🎉 Te has unido al sorteo! Buena suerte!', ephemeral: true });
     }
   }
 }
@@ -144,11 +144,11 @@ async function updateEntryCount(interaction: import('discord.js').ButtonInteract
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId('giveaway_enter')
-        .setLabel('🎉 Enter Giveaway')
+        .setLabel('🎉 Participar en sorteo')
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
         .setCustomId('giveaway_count')
-        .setLabel(`${count} entries`)
+        .setLabel(`${count} participaciones`)
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(true),
     );

@@ -28,23 +28,23 @@ interface SidebarProps {
 }
 
 const modules = [
-  { path: '', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/config', icon: Settings, label: 'General Config' },
-  { path: '/welcome', icon: HandMetal, label: 'Welcome / Farewell' },
-  { path: '/invites', icon: UserPlus, label: 'Invites' },
-  { path: '/leveling', icon: Trophy, label: 'Leveling' },
-  { path: '/moderation', icon: Shield, label: 'Moderation' },
+  { path: '', icon: LayoutDashboard, label: 'Panel' },
+  { path: '/config', icon: Settings, label: 'Configuracion general' },
+  { path: '/welcome', icon: HandMetal, label: 'Bienvenida / Despedida' },
+  { path: '/invites', icon: UserPlus, label: 'Invitaciones' },
+  { path: '/leveling', icon: Trophy, label: 'Niveles' },
+  { path: '/moderation', icon: Shield, label: 'Moderacion' },
   { path: '/automod', icon: ShieldAlert, label: 'AutoMod' },
   { path: '/tickets', icon: Ticket, label: 'Tickets' },
-  { path: '/automation', icon: Bot, label: 'Automation' },
-  { path: '/reactionroles', icon: Tags, label: 'Reaction Roles' },
+  { path: '/automation', icon: Bot, label: 'Automatizacion' },
+  { path: '/reactionroles', icon: Tags, label: 'Roles por reaccion' },
   { path: '/starboard', icon: Sparkles, label: 'Starboard' },
-  { path: '/reputation', icon: Star, label: 'Reputation' },
-  { path: '/giveaways', icon: Gift, label: 'Giveaways' },
-  { path: '/suggestions', icon: Lightbulb, label: 'Suggestions' },
-  { path: '/sticky', icon: StickyNote, label: 'Sticky Messages' },
-  { path: '/logging', icon: ScrollText, label: 'Logging' },
-  { path: '/backups', icon: Database, label: 'Backups' },
+  { path: '/reputation', icon: Star, label: 'Reputacion' },
+  { path: '/giveaways', icon: Gift, label: 'Sorteos' },
+  { path: '/suggestions', icon: Lightbulb, label: 'Sugerencias' },
+  { path: '/sticky', icon: StickyNote, label: 'Mensajes fijos' },
+  { path: '/logging', icon: ScrollText, label: 'Registros' },
+  { path: '/backups', icon: Database, label: 'Copias de seguridad' },
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
@@ -68,13 +68,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           </div>
           <div>
             <h1 className="text-base font-bold text-discord-white">Vapiano Bot</h1>
-            <p className="text-xs text-discord-muted">Dashboard</p>
+             <p className="text-xs text-discord-muted">Panel</p>
           </div>
         </NavLink>
         <button
           onClick={onClose}
           className="lg:hidden p-1.5 rounded-lg hover:bg-discord-lighter text-discord-muted hover:text-discord-white transition-colors"
-          aria-label="Close menu"
+          aria-label="Cerrar menu"
         >
           <X size={20} />
         </button>
@@ -98,7 +98,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
         {!guildId && (
           <div className="px-4 py-8 text-center text-discord-muted text-sm">
-            Select a server to manage
+            Selecciona un servidor para administrar
           </div>
         )}
       </nav>
@@ -120,7 +120,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <button
               onClick={logout}
               className="p-1.5 rounded-lg hover:bg-discord-lighter text-discord-muted hover:text-discord-red transition-colors"
-              title="Logout"
+              title="Cerrar sesion"
             >
               <LogOut size={16} />
             </button>

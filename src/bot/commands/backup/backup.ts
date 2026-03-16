@@ -10,38 +10,38 @@ import { moduleColor } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('backup')
-    .setDescription('Server backup management')
+    .setName('respaldo')
+    .setDescription('Gestion de respaldos del servidor')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addSubcommand((sub) =>
       sub
-        .setName('create')
-        .setDescription('Create a backup of this server')
-        .addStringOption((opt) => opt.setName('name').setDescription('Backup name').setRequired(true))
+        .setName('crear')
+        .setDescription('Crear un respaldo de este servidor')
+        .addStringOption((opt) => opt.setName('nombre').setDescription('Nombre del respaldo').setRequired(true))
     )
     .addSubcommand((sub) =>
-      sub.setName('list').setDescription('List all backups for this server')
+      sub.setName('lista').setDescription('Listar todos los respaldos de este servidor')
     )
     .addSubcommand((sub) =>
       sub
-        .setName('restore')
-        .setDescription('Restore a backup (WARNING: destructive)')
-        .addStringOption((opt) => opt.setName('id').setDescription('Backup ID').setRequired(true))
+        .setName('restaurar')
+        .setDescription('Restaurar un respaldo (ADVERTENCIA: destructivo)')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID del respaldo').setRequired(true))
         .addBooleanOption((opt) =>
-          opt.setName('clear').setDescription('Clear existing channels/roles before restoring').setRequired(false)
+          opt.setName('limpiar').setDescription('Limpiar canales/roles existentes antes de restaurar').setRequired(false)
         )
     )
     .addSubcommand((sub) =>
       sub
-        .setName('delete')
-        .setDescription('Delete a backup')
-        .addStringOption((opt) => opt.setName('id').setDescription('Backup ID').setRequired(true))
+        .setName('eliminar')
+        .setDescription('Eliminar un respaldo')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID del respaldo').setRequired(true))
     )
     .addSubcommand((sub) =>
       sub
         .setName('info')
-        .setDescription('View details of a backup')
-        .addStringOption((opt) => opt.setName('id').setDescription('Backup ID').setRequired(true))
+        .setDescription('Ver detalles de un respaldo')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID del respaldo').setRequired(true))
     ),
   module: 'backup',
   cooldown: 10,
@@ -52,8 +52,8 @@ export default {
     const guildId = interaction.guildId!;
 
     switch (sub) {
-      case 'create': {
-        const name = interaction.options.getString('name', true);
+      case 'crear': {
+        const name = interaction.options.getString('nombre', true);
         await interaction.deferReply({ ephemeral: true });
 
         try {
@@ -72,25 +72,25 @@ export default {
 
           const embed = new EmbedBuilder()
             .setColor(moduleColor('backup'))
-            .setTitle('Backup Created')
+            .setTitle('Respaldo Creado')
             .addFields(
-              { name: 'Name', value: name, inline: true },
+              { name: 'Nombre', value: name, inline: true },
               { name: 'ID', value: `\`${backup.id}\``, inline: true },
-              { name: 'Size', value: `${(backup.size / 1024).toFixed(1)} KB`, inline: true },
+              { name: 'Tamano', value: `${(backup.size / 1024).toFixed(1)} KB`, inline: true },
               { name: 'Roles', value: `${(data.roles || []).length}`, inline: true },
               { name: 'Channels', value: `${(data.textChannels || []).length + (data.voiceChannels || []).length}`, inline: true },
-              { name: 'Categories', value: `${(data.categories || []).length}`, inline: true }
+              { name: 'Categorias', value: `${(data.categories || []).length}`, inline: true }
             )
             .setTimestamp();
 
           await interaction.editReply({ embeds: [embed] });
         } catch (err) {
-          await interaction.editReply({ content: `Failed to create backup: ${err}` });
+          await interaction.editReply({ content: `Error al crear respaldo: ${err}` });
         }
         break;
       }
 
-      case 'list': {
+      case 'lista': {
         const backups = await prisma.backup.findMany({
           where: { guildId },
           orderBy: { createdAt: 'desc' },
@@ -98,7 +98,7 @@ export default {
         });
 
         if (backups.length === 0) {
-          await interaction.reply({ content: 'No backups found for this server.', ephemeral: true });
+          await interaction.reply({ content: 'No se encontraron respaldos para este servidor.', ephemeral: true });
           return;
         }
 
@@ -109,24 +109,24 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('backup'))
-          .setTitle('Server Backups')
+          .setTitle('Respaldos del Servidor')
           .setDescription(lines.join('\n'))
-          .setFooter({ text: `${backups.length} backup(s) | Use /backup info <id> for details` });
+          .setFooter({ text: `${backups.length} respaldo(s) | Usa /respaldo info <id> para detalles` });
 
         await interaction.reply({ embeds: [embed], ephemeral: true });
         break;
       }
 
-      case 'restore': {
+      case 'restaurar': {
         const id = interaction.options.getString('id', true);
-        const clearExisting = interaction.options.getBoolean('clear') ?? false;
+        const clearExisting = interaction.options.getBoolean('limpiar') ?? false;
 
         const backup = await prisma.backup.findFirst({
           where: { id: { startsWith: id }, guildId },
         });
 
         if (!backup) {
-          await interaction.reply({ content: 'Backup not found.', ephemeral: true });
+          await interaction.reply({ content: 'Respaldo no encontrado.', ephemeral: true });
           return;
         }
 
@@ -136,19 +136,19 @@ export default {
           clearExisting,
         });
 
-        const detailsStr = result.details.slice(0, 20).join('\n') || 'No details';
+        const detailsStr = result.details.slice(0, 20).join('\n') || 'Sin detalles';
 
         const embed = new EmbedBuilder()
           .setColor(result.success ? moduleColor('backup') : 0xed4245)
-          .setTitle(result.success ? 'Backup Restored' : 'Restore Failed')
-          .setDescription(`**Backup:** ${backup.name}\n\n${detailsStr}${result.details.length > 20 ? `\n... and ${result.details.length - 20} more` : ''}`)
+          .setTitle(result.success ? 'Respaldo Restaurado' : 'Error al Restaurar')
+          .setDescription(`**Respaldo:** ${backup.name}\n\n${detailsStr}${result.details.length > 20 ? `\n... y ${result.details.length - 20} mas` : ''}`)
           .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
         break;
       }
 
-      case 'delete': {
+      case 'eliminar': {
         const id = interaction.options.getString('id', true);
 
         const backup = await prisma.backup.findFirst({
@@ -156,12 +156,12 @@ export default {
         });
 
         if (!backup) {
-          await interaction.reply({ content: 'Backup not found.', ephemeral: true });
+          await interaction.reply({ content: 'Respaldo no encontrado.', ephemeral: true });
           return;
         }
 
         await prisma.backup.delete({ where: { id: backup.id } });
-        await interaction.reply({ content: `Backup **${backup.name}** deleted.`, ephemeral: true });
+        await interaction.reply({ content: `Respaldo **${backup.name}** eliminado.`, ephemeral: true });
         break;
       }
 
@@ -173,7 +173,7 @@ export default {
         });
 
         if (!backup) {
-          await interaction.reply({ content: 'Backup not found.', ephemeral: true });
+          await interaction.reply({ content: 'Respaldo no encontrado.', ephemeral: true });
           return;
         }
 
@@ -181,19 +181,19 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('backup'))
-          .setTitle(`Backup: ${backup.name}`)
+          .setTitle(`Respaldo: ${backup.name}`)
           .addFields(
             { name: 'ID', value: `\`${backup.id}\``, inline: true },
-            { name: 'Created By', value: `<@${backup.creatorId}>`, inline: true },
-            { name: 'Created', value: `<t:${Math.floor(backup.createdAt.getTime() / 1000)}:F>`, inline: true },
-            { name: 'Size', value: `${(backup.size / 1024).toFixed(1)} KB`, inline: true },
-            { name: 'Server Name', value: data.name || 'N/A', inline: true },
+            { name: 'Creado por', value: `<@${backup.creatorId}>`, inline: true },
+            { name: 'Creado', value: `<t:${Math.floor(backup.createdAt.getTime() / 1000)}:F>`, inline: true },
+            { name: 'Tamano', value: `${(backup.size / 1024).toFixed(1)} KB`, inline: true },
+            { name: 'Nombre del servidor', value: data.name || 'N/A', inline: true },
             { name: 'Roles', value: `${(data.roles || []).length}`, inline: true },
-            { name: 'Categories', value: `${(data.categories || []).length}`, inline: true },
-            { name: 'Text Channels', value: `${(data.textChannels || []).length}`, inline: true },
-            { name: 'Voice Channels', value: `${(data.voiceChannels || []).length}`, inline: true }
+            { name: 'Categorias', value: `${(data.categories || []).length}`, inline: true },
+            { name: 'Canales de texto', value: `${(data.textChannels || []).length}`, inline: true },
+            { name: 'Canales de voz', value: `${(data.voiceChannels || []).length}`, inline: true }
           )
-          .setFooter({ text: 'Use /backup restore <id> to restore this backup' })
+          .setFooter({ text: 'Usa /respaldo restaurar <id> para restaurar este respaldo' })
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed], ephemeral: true });

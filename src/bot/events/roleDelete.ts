@@ -23,13 +23,13 @@ export default {
     try {
       const embed = new EmbedBuilder()
         .setColor(0xed4245)
-        .setTitle('Role Deleted')
+        .setTitle('Rol eliminado')
         .addFields(
-          { name: 'Name', value: role.name, inline: true },
+          { name: 'Nombre', value: role.name, inline: true },
           { name: 'Color', value: role.hexColor, inline: true },
-          { name: 'Members', value: role.members.size.toString(), inline: true },
+          { name: 'Miembros', value: role.members.size.toString(), inline: true },
         )
-        .setFooter({ text: `Role ID: ${role.id}` })
+        .setFooter({ text: `ID del rol: ${role.id}` })
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });

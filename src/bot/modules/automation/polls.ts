@@ -42,17 +42,17 @@ export function initPollTimer(client: Client) {
               const count = (votes[i.toString()] || []).length;
               const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
               const bar = createBar(percentage);
-              return `**${i + 1}.** ${option}\n${bar} ${count} votes (${percentage}%)`;
+              return `**${i + 1}.** ${option}\n${bar} ${count} votos (${percentage}%)`;
             })
             .join('\n\n');
 
           const embed = new EmbedBuilder()
             .setColor(0x57f287)
-            .setTitle(`📊 ${poll.question} (ENDED)`)
+            .setTitle(`📊 ${poll.question} (FINALIZADA)`)
             .setDescription(
-              `${description}\n\n🏆 **Winner: ${poll.options[winnerIdx]}** with ${maxVotes} vote(s)`
+              `${description}\n\n🏆 **Ganador: ${poll.options[winnerIdx]}** con ${maxVotes} voto(s)`
             )
-            .setFooter({ text: `Total votes: ${totalVotes} | Poll ended` })
+            .setFooter({ text: `Votos totales: ${totalVotes} | Encuesta finalizada` })
             .setTimestamp();
 
           // Update original message
@@ -95,17 +95,17 @@ export async function handlePollVote(interaction: ButtonInteraction): Promise<vo
 
   const poll = await prisma.poll.findUnique({ where: { id: pollId } });
   if (!poll) {
-    await interaction.reply({ content: 'This poll no longer exists.', ephemeral: true });
+    await interaction.reply({ content: 'Esta encuesta ya no existe.', ephemeral: true });
     return;
   }
 
   if (poll.ended) {
-    await interaction.reply({ content: 'This poll has already ended.', ephemeral: true });
+    await interaction.reply({ content: 'Esta encuesta ya termino.', ephemeral: true });
     return;
   }
 
   if (poll.endsAt && new Date() > poll.endsAt) {
-    await interaction.reply({ content: 'This poll has expired.', ephemeral: true });
+    await interaction.reply({ content: 'Esta encuesta ha expirado.', ephemeral: true });
     return;
   }
 
@@ -137,7 +137,7 @@ export async function handlePollVote(interaction: ButtonInteraction): Promise<vo
         const count = (votes[i.toString()] || []).length;
         const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
         const bar = createBar(percentage);
-        return `**${i + 1}.** ${option}\n${bar} ${count} votes (${percentage}%)`;
+        return `**${i + 1}.** ${option}\n${bar} ${count} votos (${percentage}%)`;
       })
       .join('\n\n');
 
@@ -145,13 +145,13 @@ export async function handlePollVote(interaction: ButtonInteraction): Promise<vo
       .setColor(0xf47b67)
       .setTitle(`📊 ${poll.question}`)
       .setDescription(description)
-      .setFooter({ text: `Total votes: ${totalVotes}${poll.endsAt ? ` | Ends` : ''}` })
+      .setFooter({ text: `Votos totales: ${totalVotes}${poll.endsAt ? ` | Termina` : ''}` })
       .setTimestamp(poll.endsAt || undefined);
 
     await interaction.update({ embeds: [embed] });
   } catch (err) {
     logger.error(`[Polls] Error updating poll embed: ${err}`);
-    await interaction.reply({ content: 'Your vote has been recorded!', ephemeral: true });
+    await interaction.reply({ content: 'Tu voto ha sido registrado!', ephemeral: true });
   }
 }
 

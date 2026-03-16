@@ -44,9 +44,9 @@ export default function Backups() {
     try {
       await backupsApi.delete(guildId, id);
       setBackupList((prev) => prev.filter((b) => b.id !== id));
-      toast.success('Backup deleted');
+      toast.success('Copia de seguridad eliminada');
     } catch {
-      toast.error('Failed to delete backup');
+      toast.error('No se pudo eliminar la copia de seguridad');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
@@ -60,54 +60,54 @@ export default function Backups() {
       setViewBackup(data.backup || data);
       setShowView(true);
     } catch {
-      toast.error('Failed to load backup details');
+      toast.error('No se pudieron cargar los detalles de la copia');
     }
   };
 
-  if (configLoading || loading) return <Loader text="Loading backups..." />;
+  if (configLoading || loading) return <Loader text="Cargando copias de seguridad..." />;
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Backups</h1>
-        <p className="text-discord-muted mt-1">View and manage server backups created with /backup</p>
+        <h1 className="text-2xl font-bold text-discord-white">Copias de seguridad</h1>
+        <p className="text-discord-muted mt-1">Ver y administrar copias del servidor creadas con /backup</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <StatCard label="Total Backups" value={backupList.length} icon={Database} color="text-discord-blurple" />
+        <StatCard label="Copias totales" value={backupList.length} icon={Database} color="text-discord-blurple" />
         <StatCard
-          label="Latest Backup"
+          label="Ultima copia"
           value={
             backupList.length > 0
               ? new Date(backupList[0].createdAt).toLocaleDateString()
-              : 'None'
+              : 'Ninguna'
           }
           icon={HardDrive}
           color="text-discord-green"
         />
       </div>
 
-      <Card title="Server Backups" description="Backups are created via the /backup create command in Discord">
+      <Card title="Copias del servidor" description="Las copias se crean con el comando /backup create en Discord">
         <Table
           columns={[
             {
               key: 'name',
-              label: 'Name',
-              render: (b: Backup) => <span className="font-medium">{b.name || `Backup ${b.id.slice(0, 8)}`}</span>,
+               label: 'Nombre',
+               render: (b: Backup) => <span className="font-medium">{b.name || `Copia ${b.id.slice(0, 8)}`}</span>,
             },
             {
               key: 'channels',
-              label: 'Channels',
+               label: 'Canales',
               render: (b: Backup) => <span className="text-discord-muted">{b.channels ?? '-'}</span>,
             },
             {
               key: 'roles',
-              label: 'Roles',
+               label: 'Roles',
               render: (b: Backup) => <span className="text-discord-muted">{b.roles ?? '-'}</span>,
             },
             {
               key: 'createdAt',
-              label: 'Created',
+               label: 'Creada',
               render: (b: Backup) => (
                 <span className="text-discord-muted text-xs">
                   {new Date(b.createdAt).toLocaleString()}
@@ -122,14 +122,14 @@ export default function Backups() {
                   <button
                     onClick={() => viewBackupDetails(b.id)}
                     className="p-1 hover:text-discord-blurple text-discord-muted transition-colors"
-                    title="View details"
+                     title="Ver detalles"
                   >
                     <Eye size={16} />
                   </button>
                   <button
                     onClick={() => setDeleteTarget(b.id)}
                     className="p-1 hover:text-discord-red text-discord-muted transition-colors"
-                    title="Delete backup"
+                     title="Eliminar copia"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -138,21 +138,21 @@ export default function Backups() {
             },
           ]}
           data={backupList}
-          emptyMessage="No backups found. Use /backup create in Discord to create one."
+          emptyMessage="No se encontraron copias. Usa /backup create en Discord para crear una."
         />
       </Card>
 
       {/* View Details Modal */}
-      <Modal open={showView} onClose={() => setShowView(false)} title="Backup Details" maxWidth="max-w-2xl">
+      <Modal open={showView} onClose={() => setShowView(false)} title="Detalles de la copia" maxWidth="max-w-2xl">
         {viewBackup && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-discord-muted">Name</p>
-                <p className="text-discord-white font-medium">{viewBackup.name || 'Unnamed'}</p>
+                <p className="text-xs text-discord-muted">Nombre</p>
+                <p className="text-discord-white font-medium">{viewBackup.name || 'Sin nombre'}</p>
               </div>
               <div>
-                <p className="text-xs text-discord-muted">Created</p>
+                <p className="text-xs text-discord-muted">Creada</p>
                 <p className="text-discord-white">{new Date(viewBackup.createdAt).toLocaleString()}</p>
               </div>
             </div>
@@ -167,7 +167,7 @@ export default function Backups() {
                           #{ch.name || ch}
                         </p>
                       ))
-                    : <p className="text-sm text-discord-muted">Data not available</p>
+                     : <p className="text-sm text-discord-muted">Datos no disponibles</p>
                   }
                 </div>
               </div>
@@ -183,14 +183,14 @@ export default function Backups() {
                           @{role.name || role}
                         </p>
                       ))
-                    : <p className="text-sm text-discord-muted">Data not available</p>
+                     : <p className="text-sm text-discord-muted">Datos no disponibles</p>
                   }
                 </div>
               </div>
             )}
 
             <p className="text-xs text-discord-muted">
-              To restore this backup, use <code className="bg-discord-darker px-1 rounded">/backup restore {viewBackup.id}</code> in Discord.
+              Para restaurar esta copia, usa <code className="bg-discord-darker px-1 rounded">/backup restore {viewBackup.id}</code> en Discord.
             </p>
           </div>
         )}
@@ -200,9 +200,9 @@ export default function Backups() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteBackup(deleteTarget)}
-        title="Delete Backup"
-        message="Are you sure you want to delete this backup? This action cannot be undone and the backup data will be permanently lost."
-        confirmLabel="Delete"
+        title="Eliminar copia de seguridad"
+        message="Seguro que quieres eliminar esta copia? Esta accion no se puede deshacer y los datos se perderan permanentemente."
+        confirmLabel="Eliminar"
         loading={deleting}
       />
     </div>

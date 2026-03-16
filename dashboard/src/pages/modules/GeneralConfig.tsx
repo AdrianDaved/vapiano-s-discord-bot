@@ -38,15 +38,15 @@ export default function GeneralConfig() {
     setMuteRoleId(config.muteRoleId || '');
   }, [config]);
 
-  if (loading) return <Loader text="Loading config..." />;
+  if (loading) return <Loader text="Cargando configuracion..." />;
   if (error) return <div className="text-discord-red text-center py-8">{error}</div>;
 
   const toggleModule = async (module: string, enabled: boolean) => {
     try {
       await updateConfig({ [`${module}Enabled`]: enabled });
-      toast.success(`${module} ${enabled ? 'enabled' : 'disabled'}`);
+      toast.success(`${module} ${enabled ? 'activado' : 'desactivado'}`);
     } catch {
-      toast.error('Failed to update module');
+      toast.error('No se pudo actualizar el modulo');
     }
   };
 
@@ -65,32 +65,32 @@ export default function GeneralConfig() {
         joinRoleId: joinRoleId || null,
         muteRoleId: muteRoleId || null,
       });
-      toast.success('Settings saved');
+      toast.success('Configuracion guardada');
     } catch {
-      toast.error('Failed to save settings');
+      toast.error('No se pudo guardar la configuracion');
     } finally {
       setSaving(false);
     }
   };
 
   const modules = [
-    { key: 'invites', label: 'Invite Tracking', desc: 'Track who invited whom to the server' },
-    { key: 'leveling', label: 'Leveling System', desc: 'XP-based leveling with role rewards' },
-    { key: 'moderation', label: 'Moderation', desc: 'Warn, mute, kick, ban and more' },
-    { key: 'automod', label: 'AutoMod', desc: 'Automatic spam, caps, links and word filtering' },
-    { key: 'tickets', label: 'Ticket System', desc: 'Button-based support tickets' },
-    { key: 'automation', label: 'Automation', desc: 'Auto-responses, scheduled messages, polls' },
+    { key: 'invites', label: 'Seguimiento de invitaciones', desc: 'Rastrea quien invito a quien al servidor' },
+    { key: 'leveling', label: 'Sistema de niveles', desc: 'Niveles por XP con recompensas de roles' },
+    { key: 'moderation', label: 'Moderacion', desc: 'Advertir, silenciar, expulsar, banear y mas' },
+    { key: 'automod', label: 'AutoMod', desc: 'Filtro automatico de spam, mayusculas, enlaces y palabras' },
+    { key: 'tickets', label: 'Sistema de tickets', desc: 'Tickets de soporte con botones' },
+    { key: 'automation', label: 'Automatizacion', desc: 'Autorespuestas, mensajes programados, encuestas' },
   ];
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">General Configuration</h1>
-        <p className="text-discord-muted mt-1">Enable/disable modules and configure core settings</p>
+        <h1 className="text-2xl font-bold text-discord-white">Configuracion general</h1>
+        <p className="text-discord-muted mt-1">Activa/desactiva modulos y configura ajustes principales</p>
       </div>
 
       {/* Module toggles */}
-      <Card title="Modules" description="Toggle bot modules on or off" className="mb-6">
+      <Card title="Modulos" description="Activa o desactiva modulos del bot" className="mb-6">
         <div className="space-y-4">
           {modules.map((mod) => (
             <Toggle
@@ -105,31 +105,31 @@ export default function GeneralConfig() {
       </Card>
 
       {/* Welcome & Farewell */}
-      <Card title="Welcome & Farewell" description="Configure join/leave messages" className="mb-6">
+      <Card title="Bienvenida y despedida" description="Configura mensajes de entrada y salida" className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <Input
-            label="Welcome Channel ID"
-            placeholder="Enter channel ID"
+            label="ID del canal de bienvenida"
+            placeholder="Ingresa ID del canal"
             value={welcomeChannel}
             onChange={(e) => setWelcomeChannel(e.target.value)}
           />
           <Input
-            label="Farewell Channel ID"
-            placeholder="Enter channel ID"
+            label="ID del canal de despedida"
+            placeholder="Ingresa ID del canal"
             value={farewellChannel}
             onChange={(e) => setFarewellChannel(e.target.value)}
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Welcome Message"
-            placeholder="Welcome {user} to {server}!"
+            label="Mensaje de bienvenida"
+            placeholder="Bienvenido {user} a {server}!"
             value={welcomeMessage}
             onChange={(e) => setWelcomeMessage(e.target.value)}
           />
           <Input
-            label="Farewell Message"
-            placeholder="{user} has left the server."
+            label="Mensaje de despedida"
+            placeholder="{user} ha salido del servidor."
             value={farewellMessage}
             onChange={(e) => setFarewellMessage(e.target.value)}
           />
@@ -140,29 +140,29 @@ export default function GeneralConfig() {
       </Card>
 
       {/* Logging */}
-      <Card title="Log Channels" description="Set channels for various log types" className="mb-6">
+      <Card title="Canales de registro" description="Define canales para varios tipos de registro" className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Mod Log Channel ID"
-            placeholder="Channel ID"
+            label="ID del canal de registro de moderacion"
+            placeholder="ID del canal"
             value={modLogChannel}
             onChange={(e) => setModLogChannel(e.target.value)}
           />
           <Input
-            label="Message Log Channel ID"
-            placeholder="Channel ID"
+            label="ID del canal de registro de mensajes"
+            placeholder="ID del canal"
             value={messageLogChannel}
             onChange={(e) => setMessageLogChannel(e.target.value)}
           />
           <Input
-            label="Join/Leave Log Channel ID"
-            placeholder="Channel ID"
+            label="ID del canal de registro de entradas/salidas"
+            placeholder="ID del canal"
             value={joinLeaveLogChannel}
             onChange={(e) => setJoinLeaveLogChannel(e.target.value)}
           />
           <Input
-            label="Level-Up Channel ID"
-            placeholder="Channel ID (empty = same channel)"
+            label="ID del canal de subida de nivel"
+            placeholder="ID del canal (vacio = mismo canal)"
             value={levelUpChannel}
             onChange={(e) => setLevelUpChannel(e.target.value)}
           />
@@ -170,17 +170,17 @@ export default function GeneralConfig() {
       </Card>
 
       {/* Roles */}
-      <Card title="Auto Roles" description="Roles assigned automatically" className="mb-6">
+      <Card title="Roles automaticos" description="Roles asignados automaticamente" className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Join Role ID"
-            placeholder="Role given on join"
+            label="ID del rol al entrar"
+            placeholder="Rol dado al entrar"
             value={joinRoleId}
             onChange={(e) => setJoinRoleId(e.target.value)}
           />
           <Input
-            label="Mute Role ID"
-            placeholder="Role used for muting"
+            label="ID del rol de silencio"
+            placeholder="Rol usado para silenciar"
             value={muteRoleId}
             onChange={(e) => setMuteRoleId(e.target.value)}
           />
@@ -189,7 +189,7 @@ export default function GeneralConfig() {
 
       <div className="flex justify-end">
         <Button onClick={saveGeneral} loading={saving}>
-          Save Settings
+          Guardar configuracion
         </Button>
       </div>
     </div>

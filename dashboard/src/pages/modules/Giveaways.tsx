@@ -37,18 +37,18 @@ export default function Giveaways() {
         setActive(a);
         setEnded(e);
       })
-      .catch((err) => setError(err.message || 'Failed to load giveaways'))
+      .catch((err) => setError(err.message || 'No se pudieron cargar los sorteos'))
       .finally(() => setLoading(false));
   }, [guildId, retryCount]);
 
-  if (loading) return <Loader text="Loading giveaways..." />;
+  if (loading) return <Loader text="Cargando sorteos..." />;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-discord-red text-lg font-semibold mb-2">Failed to load giveaways</p>
+        <p className="text-discord-red text-lg font-semibold mb-2">No se pudieron cargar los sorteos</p>
         <p className="text-discord-muted text-sm mb-4">{error}</p>
-        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Retry</button>
+        <button onClick={() => setRetryCount((c) => c + 1)} className="px-4 py-2 bg-discord-blurple text-white rounded-lg text-sm hover:bg-discord-blurple/80 transition-colors">Reintentar</button>
       </div>
     );
   }
@@ -56,27 +56,27 @@ export default function Giveaways() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-discord-white">Giveaways</h1>
-        <p className="text-discord-muted mt-1">View and manage giveaways. Create new ones with <code>/giveaway start</code> in Discord.</p>
+        <h1 className="text-2xl font-bold text-discord-white">Sorteos</h1>
+        <p className="text-discord-muted mt-1">Ver y administrar sorteos. Crea nuevos con <code>/giveaway start</code> en Discord.</p>
       </div>
 
       <div className="space-y-6">
-        <Card title={`Active Giveaways (${active.length})`}>
+        <Card title={`Sorteos activos (${active.length})`}>
           {active.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">No active giveaways.</p>
+            <p className="text-discord-muted text-sm py-4">No hay sorteos activos.</p>
           ) : (
             <div className="space-y-3 mt-3">
               {active.map((g) => (
                 <div key={g.id} className="p-4 rounded-lg bg-discord-darker/50 border border-discord-lighter/20">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-discord-white">🎉 {g.prize}</h3>
-                    <span className="text-xs px-2 py-1 bg-discord-green/20 text-discord-green rounded-full">Active</span>
+                    <span className="text-xs px-2 py-1 bg-discord-green/20 text-discord-green rounded-full">Activo</span>
                   </div>
                   {g.description && <p className="text-sm text-discord-light mb-2">{g.description}</p>}
                   <div className="flex gap-4 text-xs text-discord-muted">
-                    <span>{g.entries.length} entries</span>
-                    <span>{g.winners} winner(s)</span>
-                    <span>Ends: {new Date(g.endsAt).toLocaleString()}</span>
+                    <span>{g.entries.length} participaciones</span>
+                    <span>{g.winners} ganador(es)</span>
+                    <span>Termina: {new Date(g.endsAt).toLocaleString()}</span>
                   </div>
                 </div>
               ))}
@@ -84,21 +84,21 @@ export default function Giveaways() {
           )}
         </Card>
 
-        <Card title={`Ended Giveaways (${ended.length})`}>
+        <Card title={`Sorteos finalizados (${ended.length})`}>
           {ended.length === 0 ? (
-            <p className="text-discord-muted text-sm py-4">No ended giveaways.</p>
+            <p className="text-discord-muted text-sm py-4">No hay sorteos finalizados.</p>
           ) : (
             <div className="space-y-3 mt-3">
               {ended.slice(0, 10).map((g) => (
                 <div key={g.id} className="p-4 rounded-lg bg-discord-darker/50 border border-discord-lighter/20">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-base font-bold text-discord-white">{g.prize}</h3>
-                    <span className="text-xs px-2 py-1 bg-discord-muted/20 text-discord-muted rounded-full">Ended</span>
+                    <span className="text-xs px-2 py-1 bg-discord-muted/20 text-discord-muted rounded-full">Finalizado</span>
                   </div>
                   <div className="flex gap-4 text-xs text-discord-muted">
-                    <span>{g.entries.length} entries</span>
-                    <span>{g.winnerIds.length} winner(s)</span>
-                    <span>Ended: {new Date(g.endsAt).toLocaleString()}</span>
+                    <span>{g.entries.length} participaciones</span>
+                    <span>{g.winnerIds.length} ganador(es)</span>
+                    <span>Finalizo: {new Date(g.endsAt).toLocaleString()}</span>
                   </div>
                 </div>
               ))}

@@ -38,10 +38,10 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(0xed4245)
-          .setTitle('Goodbye!')
+          .setTitle('Adios!')
           .setDescription(message)
           .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
-          .setFooter({ text: `${guild.memberCount} members remaining` })
+          .setFooter({ text: `${guild.memberCount} miembros restantes` })
           .setTimestamp();
 
         await channel.send({ embeds: [embed] });
@@ -58,14 +58,14 @@ export default {
           const roles = member.roles.cache
             .filter((r) => r.id !== guild.id)
             .map((r) => r.toString())
-            .join(', ') || 'None';
+            .join(', ') || 'Ninguno';
 
           const embed = new EmbedBuilder()
             .setColor(0xed4245)
-            .setAuthor({ name: 'Member Left', iconURL: member.user.displayAvatarURL() })
+            .setAuthor({ name: 'Miembro salio', iconURL: member.user.displayAvatarURL() })
             .addFields(
-              { name: 'User', value: `${member.user.username} (${member.id})`, inline: true },
-              { name: 'Joined', value: member.joinedAt ? `<t:${Math.floor(member.joinedAt.getTime() / 1000)}:R>` : 'Unknown', inline: true },
+              { name: 'Usuario', value: `${member.user.username} (${member.id})`, inline: true },
+              { name: 'Se unio', value: member.joinedAt ? `<t:${Math.floor(member.joinedAt.getTime() / 1000)}:R>` : 'Desconocido', inline: true },
               { name: 'Roles', value: roles.length > 1024 ? roles.slice(0, 1020) + '...' : roles }
             )
             .setTimestamp();

@@ -12,15 +12,14 @@ export async function loadCommands(client: BotClient): Promise<void> {
   client.cooldowns = new Collection();
 
   const commandsPath = join(__dirname, '..', 'commands');
+  const runtimeExt = __filename.endsWith('.ts') ? '.ts' : '.js';
   const commandFolders = readdirSync(commandsPath, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .map((d) => d.name);
 
   for (const folder of commandFolders) {
     const folderPath = join(commandsPath, folder);
-    const commandFiles = readdirSync(folderPath).filter(
-      (f) => f.endsWith('.ts') || f.endsWith('.js')
-    );
+    const commandFiles = readdirSync(folderPath).filter((f) => f.endsWith(runtimeExt));
 
     for (const file of commandFiles) {
       const filePath = join(folderPath, file);
@@ -29,6 +28,10 @@ export async function loadCommands(client: BotClient): Promise<void> {
         const command: SlashCommand = commandModule.default || commandModule;
 
         if (command.data && 'execute' in command) {
+          if (client.commands.has(command.data.name)) {
+            logger.warn(`Skipping duplicate command name: /${command.data.name} (${filePath})`);
+            continue;
+          }
           client.commands.set(command.data.name, command);
           logger.info(`Loaded command: /${command.data.name} [${folder}]`);
         } else {
@@ -65,6 +68,11 @@ export async function deployCommands(client: BotClient): Promise<void> {
         );
         logger.info(`Deployed ${commands.length} commands to guild ${guildId}`);
       }
+
+      await rest.put(Routes.applicationCommands(process.env.CLIENT_ID!), {
+        body: [],
+      });
+      logger.info('Cleared global commands to avoid guild/global duplicates');
     } else {
       // Fallback: global commands (takes up to 1 hour to propagate)
       await rest.put(Routes.applicationCommands(process.env.CLIENT_ID!), {

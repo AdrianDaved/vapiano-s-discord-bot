@@ -107,7 +107,7 @@ export async function restoreBackupData(
         try {
           await channel.delete('Backup restore: clearing channels');
         } catch {
-          details.push(`Could not delete channel: ${channel.name}`);
+          details.push(`No se pudo eliminar el canal: ${channel.name}`);
         }
       }
 
@@ -117,11 +117,11 @@ export async function restoreBackupData(
           try {
             await role.delete('Backup restore: clearing roles');
           } catch {
-            details.push(`Could not delete role: ${role.name}`);
+            details.push(`No se pudo eliminar el rol: ${role.name}`);
           }
         }
       }
-      details.push('Cleared existing channels and roles');
+      details.push('Se limpiaron los canales y roles existentes');
     }
 
     // Restore roles (from bottom to top)
@@ -139,9 +139,9 @@ export async function restoreBackupData(
           reason: 'Backup restore',
         });
         roleMap.set(roleData.name, role);
-        details.push(`Created role: ${roleData.name}`);
+        details.push(`Rol creado: ${roleData.name}`);
       } catch (err) {
-        details.push(`Failed to create role ${roleData.name}: ${err}`);
+        details.push(`Error al crear el rol ${roleData.name}: ${err}`);
       }
     }
 
@@ -155,9 +155,9 @@ export async function restoreBackupData(
           reason: 'Backup restore',
         });
         categoryMap.set(catData.name, cat as GuildChannel);
-        details.push(`Created category: ${catData.name}`);
+        details.push(`Categoria creada: ${catData.name}`);
       } catch (err) {
-        details.push(`Failed to create category ${catData.name}: ${err}`);
+        details.push(`Error al crear la categoria ${catData.name}: ${err}`);
       }
     }
 
@@ -174,9 +174,9 @@ export async function restoreBackupData(
           parent: parent?.id,
           reason: 'Backup restore',
         });
-        details.push(`Created text channel: #${chData.name}`);
+        details.push(`Canal de texto creado: #${chData.name}`);
       } catch (err) {
-        details.push(`Failed to create channel #${chData.name}: ${err}`);
+        details.push(`Error al crear el canal #${chData.name}: ${err}`);
       }
     }
 
@@ -192,16 +192,16 @@ export async function restoreBackupData(
           parent: parent?.id,
           reason: 'Backup restore',
         });
-        details.push(`Created voice channel: ${chData.name}`);
+        details.push(`Canal de voz creado: ${chData.name}`);
       } catch (err) {
-        details.push(`Failed to create voice channel ${chData.name}: ${err}`);
+        details.push(`Error al crear el canal de voz ${chData.name}: ${err}`);
       }
     }
 
     return { success: true, details };
   } catch (err) {
     logger.error(`[Backup] Error restoring backup: ${err}`);
-    return { success: false, details: [...details, `Fatal error: ${err}`] };
+    return { success: false, details: [...details, `Error fatal: ${err}`] };
   }
 }
 

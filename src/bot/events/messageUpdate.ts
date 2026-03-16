@@ -19,17 +19,17 @@ export default {
       const embed = new EmbedBuilder()
         .setColor(0xfee75c)
         .setAuthor({
-          name: newMessage.author?.username || 'Unknown User',
+          name: newMessage.author?.username || 'Usuario desconocido',
           iconURL: newMessage.author?.displayAvatarURL(),
         })
-        .setTitle('Message Edited')
+        .setTitle('Mensaje editado')
         .addFields(
-          { name: 'Channel', value: `<#${newMessage.channelId}>`, inline: true },
-          { name: 'Author', value: newMessage.author ? `<@${newMessage.author.id}>` : 'Unknown', inline: true },
-          { name: 'Before', value: oldMessage.content?.slice(0, 1024) || '*No content cached*' },
-          { name: 'After', value: newMessage.content?.slice(0, 1024) || '*No text content*' }
+          { name: 'Canal', value: `<#${newMessage.channelId}>`, inline: true },
+          { name: 'Autor', value: newMessage.author ? `<@${newMessage.author.id}>` : 'Desconocido', inline: true },
+          { name: 'Antes', value: oldMessage.content?.slice(0, 1024) || '*Sin contenido guardado*' },
+          { name: 'Despues', value: newMessage.content?.slice(0, 1024) || '*Sin contenido de texto*' }
         )
-        .setFooter({ text: `Message ID: ${newMessage.id}` })
+        .setFooter({ text: `ID del mensaje: ${newMessage.id}` })
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });

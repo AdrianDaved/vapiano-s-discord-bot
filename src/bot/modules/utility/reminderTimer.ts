@@ -28,9 +28,9 @@ export function initReminderTimer(client: Client) {
           if (channel && 'send' in channel) {
             const embed = new EmbedBuilder()
               .setColor(moduleColor('utility'))
-              .setTitle('Reminder')
+              .setTitle('Recordatorio')
               .setDescription(reminder.message)
-              .setFooter({ text: `Set` })
+              .setFooter({ text: `Programado` })
               .setTimestamp(reminder.createdAt);
 
             await channel.send({

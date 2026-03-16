@@ -23,12 +23,12 @@ export default {
     try {
       const embed = new EmbedBuilder()
         .setColor(0x57f287)
-        .setTitle('Member Unbanned')
+        .setTitle('Miembro desbaneado')
         .setThumbnail(user.displayAvatarURL())
         .addFields(
-          { name: 'User', value: `${user.username} (<@${user.id}>)`, inline: true },
+          { name: 'Usuario', value: `${user.username} (<@${user.id}>)`, inline: true },
         )
-        .setFooter({ text: `User ID: ${user.id}` })
+        .setFooter({ text: `ID de usuario: ${user.id}` })
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });

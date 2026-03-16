@@ -30,12 +30,12 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(0x57f287)
           .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL() })
-          .setTitle('Voice Channel Joined')
+          .setTitle('Se unio a un canal de voz')
           .addFields(
-            { name: 'User', value: `<@${member.id}>`, inline: true },
-            { name: 'Channel', value: `<#${newState.channelId}>`, inline: true },
+            { name: 'Usuario', value: `<@${member.id}>`, inline: true },
+            { name: 'Canal', value: `<#${newState.channelId}>`, inline: true },
           )
-          .setFooter({ text: `User ID: ${member.id}` })
+          .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
       }
@@ -44,12 +44,12 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(0xed4245)
           .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL() })
-          .setTitle('Voice Channel Left')
+          .setTitle('Salio de un canal de voz')
           .addFields(
-            { name: 'User', value: `<@${member.id}>`, inline: true },
-            { name: 'Channel', value: `<#${oldState.channelId}>`, inline: true },
+            { name: 'Usuario', value: `<@${member.id}>`, inline: true },
+            { name: 'Canal', value: `<#${oldState.channelId}>`, inline: true },
           )
-          .setFooter({ text: `User ID: ${member.id}` })
+          .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
       }
@@ -58,13 +58,13 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(0xfee75c)
           .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL() })
-          .setTitle('Voice Channel Moved')
+          .setTitle('Se movio entre canales de voz')
           .addFields(
-            { name: 'User', value: `<@${member.id}>`, inline: true },
-            { name: 'From', value: `<#${oldState.channelId}>`, inline: true },
-            { name: 'To', value: `<#${newState.channelId}>`, inline: true },
+            { name: 'Usuario', value: `<@${member.id}>`, inline: true },
+            { name: 'De', value: `<#${oldState.channelId}>`, inline: true },
+            { name: 'A', value: `<#${newState.channelId}>`, inline: true },
           )
-          .setFooter({ text: `User ID: ${member.id}` })
+          .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
       }
@@ -74,12 +74,12 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(0xeb459e)
           .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL() })
-          .setTitle(newState.serverMute ? 'Server Muted' : 'Server Unmuted')
+          .setTitle(newState.serverMute ? 'Silenciado por el servidor' : 'Silencio del servidor quitado')
           .addFields(
-            { name: 'User', value: `<@${member.id}>`, inline: true },
-            { name: 'Channel', value: newState.channelId ? `<#${newState.channelId}>` : 'None', inline: true },
+            { name: 'Usuario', value: `<@${member.id}>`, inline: true },
+            { name: 'Canal', value: newState.channelId ? `<#${newState.channelId}>` : 'Ninguno', inline: true },
           )
-          .setFooter({ text: `User ID: ${member.id}` })
+          .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
       }
@@ -88,12 +88,12 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(0xeb459e)
           .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL() })
-          .setTitle(newState.serverDeaf ? 'Server Deafened' : 'Server Undeafened')
+          .setTitle(newState.serverDeaf ? 'Enmudecido por el servidor' : 'Enmudecimiento del servidor quitado')
           .addFields(
-            { name: 'User', value: `<@${member.id}>`, inline: true },
-            { name: 'Channel', value: newState.channelId ? `<#${newState.channelId}>` : 'None', inline: true },
+            { name: 'Usuario', value: `<@${member.id}>`, inline: true },
+            { name: 'Canal', value: newState.channelId ? `<#${newState.channelId}>` : 'Ninguno', inline: true },
           )
-          .setFooter({ text: `User ID: ${member.id}` })
+          .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
       }

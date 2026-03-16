@@ -53,10 +53,10 @@ export function initTempActions(client: Client): void {
             if (logChannel) {
               const embed = new EmbedBuilder()
                 .setColor(0x57f287)
-                .setTitle(action.action === 'tempmute' ? 'Mute Expired' : 'Ban Expired')
+                .setTitle(action.action === 'tempmute' ? 'Mute expirado' : 'Ban expirado')
                 .addFields(
-                  { name: 'User', value: `<@${action.userId}>`, inline: true },
-                  { name: 'Original Reason', value: action.reason, inline: true }
+                  { name: 'Usuario', value: `<@${action.userId}>`, inline: true },
+                  { name: 'Motivo original', value: action.reason, inline: true }
                 )
                 .setTimestamp();
               await logChannel.send({ embeds: [embed] });

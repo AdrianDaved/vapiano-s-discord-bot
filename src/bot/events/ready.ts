@@ -22,7 +22,7 @@ export default {
     await deployCommands(client);
 
     // Set bot activity
-    client.user?.setActivity('/help | Vapiano Bot', { type: ActivityType.Listening });
+    client.user?.setActivity('/ayuda | Vapiano Bot', { type: ActivityType.Listening });
 
     // Cache all guild invites for invite tracking
     for (const guild of client.guilds.cache.values()) {

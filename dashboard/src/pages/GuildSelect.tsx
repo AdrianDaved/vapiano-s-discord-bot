@@ -44,7 +44,7 @@ export default function GuildSelect() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-discord-darker">
-        <Loader text="Loading your servers..." />
+        <Loader text="Cargando tus servidores..." />
       </div>
     );
   }
@@ -64,15 +64,15 @@ export default function GuildSelect() {
               className="w-16 h-16 rounded-full mx-auto mb-4 ring-2 ring-discord-blurple"
             />
           )}
-          <h1 className="text-2xl font-bold text-discord-white">Select a Server</h1>
-          <p className="text-discord-muted mt-1">Choose a server to manage with Vapiano Bot</p>
+          <h1 className="text-2xl font-bold text-discord-white">Selecciona un servidor</h1>
+          <p className="text-discord-muted mt-1">Elige un servidor para administrar con Vapiano Bot</p>
         </div>
 
         {/* Servers with bot */}
         {withBot.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-discord-muted mb-3 px-1">
-              Your Servers
+              Tus servidores
             </h2>
             <div className="space-y-2">
               {withBot.map((guild) => (
@@ -94,7 +94,7 @@ export default function GuildSelect() {
                   )}
                   <div className="flex-1 text-left">
                     <p className="text-discord-white font-medium">{guild.name}</p>
-                    <p className="text-xs text-discord-muted">Click to manage</p>
+                    <p className="text-xs text-discord-muted">Haz clic para administrar</p>
                   </div>
                   <ChevronRight
                     size={20}
@@ -110,7 +110,7 @@ export default function GuildSelect() {
         {withoutBot.length > 0 && (
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-wider text-discord-muted mb-3 px-1">
-              Invite Vapiano Bot
+              Invitar Vapiano Bot
             </h2>
             <div className="space-y-2">
               {withoutBot.map((guild) => (
@@ -131,7 +131,7 @@ export default function GuildSelect() {
                   )}
                   <div className="flex-1 text-left">
                     <p className="text-discord-muted font-medium">{guild.name}</p>
-                    <p className="text-xs text-discord-muted/60">Bot not added yet</p>
+                    <p className="text-xs text-discord-muted/60">Bot aun no agregado</p>
                   </div>
                   <a
                     href={`https://discord.com/oauth2/authorize?client_id=${import.meta.env.VITE_CLIENT_ID || ''}&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}`}
@@ -140,7 +140,7 @@ export default function GuildSelect() {
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-discord-blurple hover:bg-discord-blurple/80 text-white transition-colors"
                   >
                     <Plus size={14} />
-                    Invite
+                    Invitar
                   </a>
                 </div>
               ))}
@@ -150,7 +150,7 @@ export default function GuildSelect() {
 
         {guildList.length === 0 && (
           <div className="text-center py-12 text-discord-muted">
-            <p>No servers found. Make sure you have the "Manage Server" permission.</p>
+            <p>No se encontraron servidores. Asegurate de tener el permiso "Manage Server".</p>
           </div>
         )}
       </div>

@@ -53,7 +53,7 @@ export default {
         if (now < expirationTime) {
           const remaining = ((expirationTime - now) / 1000).toFixed(1);
           await interaction.reply({
-            content: `Please wait ${remaining}s before using \`/${command.data.name}\` again.`,
+            content: `Espera ${remaining}s antes de usar \`/${command.data.name}\` de nuevo.`,
             ephemeral: true,
           });
           return;
@@ -70,7 +70,7 @@ export default {
         );
         if (missing.length > 0) {
           await interaction.reply({
-            content: 'You do not have permission to use this command.',
+            content: 'No tienes permiso para usar este comando.',
             ephemeral: true,
           });
           return;
@@ -83,7 +83,7 @@ export default {
         const moduleField = `${command.module}Enabled`;
         if (config[moduleField] === false && command.module !== 'config') {
           await interaction.reply({
-            content: `The **${command.module}** module is disabled. Enable it with \`/config module enable ${command.module}\` or via the dashboard.`,
+            content: `El módulo **${command.module}** está desactivado. Actívalo con \`/configuracion modulo activar name:${command.module}\`.`,
             ephemeral: true,
           });
           return;
@@ -95,7 +95,7 @@ export default {
       } catch (err) {
         logger.error(`Error executing /${command.data.name}: ${err}`);
         const reply = {
-          content: 'An error occurred while executing this command.',
+          content: 'Ocurrió un error al ejecutar este comando.',
           ephemeral: true,
         };
         if (interaction.replied || interaction.deferred) {
@@ -145,7 +145,7 @@ export default {
       } catch (err) {
         logger.error(`Error handling button ${customId}: ${err}`);
         if (!btn.replied && !btn.deferred) {
-          await btn.reply({ content: 'An error occurred.', ephemeral: true }).catch(() => {});
+          await btn.reply({ content: 'Ocurrió un error.', ephemeral: true }).catch(() => {});
         }
       }
     }
@@ -162,7 +162,7 @@ export default {
       } catch (err) {
         logger.error(`Error handling select menu ${customId}: ${err}`);
         if (!select.replied && !select.deferred) {
-          await select.reply({ content: 'An error occurred.', ephemeral: true }).catch(() => {});
+          await select.reply({ content: 'Ocurrió un error.', ephemeral: true }).catch(() => {});
         }
       }
     }
@@ -179,7 +179,7 @@ export default {
       } catch (err) {
         logger.error(`Error handling modal ${customId}: ${err}`);
         if (!modal.replied && !modal.deferred) {
-          await modal.reply({ content: 'An error occurred.', ephemeral: true }).catch(() => {});
+          await modal.reply({ content: 'Ocurrió un error.', ephemeral: true }).catch(() => {});
         }
       }
     }
@@ -197,7 +197,7 @@ async function handleSuggestionVote(btn: ButtonInteraction) {
   });
 
   if (!suggestion) {
-    await btn.reply({ content: 'Suggestion not found.', ephemeral: true });
+    await btn.reply({ content: 'Sugerencia no encontrada.', ephemeral: true });
     return;
   }
 
@@ -230,7 +230,7 @@ async function handleSuggestionVote(btn: ButtonInteraction) {
   try {
     const embed = EmbedBuilder.from(btn.message.embeds[0]);
     const fields = embed.data.fields || [];
-    const votesFieldIdx = fields.findIndex((f) => f.name === 'Votes');
+    const votesFieldIdx = fields.findIndex((f) => f.name === 'Votos');
     if (votesFieldIdx >= 0) {
       fields[votesFieldIdx].value = `👍 ${upvotes.length} | 👎 ${downvotes.length}`;
     }
@@ -241,7 +241,7 @@ async function handleSuggestionVote(btn: ButtonInteraction) {
   }
 
   await btn.reply({
-    content: isUpvote ? '👍 Vote recorded!' : '👎 Vote recorded!',
+    content: isUpvote ? '👍 Voto registrado!' : '👎 Voto registrado!',
     ephemeral: true,
   });
 }

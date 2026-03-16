@@ -19,7 +19,7 @@ export default function Callback() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-discord-darker">
-      <Loader text="Signing you in..." />
+      <Loader text="Iniciando sesion..." />
     </div>
   );
 }

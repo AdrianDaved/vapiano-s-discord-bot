@@ -53,7 +53,7 @@ export function GuildProvider({ children }: { children: React.ReactNode }) {
       setConfig(configData);
       setGuildStats(statsData);
     } catch (err: any) {
-      setError(err.message || 'Failed to load guild data');
+      setError(err.message || 'No se pudieron cargar los datos del servidor');
     } finally {
       setLoading(false);
     }

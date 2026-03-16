@@ -5,46 +5,46 @@ import {
   PermissionFlagsBits,
 } from 'discord.js';
 import prisma from '../../../database/client';
-import { moduleColor, getGuildConfig } from '../../utils';
+import { moduleColor } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('rep')
-    .setDescription('Reputation system commands')
+    .setDescription('Sistema de reputación')
     .addSubcommand((sub) =>
       sub
-        .setName('give')
-        .setDescription('Give reputation to a user')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to give rep to').setRequired(true))
-        .addStringOption((opt) => opt.setName('reason').setDescription('Reason for giving rep').setRequired(false))
+        .setName('dar')
+        .setDescription('Dar reputación a un usuario')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario al que dar rep').setRequired(true))
+        .addStringOption((opt) => opt.setName('razon').setDescription('Razón para dar rep').setRequired(false))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('check')
-        .setDescription('Check your or another user\'s reputation')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to check').setRequired(false))
+        .setName('ver')
+        .setDescription('Ver tu reputación o la de otro usuario')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a consultar').setRequired(false))
     )
     .addSubcommand((sub) =>
-      sub.setName('leaderboard').setDescription('View the reputation leaderboard')
-    )
-    .addSubcommand((sub) =>
-      sub
-        .setName('history')
-        .setDescription('View recent rep given/received')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to check').setRequired(false))
+      sub.setName('ranking').setDescription('Ver el ranking de reputación')
     )
     .addSubcommand((sub) =>
       sub
-        .setName('remove')
-        .setDescription('Remove reputation from a user (mod only)')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to remove rep from').setRequired(true))
-        .addIntegerOption((opt) => opt.setName('amount').setDescription('Number of rep to remove (default: 1)').setRequired(false).setMinValue(1))
+        .setName('historial')
+        .setDescription('Ver rep reciente dada/recibida')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a consultar').setRequired(false))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('reset')
-        .setDescription('Reset all reputation for a user (admin only)')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to reset').setRequired(true))
+        .setName('quitar')
+        .setDescription('Quitar reputación a un usuario (solo mods)')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario al que quitar rep').setRequired(true))
+        .addIntegerOption((opt) => opt.setName('cantidad').setDescription('Cantidad de rep a quitar (por defecto: 1)').setRequired(false).setMinValue(1))
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('reiniciar')
+        .setDescription('Reiniciar toda la reputación de un usuario (solo admins)')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a reiniciar').setRequired(true))
     ),
   module: 'reputation',
   cooldown: 3,
@@ -54,49 +54,23 @@ export default {
     const guildId = interaction.guildId!;
 
     switch (sub) {
-      case 'give': {
-        const target = interaction.options.getUser('user', true);
-        const reason = interaction.options.getString('reason');
+      case 'dar': {
+        const target = interaction.options.getUser('usuario', true);
+        const reason = interaction.options.getString('razon');
 
-        // Can't give rep to yourself
+        // No puedes darte rep a ti mismo
         if (target.id === interaction.user.id) {
-          await interaction.reply({ content: 'You cannot give reputation to yourself.', ephemeral: true });
+          await interaction.reply({ content: 'No puedes darte reputación a ti mismo.', ephemeral: true });
           return;
         }
 
-        // Can't give rep to bots
+        // No puedes dar rep a bots
         if (target.bot) {
-          await interaction.reply({ content: 'You cannot give reputation to bots.', ephemeral: true });
+          await interaction.reply({ content: 'No puedes dar reputación a bots.', ephemeral: true });
           return;
         }
 
-        // Check cooldown
-        const config = await getGuildConfig(guildId);
-        const cooldownSeconds = config.repCooldown || 86400;
-
-        const lastGiven = await prisma.reputation.findFirst({
-          where: {
-            guildId,
-            giverId: interaction.user.id,
-          },
-          orderBy: { createdAt: 'desc' },
-        });
-
-        if (lastGiven) {
-          const elapsed = (Date.now() - lastGiven.createdAt.getTime()) / 1000;
-          if (elapsed < cooldownSeconds) {
-            const remaining = cooldownSeconds - Math.floor(elapsed);
-            const hours = Math.floor(remaining / 3600);
-            const minutes = Math.floor((remaining % 3600) / 60);
-            await interaction.reply({
-              content: `You must wait **${hours}h ${minutes}m** before giving rep again.`,
-              ephemeral: true,
-            });
-            return;
-          }
-        }
-
-        // Give rep
+        // Dar rep
         await prisma.reputation.create({
           data: {
             guildId,
@@ -106,23 +80,23 @@ export default {
           },
         });
 
-        // Count total rep for target
+        // Contar rep total del objetivo
         const totalRep = await prisma.reputation.count({
           where: { guildId, userId: target.id },
         });
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('reputation'))
-          .setDescription(`${interaction.user} gave **+1 rep** to ${target}${reason ? `\n**Reason:** ${reason}` : ''}`)
-          .setFooter({ text: `${target.username} now has ${totalRep} rep` })
+          .setDescription(`${interaction.user} dio **+1 rep** a ${target}${reason ? `\n**Razón:** ${reason}` : ''}`)
+          .setFooter({ text: `${target.username} ahora tiene ${totalRep} rep` })
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed] });
         break;
       }
 
-      case 'check': {
-        const user = interaction.options.getUser('user') || interaction.user;
+      case 'ver': {
+        const user = interaction.options.getUser('usuario') || interaction.user;
 
         const totalRep = await prisma.reputation.count({
           where: { guildId, userId: user.id },
@@ -132,7 +106,7 @@ export default {
           where: { guildId, giverId: user.id },
         });
 
-        // Rank position
+        // Posición en el ranking
         const allUsers = await prisma.reputation.groupBy({
           by: ['userId'],
           where: { guildId },
@@ -147,9 +121,9 @@ export default {
           .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
           .setThumbnail(user.displayAvatarURL({ size: 256 }))
           .addFields(
-            { name: 'Reputation', value: `**${totalRep}** rep`, inline: true },
-            { name: 'Rank', value: rank > 0 ? `#${rank}` : 'Unranked', inline: true },
-            { name: 'Rep Given', value: `${givenRep}`, inline: true },
+            { name: 'Reputación', value: `**${totalRep}** rep`, inline: true },
+            { name: 'Posición', value: rank > 0 ? `#${rank}` : 'Sin ranking', inline: true },
+            { name: 'Rep Dada', value: `${givenRep}`, inline: true },
           )
           .setTimestamp();
 
@@ -157,7 +131,7 @@ export default {
         break;
       }
 
-      case 'leaderboard': {
+      case 'ranking': {
         const topUsers = await prisma.reputation.groupBy({
           by: ['userId'],
           where: { guildId },
@@ -167,7 +141,7 @@ export default {
         });
 
         if (topUsers.length === 0) {
-          await interaction.reply({ content: 'No reputation data yet. Start giving rep with `/rep give`!', ephemeral: true });
+          await interaction.reply({ content: 'Aún no hay datos de reputación. ¡Empieza dando rep con `/rep dar`!', ephemeral: true });
           return;
         }
 
@@ -178,7 +152,7 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('reputation'))
-          .setTitle('Reputation Leaderboard')
+          .setTitle('Ranking de Reputación')
           .setDescription(lines.join('\n'))
           .setFooter({ text: interaction.guild?.name || '' })
           .setTimestamp();
@@ -187,8 +161,8 @@ export default {
         break;
       }
 
-      case 'history': {
-        const user = interaction.options.getUser('user') || interaction.user;
+      case 'historial': {
+        const user = interaction.options.getUser('usuario') || interaction.user;
 
         const recent = await prisma.reputation.findMany({
           where: {
@@ -200,22 +174,22 @@ export default {
         });
 
         if (recent.length === 0) {
-          await interaction.reply({ content: 'No reputation history found.', ephemeral: true });
+          await interaction.reply({ content: 'No se encontró historial de reputación.', ephemeral: true });
           return;
         }
 
         const lines = recent.map((r) => {
           const time = `<t:${Math.floor(r.createdAt.getTime() / 1000)}:R>`;
           if (r.userId === user.id) {
-            return `${time} Received from <@${r.giverId}>${r.reason ? ` — *${r.reason}*` : ''}`;
+            return `${time} Recibida de <@${r.giverId}>${r.reason ? ` — *${r.reason}*` : ''}`;
           } else {
-            return `${time} Given to <@${r.userId}>${r.reason ? ` — *${r.reason}*` : ''}`;
+            return `${time} Dada a <@${r.userId}>${r.reason ? ` — *${r.reason}*` : ''}`;
           }
         });
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('reputation'))
-          .setTitle(`Rep History — ${user.username}`)
+          .setTitle(`Historial de Rep — ${user.username}`)
           .setDescription(lines.join('\n'))
           .setTimestamp();
 
@@ -223,16 +197,16 @@ export default {
         break;
       }
 
-      case 'remove': {
+      case 'quitar': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ModerateMembers)) {
-          await interaction.reply({ content: 'You need the **Moderate Members** permission.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso **Moderar Miembros**.', ephemeral: true });
           return;
         }
 
-        const target = interaction.options.getUser('user', true);
-        const amount = interaction.options.getInteger('amount') || 1;
+        const target = interaction.options.getUser('usuario', true);
+        const amount = interaction.options.getInteger('cantidad') || 1;
 
-        // Delete the most recent N rep entries for this user
+        // Eliminar las N entradas de rep más recientes para este usuario
         const reps = await prisma.reputation.findMany({
           where: { guildId, userId: target.id },
           orderBy: { createdAt: 'desc' },
@@ -241,7 +215,7 @@ export default {
         });
 
         if (reps.length === 0) {
-          await interaction.reply({ content: `${target.username} has no reputation to remove.`, ephemeral: true });
+          await interaction.reply({ content: `${target.username} no tiene reputación que quitar.`, ephemeral: true });
           return;
         }
 
@@ -254,26 +228,26 @@ export default {
         });
 
         await interaction.reply({
-          content: `Removed **${reps.length}** rep from **${target.username}**. They now have **${remaining}** rep.`,
+          content: `Se quitaron **${reps.length}** rep de **${target.username}**. Ahora tiene **${remaining}** rep.`,
           ephemeral: true,
         });
         break;
       }
 
-      case 'reset': {
+      case 'reiniciar': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
-          await interaction.reply({ content: 'Only administrators can reset reputation.', ephemeral: true });
+          await interaction.reply({ content: 'Solo los administradores pueden reiniciar la reputación.', ephemeral: true });
           return;
         }
 
-        const target = interaction.options.getUser('user', true);
+        const target = interaction.options.getUser('usuario', true);
 
         const deleted = await prisma.reputation.deleteMany({
           where: { guildId, userId: target.id },
         });
 
         await interaction.reply({
-          content: `Reset all reputation for **${target.username}** (${deleted.count} rep removed).`,
+          content: `Se reinició toda la reputación de **${target.username}** (${deleted.count} rep eliminada).`,
           ephemeral: true,
         });
         break;

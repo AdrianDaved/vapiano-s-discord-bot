@@ -10,31 +10,31 @@ import * as cron from 'node-cron';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('schedule')
-    .setDescription('Manage scheduled messages')
+    .setName('programar')
+    .setDescription('Gestionar mensajes programados')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .addSubcommand((sub) =>
       sub
-        .setName('add')
-        .setDescription('Add a scheduled message')
-        .addStringOption((opt) => opt.setName('cron').setDescription('Cron expression (e.g. "0 9 * * *" for daily at 9am)').setRequired(true))
-        .addStringOption((opt) => opt.setName('message').setDescription('Message to send').setRequired(true))
-        .addChannelOption((opt) => opt.setName('channel').setDescription('Channel to send in').setRequired(true))
+        .setName('agregar')
+        .setDescription('Agregar un mensaje programado')
+        .addStringOption((opt) => opt.setName('cron').setDescription('Expresion cron (ej. "0 9 * * *" para diario a las 9am)').setRequired(true))
+        .addStringOption((opt) => opt.setName('mensaje').setDescription('Mensaje a enviar').setRequired(true))
+        .addChannelOption((opt) => opt.setName('canal').setDescription('Canal donde enviar').setRequired(true))
     )
     .addSubcommand((sub) =>
-      sub.setName('list').setDescription('List all scheduled messages')
-    )
-    .addSubcommand((sub) =>
-      sub
-        .setName('remove')
-        .setDescription('Remove a scheduled message')
-        .addStringOption((opt) => opt.setName('id').setDescription('Scheduled message ID').setRequired(true))
+      sub.setName('lista').setDescription('Listar todos los mensajes programados')
     )
     .addSubcommand((sub) =>
       sub
-        .setName('toggle')
-        .setDescription('Enable or disable a scheduled message')
-        .addStringOption((opt) => opt.setName('id').setDescription('Scheduled message ID').setRequired(true))
+        .setName('eliminar')
+        .setDescription('Eliminar un mensaje programado')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID del mensaje programado').setRequired(true))
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('alternar')
+        .setDescription('Activar o desactivar un mensaje programado')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID del mensaje programado').setRequired(true))
     ),
   module: 'automation',
   cooldown: 5,
@@ -45,14 +45,14 @@ export default {
     const guildId = interaction.guildId!;
 
     switch (sub) {
-      case 'add': {
+      case 'agregar': {
         const cronExpr = interaction.options.getString('cron', true);
-        const message = interaction.options.getString('message', true);
-        const channel = interaction.options.getChannel('channel', true);
+        const message = interaction.options.getString('mensaje', true);
+        const channel = interaction.options.getChannel('canal', true);
 
         if (!cron.validate(cronExpr)) {
           await interaction.reply({
-            content: 'Invalid cron expression. Examples:\n`0 9 * * *` — every day at 9:00 AM\n`0 */6 * * *` — every 6 hours\n`0 0 * * 1` — every Monday at midnight',
+            content: 'Expresion cron invalida. Ejemplos:\n`0 9 * * *` — todos los dias a las 9:00 AM\n`0 */6 * * *` — cada 6 horas\n`0 0 * * 1` — cada lunes a medianoche',
             ephemeral: true,
           });
           return;
@@ -70,39 +70,39 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('automation'))
-          .setTitle('Scheduled Message Created')
+          .setTitle('Mensaje Programado Creado')
           .addFields(
             { name: 'ID', value: `\`${scheduled.id.slice(0, 8)}\``, inline: true },
-            { name: 'Channel', value: `<#${channel.id}>`, inline: true },
+            { name: 'Canal', value: `<#${channel.id}>`, inline: true },
             { name: 'Cron', value: `\`${cronExpr}\``, inline: true },
-            { name: 'Message', value: message.slice(0, 1024) }
+            { name: 'Mensaje', value: message.slice(0, 1024) }
           )
-          .setFooter({ text: 'The job will be picked up within 5 minutes' })
+          .setFooter({ text: 'La tarea se ejecutara dentro de 5 minutos' })
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed], ephemeral: true });
         break;
       }
 
-      case 'list': {
+      case 'lista': {
         const scheduled = await prisma.scheduledMessage.findMany({
           where: { guildId },
           orderBy: { createdAt: 'desc' },
         });
 
         if (scheduled.length === 0) {
-          await interaction.reply({ content: 'No scheduled messages.', ephemeral: true });
+          await interaction.reply({ content: 'No hay mensajes programados.', ephemeral: true });
           return;
         }
 
         const lines = scheduled.map(
           (s, i) =>
-            `**${i + 1}.** \`${s.id.slice(0, 8)}\` ${s.enabled ? '✅' : '❌'}\n   Channel: <#${s.channelId}> | Cron: \`${s.cron}\`\n   Message: ${s.message.slice(0, 60)}${s.message.length > 60 ? '...' : ''}${s.lastRun ? `\n   Last run: <t:${Math.floor(s.lastRun.getTime() / 1000)}:R>` : ''}`
+            `**${i + 1}.** \`${s.id.slice(0, 8)}\` ${s.enabled ? '✅' : '❌'}\n   Canal: <#${s.channelId}> | Cron: \`${s.cron}\`\n   Mensaje: ${s.message.slice(0, 60)}${s.message.length > 60 ? '...' : ''}${s.lastRun ? `\n   Ultima ejecucion: <t:${Math.floor(s.lastRun.getTime() / 1000)}:R>` : ''}`
         );
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('automation'))
-          .setTitle('Scheduled Messages')
+          .setTitle('Mensajes Programados')
           .setDescription(lines.join('\n\n'))
           .setTimestamp();
 
@@ -110,30 +110,30 @@ export default {
         break;
       }
 
-      case 'remove': {
+      case 'eliminar': {
         const id = interaction.options.getString('id', true);
         const msg = await prisma.scheduledMessage.findFirst({
           where: { id: { startsWith: id }, guildId },
         });
 
         if (!msg) {
-          await interaction.reply({ content: 'Scheduled message not found.', ephemeral: true });
+          await interaction.reply({ content: 'Mensaje programado no encontrado.', ephemeral: true });
           return;
         }
 
         await prisma.scheduledMessage.delete({ where: { id: msg.id } });
-        await interaction.reply({ content: `Scheduled message \`${msg.id.slice(0, 8)}\` deleted.`, ephemeral: true });
+        await interaction.reply({ content: `Mensaje programado \`${msg.id.slice(0, 8)}\` eliminado.`, ephemeral: true });
         break;
       }
 
-      case 'toggle': {
+      case 'alternar': {
         const id = interaction.options.getString('id', true);
         const msg = await prisma.scheduledMessage.findFirst({
           where: { id: { startsWith: id }, guildId },
         });
 
         if (!msg) {
-          await interaction.reply({ content: 'Scheduled message not found.', ephemeral: true });
+          await interaction.reply({ content: 'Mensaje programado no encontrado.', ephemeral: true });
           return;
         }
 
@@ -143,7 +143,7 @@ export default {
         });
 
         await interaction.reply({
-          content: `Scheduled message \`${msg.id.slice(0, 8)}\` is now **${!msg.enabled ? 'enabled' : 'disabled'}**.`,
+          content: `El mensaje programado \`${msg.id.slice(0, 8)}\` ahora esta **${!msg.enabled ? 'activado' : 'desactivado'}**.`,
           ephemeral: true,
         });
         break;

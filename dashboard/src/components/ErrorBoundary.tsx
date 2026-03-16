@@ -27,9 +27,9 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
           <div className="w-16 h-16 rounded-full bg-discord-red/20 flex items-center justify-center mb-4">
             <span className="text-2xl text-discord-red">!</span>
           </div>
-          <h2 className="text-xl font-semibold text-discord-white mb-2">Something went wrong</h2>
+          <h2 className="text-xl font-semibold text-discord-white mb-2">Algo salio mal</h2>
           <p className="text-discord-muted mb-1 max-w-md">
-            An unexpected error occurred while rendering this page.
+            Ocurrio un error inesperado al renderizar esta pagina.
           </p>
           {this.state.error && (
             <p className="text-xs text-discord-muted/60 mb-4 font-mono max-w-lg break-all">
@@ -43,7 +43,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
               window.location.reload();
             }}
           >
-            Reload Page
+            Recargar pagina
           </Button>
         </div>
       );

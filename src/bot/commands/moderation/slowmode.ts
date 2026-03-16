@@ -1,5 +1,5 @@
 /**
- * /slowmode command — Set channel slowmode.
+ * /modolento command — Establecer modo lento en un canal.
  */
 import {
   SlashCommandBuilder,
@@ -13,19 +13,19 @@ import { moduleColor, parseDuration } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('slowmode')
-    .setDescription('Set or remove slowmode for a channel')
+    .setName('modolento')
+    .setDescription('Establecer o quitar el modo lento de un canal')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .addStringOption((opt) =>
       opt
-        .setName('duration')
-        .setDescription('Slowmode duration (e.g. 5s, 1m, 1h) or "off" to disable')
+        .setName('duracion')
+        .setDescription('Duración del modo lento (ej. 5s, 1m, 1h) o "off" para desactivar')
         .setRequired(true)
     )
     .addChannelOption((opt) =>
       opt
-        .setName('channel')
-        .setDescription('Channel (defaults to current)')
+        .setName('canal')
+        .setDescription('Canal (por defecto el actual)')
         .addChannelTypes(ChannelType.GuildText)
         .setRequired(false)
     ),
@@ -34,11 +34,11 @@ export default {
   permissions: [PermissionFlagsBits.ManageChannels],
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const durationStr = interaction.options.getString('duration', true);
-    const channel = (interaction.options.getChannel('channel') || interaction.channel) as TextChannel;
+    const durationStr = interaction.options.getString('duracion', true);
+    const channel = (interaction.options.getChannel('canal') || interaction.channel) as TextChannel;
 
     if (!channel || !('setRateLimitPerUser' in channel)) {
-      await interaction.reply({ content: 'Invalid text channel.', ephemeral: true });
+      await interaction.reply({ content: 'Canal de texto inválido.', ephemeral: true });
       return;
     }
 
@@ -48,26 +48,26 @@ export default {
     } else {
       const parsed = parseDuration(durationStr);
       if (!parsed) {
-        await interaction.reply({ content: 'Invalid duration. Use formats like `5s`, `1m`, `1h`, or `off`.', ephemeral: true });
+        await interaction.reply({ content: 'Duración inválida. Usa formatos como `5s`, `1m`, `1h`, o `off`.', ephemeral: true });
         return;
       }
       seconds = parsed;
     }
 
-    // Discord max slowmode is 6 hours (21600 seconds)
+    // Modo lento máximo de Discord es 6 horas (21600 segundos)
     if (seconds > 21600) {
-      await interaction.reply({ content: 'Maximum slowmode is 6 hours (21600 seconds).', ephemeral: true });
+      await interaction.reply({ content: 'El modo lento máximo es de 6 horas (21600 segundos).', ephemeral: true });
       return;
     }
 
-    await channel.setRateLimitPerUser(seconds, `Set by ${interaction.user.username}`);
+    await channel.setRateLimitPerUser(seconds, `Establecido por ${interaction.user.username}`);
 
     const embed = new EmbedBuilder()
       .setColor(moduleColor('moderation'))
       .setDescription(
         seconds === 0
-          ? `Slowmode disabled in <#${channel.id}>.`
-          : `Slowmode set to **${seconds}s** in <#${channel.id}>.`
+          ? `Modo lento desactivado en <#${channel.id}>.`
+          : `Modo lento establecido a **${seconds}s** en <#${channel.id}>.`
       )
       .setTimestamp();
 

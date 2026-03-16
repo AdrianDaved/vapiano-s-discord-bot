@@ -1,6 +1,6 @@
 /**
- * /speak command — Make the bot say a message in the current (or specified) channel.
- * The bot deletes the interaction reply so it looks like the bot spoke on its own.
+ * /hablar command — Hacer que el bot envíe un mensaje en el canal actual (o uno especificado).
+ * El bot elimina la respuesta de interacción para que parezca que habló solo.
  */
 import {
   SlashCommandBuilder,
@@ -12,16 +12,16 @@ import {
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('speak')
-    .setDescription('Make the bot send a message in a channel')
+    .setName('hablar')
+    .setDescription('Hacer que el bot envíe un mensaje en un canal')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addStringOption((opt) =>
-      opt.setName('message').setDescription('The message the bot will say').setRequired(true)
+      opt.setName('mensaje').setDescription('El mensaje que dirá el bot').setRequired(true)
     )
     .addChannelOption((opt) =>
       opt
-        .setName('channel')
-        .setDescription('Channel to send the message in (defaults to current)')
+        .setName('canal')
+        .setDescription('Canal donde enviar el mensaje (por defecto el actual)')
         .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
         .setRequired(false)
     ),
@@ -30,18 +30,18 @@ export default {
   permissions: [PermissionFlagsBits.ManageMessages],
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const message = interaction.options.getString('message', true);
-    const channel = (interaction.options.getChannel('channel') || interaction.channel) as GuildTextBasedChannel;
+    const message = interaction.options.getString('mensaje', true);
+    const channel = (interaction.options.getChannel('canal') || interaction.channel) as GuildTextBasedChannel;
 
     if (!channel || !('send' in channel)) {
-      await interaction.reply({ content: 'Invalid channel.', ephemeral: true });
+      await interaction.reply({ content: 'Canal inválido.', ephemeral: true });
       return;
     }
 
     await channel.send(message);
 
     await interaction.reply({
-      content: `Message sent to <#${channel.id}>.`,
+      content: `Mensaje enviado a <#${channel.id}>.`,
       ephemeral: true,
     });
   },

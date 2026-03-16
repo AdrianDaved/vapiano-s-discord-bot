@@ -23,13 +23,13 @@ export default {
     try {
       const embed = new EmbedBuilder()
         .setColor(0xed4245)
-        .setTitle('Member Banned')
+        .setTitle('Miembro baneado')
         .setThumbnail(user.displayAvatarURL())
         .addFields(
-          { name: 'User', value: `${user.username} (<@${user.id}>)`, inline: true },
-          { name: 'Reason', value: ban.reason || 'No reason provided', inline: true },
+          { name: 'Usuario', value: `${user.username} (<@${user.id}>)`, inline: true },
+          { name: 'Razon', value: ban.reason || 'Sin razon', inline: true },
         )
-        .setFooter({ text: `User ID: ${user.id}` })
+        .setFooter({ text: `ID de usuario: ${user.id}` })
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });

@@ -30,11 +30,11 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<any> {
   if (res.status === 401) {
     setToken(null);
     window.location.href = '/login';
-    throw new Error('Unauthorized');
+    throw new Error('No autorizado');
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    const err = await res.json().catch(() => ({ error: 'Solicitud fallida' }));
     throw new Error(err.error || `HTTP ${res.status}`);
   }
 

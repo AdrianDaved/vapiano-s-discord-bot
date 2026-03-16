@@ -77,7 +77,7 @@ async function handleLevelUp(
   if (!guild || !member) return;
 
   // Send level-up message
-  const levelUpMsg = replaceTemplateVars(config.levelUpMessage || 'Congratulations {user}! You reached level {level}!', {
+  const levelUpMsg = replaceTemplateVars(config.levelUpMessage || 'Felicidades {user}! Alcanzaste el nivel {level}!', {
     user: `<@${author.id}>`,
     username: author.username,
     level: newLevel.toString(),

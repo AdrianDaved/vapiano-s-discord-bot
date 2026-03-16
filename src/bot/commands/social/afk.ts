@@ -9,17 +9,17 @@ import { moduleColor } from '../../utils';
 export default {
   data: new SlashCommandBuilder()
     .setName('afk')
-    .setDescription('Set or remove your AFK status')
+    .setDescription('Establecer o quitar tu estado AFK')
     .addSubcommand((sub) =>
       sub
-        .setName('set')
-        .setDescription('Set yourself as AFK')
+        .setName('establecer')
+        .setDescription('Ponerte como AFK')
         .addStringOption((opt) =>
-          opt.setName('reason').setDescription('AFK reason').setRequired(false)
+          opt.setName('razon').setDescription('Razón del AFK').setRequired(false)
         )
     )
     .addSubcommand((sub) =>
-      sub.setName('remove').setDescription('Remove your AFK status')
+      sub.setName('quitar').setDescription('Quitar tu estado AFK')
     ),
   cooldown: 5,
   module: 'afk',
@@ -30,8 +30,8 @@ export default {
     const userId = interaction.user.id;
 
     switch (sub) {
-      case 'set': {
-        const reason = interaction.options.getString('reason') || 'AFK';
+      case 'establecer': {
+        const reason = interaction.options.getString('razon') || 'AFK';
 
         await prisma.afkStatus.upsert({
           where: { guildId_userId: { guildId, userId } },
@@ -41,24 +41,24 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('afk'))
-          .setDescription(`${interaction.user} is now AFK: **${reason}**`)
+          .setDescription(`${interaction.user} ahora está AFK: **${reason}**`)
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed] });
         break;
       }
 
-      case 'remove': {
+      case 'quitar': {
         const deleted = await prisma.afkStatus.deleteMany({
           where: { guildId, userId },
         });
 
         if (deleted.count === 0) {
-          await interaction.reply({ content: 'You are not AFK.', ephemeral: true });
+          await interaction.reply({ content: 'No estás AFK.', ephemeral: true });
           return;
         }
 
-        await interaction.reply({ content: 'Welcome back! Your AFK status has been removed.', ephemeral: true });
+        await interaction.reply({ content: '¡Bienvenido de vuelta! Tu estado AFK ha sido eliminado.', ephemeral: true });
         break;
       }
     }

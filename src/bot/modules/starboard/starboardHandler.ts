@@ -81,12 +81,12 @@ export async function handleStarboardReaction(
       const embed = new EmbedBuilder()
         .setColor(0xfee75c)
         .setAuthor({
-          name: message.author?.username || 'Unknown',
+          name: message.author?.username || 'Desconocido',
           iconURL: message.author?.displayAvatarURL(),
         })
-        .setDescription(content ? `${content}\n\n[Jump to message](${jumpUrl})` : `[Jump to message](${jumpUrl})`)
+        .setDescription(content ? `${content}\n\n[Ir al mensaje](${jumpUrl})` : `[Ir al mensaje](${jumpUrl})`)
         .addFields(
-          { name: 'Channel', value: `<#${message.channelId}>`, inline: true },
+          { name: 'Canal', value: `<#${message.channelId}>`, inline: true },
         )
         .setFooter({ text: `${starText} ${starCount}` })
         .setTimestamp(message.createdAt);
@@ -255,12 +255,12 @@ export async function handleStarboardReactionRemove(
           const embed = new EmbedBuilder()
             .setColor(0xfee75c)
             .setAuthor({
-              name: message.author?.username || 'Unknown',
+              name: message.author?.username || 'Desconocido',
               iconURL: message.author?.displayAvatarURL(),
             })
-            .setDescription(content ? `${content}\n\n[Jump to message](${jumpUrl})` : `[Jump to message](${jumpUrl})`)
+            .setDescription(content ? `${content}\n\n[Ir al mensaje](${jumpUrl})` : `[Ir al mensaje](${jumpUrl})`)
             .addFields(
-              { name: 'Channel', value: `<#${message.channelId}>`, inline: true },
+              { name: 'Canal', value: `<#${message.channelId}>`, inline: true },
             )
             .setFooter({ text: `${starText} ${starCount}` })
             .setTimestamp(message.createdAt);

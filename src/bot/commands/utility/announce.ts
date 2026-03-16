@@ -1,6 +1,6 @@
 /**
- * /announce command — Send formatted announcements to a channel.
- * Supports optional pings, embed customization, and scheduled publishing.
+ * /anunciar command — Enviar anuncios formateados a un canal.
+ * Soporta menciones opcionales, personalización de embeds y publicación automática.
  */
 import {
   SlashCommandBuilder,
@@ -16,67 +16,67 @@ import { moduleColor } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('announce')
-    .setDescription('Send a formatted announcement to a channel')
+    .setName('anunciar')
+    .setDescription('Enviar un anuncio formateado a un canal')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addStringOption((opt) =>
-      opt.setName('message').setDescription('Announcement text (supports Discord markdown)').setRequired(true)
+      opt.setName('mensaje').setDescription('Texto del anuncio (soporta markdown de Discord)').setRequired(true)
     )
     .addChannelOption((opt) =>
       opt
-        .setName('channel')
-        .setDescription('Target channel (defaults to current)')
+        .setName('canal')
+        .setDescription('Canal destino (por defecto el actual)')
         .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
         .setRequired(false)
     )
     .addStringOption((opt) =>
-      opt.setName('title').setDescription('Embed title').setRequired(false)
+      opt.setName('titulo').setDescription('Título del embed').setRequired(false)
     )
     .addStringOption((opt) =>
-      opt.setName('color').setDescription('Embed color hex (e.g. #5865F2)').setRequired(false)
+      opt.setName('color').setDescription('Color hex del embed (ej. #5865F2)').setRequired(false)
     )
     .addRoleOption((opt) =>
-      opt.setName('ping').setDescription('Role to mention with the announcement').setRequired(false)
+      opt.setName('mencionar').setDescription('Rol a mencionar con el anuncio').setRequired(false)
     )
     .addBooleanOption((opt) =>
-      opt.setName('everyone').setDescription('Ping @everyone').setRequired(false)
+      opt.setName('everyone').setDescription('Mencionar a @everyone').setRequired(false)
     )
     .addStringOption((opt) =>
-      opt.setName('image').setDescription('Image URL to attach to the embed').setRequired(false)
+      opt.setName('imagen').setDescription('URL de imagen para adjuntar al embed').setRequired(false)
     )
     .addBooleanOption((opt) =>
-      opt.setName('publish').setDescription('Auto-publish if sent to an announcement channel').setRequired(false)
+      opt.setName('publicar').setDescription('Auto-publicar si se envía a un canal de anuncios').setRequired(false)
     ),
   module: 'utility',
   cooldown: 10,
   permissions: [PermissionFlagsBits.ManageMessages],
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const message = interaction.options.getString('message', true);
-    const channel = (interaction.options.getChannel('channel') || interaction.channel) as GuildTextBasedChannel;
-    const title = interaction.options.getString('title');
+    const message = interaction.options.getString('mensaje', true);
+    const channel = (interaction.options.getChannel('canal') || interaction.channel) as GuildTextBasedChannel;
+    const title = interaction.options.getString('titulo');
     const color = interaction.options.getString('color');
-    const pingRole = interaction.options.getRole('ping');
+    const pingRole = interaction.options.getRole('mencionar');
     const pingEveryone = interaction.options.getBoolean('everyone') ?? false;
-    const image = interaction.options.getString('image');
-    const publish = interaction.options.getBoolean('publish') ?? false;
+    const image = interaction.options.getString('imagen');
+    const publish = interaction.options.getBoolean('publicar') ?? false;
 
     if (!channel || !('send' in channel)) {
-      await interaction.reply({ content: 'Invalid channel.', ephemeral: true });
+      await interaction.reply({ content: 'Canal inválido.', ephemeral: true });
       return;
     }
 
-    // Build the embed
+    // Construir el embed
     const embed = new EmbedBuilder()
       .setDescription(message)
       .setColor(parseColor(color) || moduleColor('utility'))
       .setTimestamp()
-      .setFooter({ text: `Announced by ${interaction.user.username}` });
+      .setFooter({ text: `Anunciado por ${interaction.user.username}` });
 
     if (title) embed.setTitle(title);
     if (image) embed.setImage(image);
 
-    // Build content string with pings
+    // Construir string de contenido con menciones
     const contentParts: string[] = [];
     if (pingEveryone) contentParts.push('@everyone');
     if (pingRole) contentParts.push(roleMention(pingRole.id));
@@ -91,18 +91,18 @@ export default {
       },
     });
 
-    // Auto-publish in announcement channels
+    // Auto-publicar en canales de anuncios
     const isNewsChannel = (channel as any).type === ChannelType.GuildAnnouncement;
     if (publish && isNewsChannel) {
       try {
         await (sent as any).crosspost();
       } catch {
-        // Silently fail if publish fails (rate limit, permissions, etc.)
+        // Fallo silencioso si la publicación falla (rate limit, permisos, etc.)
       }
     }
 
     await interaction.reply({
-      content: `Announcement sent to <#${channel.id}>.${publish && isNewsChannel ? ' (Published)' : ''}`,
+      content: `Anuncio enviado a <#${channel.id}>.${publish && isNewsChannel ? ' (Publicado)' : ''}`,
       ephemeral: true,
     });
   },

@@ -26,16 +26,16 @@ export default {
       const newGC = newChannel as GuildChannel;
 
       if (oldGC.name !== newGC.name) {
-        changes.push(`**Name:** \`${oldGC.name}\` → \`${newGC.name}\``);
+        changes.push(`**Nombre:** \`${oldGC.name}\` → \`${newGC.name}\``);
       }
       if (oldGC.parent?.id !== newGC.parent?.id) {
-        changes.push(`**Category:** ${oldGC.parent?.name || 'None'} → ${newGC.parent?.name || 'None'}`);
+        changes.push(`**Categoria:** ${oldGC.parent?.name || 'Ninguna'} → ${newGC.parent?.name || 'Ninguna'}`);
       }
       if ('topic' in oldGC && 'topic' in newGC) {
         const oldTopic = (oldGC as TextChannel).topic;
         const newTopic = (newGC as TextChannel).topic;
         if (oldTopic !== newTopic) {
-          changes.push(`**Topic:** ${oldTopic?.slice(0, 100) || '*None*'} → ${newTopic?.slice(0, 100) || '*None*'}`);
+          changes.push(`**Tema:** ${oldTopic?.slice(0, 100) || '*Ninguno*'} → ${newTopic?.slice(0, 100) || '*Ninguno*'}`);
         }
       }
       if ('nsfw' in oldGC && 'nsfw' in newGC) {
@@ -47,7 +47,7 @@ export default {
         const oldSlow = (oldGC as TextChannel).rateLimitPerUser;
         const newSlow = (newGC as TextChannel).rateLimitPerUser;
         if (oldSlow !== newSlow) {
-          changes.push(`**Slowmode:** ${oldSlow}s → ${newSlow}s`);
+           changes.push(`**Modo lento:** ${oldSlow}s → ${newSlow}s`);
         }
       }
 
@@ -55,12 +55,12 @@ export default {
 
       const embed = new EmbedBuilder()
         .setColor(0xfee75c)
-        .setTitle('Channel Updated')
+        .setTitle('Canal actualizado')
         .addFields(
-          { name: 'Channel', value: `<#${newGC.id}> (${newGC.name})`, inline: true },
-          { name: 'Changes', value: changes.join('\n') },
+          { name: 'Canal', value: `<#${newGC.id}> (${newGC.name})`, inline: true },
+          { name: 'Cambios', value: changes.join('\n') },
         )
-        .setFooter({ text: `Channel ID: ${newGC.id}` })
+        .setFooter({ text: `ID del canal: ${newGC.id}` })
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });

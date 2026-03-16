@@ -9,28 +9,28 @@ import { moduleColor } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('invites')
-    .setDescription('Invite tracking commands')
+    .setName('invitaciones')
+    .setDescription('Comandos de seguimiento de invitaciones')
     .addSubcommand((sub) =>
       sub
         .setName('info')
-        .setDescription('View invite stats for a user')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to check').setRequired(false))
+        .setDescription('Ver estadísticas de invitaciones de un usuario')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a consultar').setRequired(false))
     )
     .addSubcommand((sub) =>
-      sub.setName('leaderboard').setDescription('View the invite leaderboard')
-    )
-    .addSubcommand((sub) =>
-      sub
-        .setName('who')
-        .setDescription('See who invited a specific user')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to check').setRequired(true))
+      sub.setName('ranking').setDescription('Ver el ranking de invitaciones')
     )
     .addSubcommand((sub) =>
       sub
-        .setName('reset')
-        .setDescription('Reset invite data for a user (admin only)')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to reset').setRequired(true))
+        .setName('quien')
+        .setDescription('Ver quién invitó a un usuario específico')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a consultar').setRequired(true))
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('reiniciar')
+        .setDescription('Reiniciar datos de invitaciones de un usuario (solo admins)')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a reiniciar').setRequired(true))
     ),
   module: 'invites',
   cooldown: 5,
@@ -41,7 +41,7 @@ export default {
 
     switch (sub) {
       case 'info': {
-        const user = interaction.options.getUser('user') || interaction.user;
+        const user = interaction.options.getUser('usuario') || interaction.user;
 
         const [total, fakes, leaves] = await Promise.all([
           prisma.invite.count({ where: { guildId, inviterId: user.id } }),
@@ -53,21 +53,21 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('invites'))
-          .setAuthor({ name: `${user.username}'s Invites`, iconURL: user.displayAvatarURL() })
+          .setAuthor({ name: `Invitaciones de ${user.username}`, iconURL: user.displayAvatarURL() })
           .addFields(
             { name: 'Total', value: valid.toString(), inline: true },
-            { name: 'Regular', value: (total - fakes).toString(), inline: true },
-            { name: 'Fake', value: fakes.toString(), inline: true },
-            { name: 'Left', value: leaves.toString(), inline: true }
+            { name: 'Regulares', value: (total - fakes).toString(), inline: true },
+            { name: 'Falsas', value: fakes.toString(), inline: true },
+            { name: 'Se fueron', value: leaves.toString(), inline: true }
           )
-          .setFooter({ text: `Valid invites = Total - Fake - Left` })
+          .setFooter({ text: `Invitaciones válidas = Total - Falsas - Se fueron` })
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed] });
         break;
       }
 
-      case 'leaderboard': {
+      case 'ranking': {
         const inviterStats = await prisma.invite.groupBy({
           by: ['inviterId'],
           where: { guildId, fake: false, left: false },
@@ -77,20 +77,20 @@ export default {
         });
 
         if (inviterStats.length === 0) {
-          await interaction.reply({ content: 'No invite data found yet.', ephemeral: true });
+          await interaction.reply({ content: 'Aún no hay datos de invitaciones.', ephemeral: true });
           return;
         }
 
         const lines = await Promise.all(
           inviterStats.map(async (stat, i) => {
             const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `**${i + 1}.**`;
-            return `${medal} <@${stat.inviterId}> — **${stat._count.inviterId}** invites`;
+            return `${medal} <@${stat.inviterId}> — **${stat._count.inviterId}** invitaciones`;
           })
         );
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('invites'))
-          .setTitle('Invite Leaderboard')
+          .setTitle('Ranking de Invitaciones')
           .setDescription(lines.join('\n'))
           .setFooter({ text: `${interaction.guild?.name}` })
           .setTimestamp();
@@ -99,8 +99,8 @@ export default {
         break;
       }
 
-      case 'who': {
-        const user = interaction.options.getUser('user', true);
+      case 'quien': {
+        const user = interaction.options.getUser('usuario', true);
 
         const inviteRecord = await prisma.invite.findFirst({
           where: { guildId, invitedId: user.id },
@@ -109,7 +109,7 @@ export default {
 
         if (!inviteRecord) {
           await interaction.reply({
-            content: `Could not determine who invited **${user.username}**. They may have joined via a vanity URL or the invite data was not tracked.`,
+            content: `No se pudo determinar quién invitó a **${user.username}**. Puede que se haya unido por una URL de vanidad o que no se rastrearon los datos de invitación.`,
             ephemeral: true,
           });
           return;
@@ -118,7 +118,7 @@ export default {
         const embed = new EmbedBuilder()
           .setColor(moduleColor('invites'))
           .setDescription(
-            `**${user.username}** was invited by <@${inviteRecord.inviterId}> using code \`${inviteRecord.code}\`${inviteRecord.fake ? ' ⚠️ (flagged as fake)' : ''}${inviteRecord.left ? ' (has since left)' : ''}`
+            `**${user.username}** fue invitado por <@${inviteRecord.inviterId}> usando el código \`${inviteRecord.code}\`${inviteRecord.fake ? ' ⚠️ (marcada como falsa)' : ''}${inviteRecord.left ? ' (ya se fue)' : ''}`
           )
           .setTimestamp();
 
@@ -126,19 +126,19 @@ export default {
         break;
       }
 
-      case 'reset': {
+      case 'reiniciar': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
-          await interaction.reply({ content: 'Only administrators can reset invite data.', ephemeral: true });
+          await interaction.reply({ content: 'Solo los administradores pueden reiniciar datos de invitaciones.', ephemeral: true });
           return;
         }
 
-        const user = interaction.options.getUser('user', true);
+        const user = interaction.options.getUser('usuario', true);
         const deleted = await prisma.invite.deleteMany({
           where: { guildId, inviterId: user.id },
         });
 
         await interaction.reply({
-          content: `Reset **${deleted.count}** invite records for ${user.username}.`,
+          content: `Se reiniciaron **${deleted.count}** registros de invitación de ${user.username}.`,
           ephemeral: true,
         });
         break;

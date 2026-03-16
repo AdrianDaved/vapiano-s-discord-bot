@@ -8,14 +8,14 @@ import { moduleColor } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('serverinfo')
-    .setDescription('View information about this server'),
+    .setName('servidor')
+    .setDescription('Ver información sobre este servidor'),
   cooldown: 10,
 
   async execute(interaction: ChatInputCommandInteraction) {
     const guild = interaction.guild!;
 
-    // Fetch full guild data if not cached
+    // Obtener datos completos del servidor si no están en caché
     await guild.fetch();
 
     const owner = await guild.fetchOwner();
@@ -26,17 +26,17 @@ export default {
     const forumChannels = channels.filter((c) => c.type === ChannelType.GuildForum).size;
     const stageChannels = channels.filter((c) => c.type === ChannelType.GuildStageVoice).size;
 
-    const roles = guild.roles.cache.size - 1; // exclude @everyone
+    const roles = guild.roles.cache.size - 1; // excluir @everyone
     const emojis = guild.emojis.cache.size;
     const stickers = guild.stickers.cache.size;
     const boosts = guild.premiumSubscriptionCount || 0;
 
     const verificationLevels: Record<number, string> = {
-      0: 'None',
-      1: 'Low',
-      2: 'Medium',
-      3: 'High',
-      4: 'Very High',
+      0: 'Ninguno',
+      1: 'Bajo',
+      2: 'Medio',
+      3: 'Alto',
+      4: 'Muy Alto',
     };
 
     const createdTimestamp = Math.floor(guild.createdTimestamp / 1000);
@@ -46,33 +46,33 @@ export default {
       .setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
       .setThumbnail(guild.iconURL({ size: 512 }) || null)
       .addFields(
-        { name: 'Owner', value: `${owner.user.username}`, inline: true },
-        { name: 'Created', value: `<t:${createdTimestamp}:F>\n(<t:${createdTimestamp}:R>)`, inline: true },
+        { name: 'Propietario', value: `${owner.user.username}`, inline: true },
+        { name: 'Creado', value: `<t:${createdTimestamp}:F>\n(<t:${createdTimestamp}:R>)`, inline: true },
         { name: 'ID', value: guild.id, inline: true },
         {
-          name: `Channels [${channels.size}]`,
+          name: `Canales [${channels.size}]`,
           value: [
-            `💬 Text: ${textChannels}`,
-            `🔊 Voice: ${voiceChannels}`,
-            `📁 Categories: ${categories}`,
-            forumChannels > 0 ? `💬 Forums: ${forumChannels}` : null,
-            stageChannels > 0 ? `🎤 Stage: ${stageChannels}` : null,
+            `💬 Texto: ${textChannels}`,
+            `🔊 Voz: ${voiceChannels}`,
+            `📁 Categorías: ${categories}`,
+            forumChannels > 0 ? `💬 Foros: ${forumChannels}` : null,
+            stageChannels > 0 ? `🎤 Escenario: ${stageChannels}` : null,
           ].filter(Boolean).join('\n'),
           inline: true,
         },
         {
-          name: 'Members',
+          name: 'Miembros',
           value: `Total: ${guild.memberCount}\nBoosters: ${boosts}`,
           inline: true,
         },
         {
-          name: 'Other',
+          name: 'Otros',
           value: [
             `Roles: ${roles}`,
             `Emojis: ${emojis}`,
             `Stickers: ${stickers}`,
-            `Verification: ${verificationLevels[guild.verificationLevel] || 'Unknown'}`,
-            `Boost Level: ${guild.premiumTier}`,
+            `Verificación: ${verificationLevels[guild.verificationLevel] || 'Desconocido'}`,
+            `Nivel de Boost: ${guild.premiumTier}`,
           ].join('\n'),
           inline: true,
         },

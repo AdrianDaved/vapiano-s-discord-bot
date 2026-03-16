@@ -24,31 +24,31 @@ export default {
       const changes: string[] = [];
 
       if (oldRole.name !== newRole.name) {
-        changes.push(`**Name:** \`${oldRole.name}\` → \`${newRole.name}\``);
+        changes.push(`**Nombre:** \`${oldRole.name}\` → \`${newRole.name}\``);
       }
       if (oldRole.color !== newRole.color) {
         changes.push(`**Color:** ${oldRole.hexColor} → ${newRole.hexColor}`);
       }
       if (oldRole.hoist !== newRole.hoist) {
-        changes.push(`**Hoisted:** ${oldRole.hoist} → ${newRole.hoist}`);
+        changes.push(`**Separado:** ${oldRole.hoist} → ${newRole.hoist}`);
       }
       if (oldRole.mentionable !== newRole.mentionable) {
-        changes.push(`**Mentionable:** ${oldRole.mentionable} → ${newRole.mentionable}`);
+        changes.push(`**Mencionable:** ${oldRole.mentionable} → ${newRole.mentionable}`);
       }
       if (oldRole.permissions.bitfield !== newRole.permissions.bitfield) {
-        changes.push(`**Permissions changed**`);
+        changes.push(`**Permisos cambiados**`);
       }
 
       if (changes.length === 0) return;
 
       const embed = new EmbedBuilder()
         .setColor(newRole.color || 0xfee75c)
-        .setTitle('Role Updated')
+        .setTitle('Rol actualizado')
         .addFields(
-          { name: 'Role', value: `${newRole.toString()} (${newRole.name})`, inline: true },
-          { name: 'Changes', value: changes.join('\n') },
+          { name: 'Rol', value: `${newRole.toString()} (${newRole.name})`, inline: true },
+          { name: 'Cambios', value: changes.join('\n') },
         )
-        .setFooter({ text: `Role ID: ${newRole.id}` })
+        .setFooter({ text: `ID del rol: ${newRole.id}` })
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });

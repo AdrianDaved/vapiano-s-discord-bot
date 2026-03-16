@@ -31,21 +31,21 @@ export default {
       const embed = new EmbedBuilder()
         .setColor(0xed4245)
         .setAuthor({
-          name: message.author?.username || 'Unknown User',
+          name: message.author?.username || 'Usuario desconocido',
           iconURL: message.author?.displayAvatarURL(),
         })
-        .setTitle('Message Deleted')
+        .setTitle('Mensaje eliminado')
         .addFields(
-          { name: 'Channel', value: `<#${message.channelId}>`, inline: true },
-          { name: 'Author', value: message.author ? `<@${message.author.id}>` : 'Unknown', inline: true },
-          { name: 'Content', value: message.content?.slice(0, 1024) || '*No text content*' }
+          { name: 'Canal', value: `<#${message.channelId}>`, inline: true },
+          { name: 'Autor', value: message.author ? `<@${message.author.id}>` : 'Desconocido', inline: true },
+          { name: 'Contenido', value: message.content?.slice(0, 1024) || '*Sin contenido de texto*' }
         )
-        .setFooter({ text: `Message ID: ${message.id}` })
+        .setFooter({ text: `ID del mensaje: ${message.id}` })
         .setTimestamp();
 
       if (message.attachments.size > 0) {
         embed.addFields({
-          name: 'Attachments',
+          name: 'Adjuntos',
           value: message.attachments.map((a) => a.url).join('\n').slice(0, 1024),
         });
       }

@@ -12,41 +12,41 @@ import { moduleColor } from '../../utils';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('autoresponse')
-    .setDescription('Manage auto-responses')
+    .setName('autorespuesta')
+    .setDescription('Gestionar autorespuestas')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addSubcommand((sub) =>
       sub
-        .setName('add')
-        .setDescription('Add an auto-response')
-        .addStringOption((opt) => opt.setName('trigger').setDescription('Trigger keyword or phrase').setRequired(true))
-        .addStringOption((opt) => opt.setName('response').setDescription('Response message').setRequired(true))
+        .setName('agregar')
+        .setDescription('Agregar una autorespuesta')
+        .addStringOption((opt) => opt.setName('disparador').setDescription('Palabra o frase disparadora').setRequired(true))
+        .addStringOption((opt) => opt.setName('respuesta').setDescription('Mensaje de respuesta').setRequired(true))
         .addStringOption((opt) =>
           opt
-            .setName('match')
-            .setDescription('Match type')
+            .setName('coincidencia')
+            .setDescription('Tipo de coincidencia')
             .addChoices(
-              { name: 'Contains', value: 'contains' },
-              { name: 'Exact', value: 'exact' },
-              { name: 'Starts With', value: 'startsWith' },
+              { name: 'Contiene', value: 'contains' },
+              { name: 'Exacta', value: 'exact' },
+              { name: 'Empieza con', value: 'startsWith' },
               { name: 'Regex', value: 'regex' }
             )
         )
     )
     .addSubcommand((sub) =>
-      sub.setName('list').setDescription('List all auto-responses')
+      sub.setName('lista').setDescription('Listar todas las autorespuestas')
     )
     .addSubcommand((sub) =>
       sub
-        .setName('remove')
-        .setDescription('Remove an auto-response')
-        .addStringOption((opt) => opt.setName('id').setDescription('Auto-response ID').setRequired(true))
+        .setName('eliminar')
+        .setDescription('Eliminar una autorespuesta')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID de la autorespuesta').setRequired(true))
     )
     .addSubcommand((sub) =>
       sub
-        .setName('toggle')
-        .setDescription('Enable or disable an auto-response')
-        .addStringOption((opt) => opt.setName('id').setDescription('Auto-response ID').setRequired(true))
+        .setName('alternar')
+        .setDescription('Activar o desactivar una autorespuesta')
+        .addStringOption((opt) => opt.setName('id').setDescription('ID de la autorespuesta').setRequired(true))
     ),
   module: 'automation',
   cooldown: 5,
@@ -57,10 +57,10 @@ export default {
     const guildId = interaction.guildId!;
 
     switch (sub) {
-      case 'add': {
-        const trigger = interaction.options.getString('trigger', true);
-        const response = interaction.options.getString('response', true);
-        const matchType = interaction.options.getString('match') || 'contains';
+      case 'agregar': {
+        const trigger = interaction.options.getString('disparador', true);
+        const response = interaction.options.getString('respuesta', true);
+        const matchType = interaction.options.getString('coincidencia') || 'contains';
 
         const ar = await prisma.autoResponse.create({
           data: { guildId, trigger, response, matchType },
@@ -68,11 +68,11 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('automation'))
-          .setTitle('Auto-Response Created')
+          .setTitle('Autorespuesta Creada')
           .addFields(
-            { name: 'Trigger', value: `\`${trigger}\``, inline: true },
-            { name: 'Match Type', value: matchType, inline: true },
-            { name: 'Response', value: response.slice(0, 1024) },
+            { name: 'Disparador', value: `\`${trigger}\``, inline: true },
+            { name: 'Tipo de coincidencia', value: matchType, inline: true },
+            { name: 'Respuesta', value: response.slice(0, 1024) },
             { name: 'ID', value: `\`${ar.id.slice(0, 8)}\``, inline: true }
           )
           .setTimestamp();
@@ -81,14 +81,14 @@ export default {
         break;
       }
 
-      case 'list': {
+      case 'lista': {
         const autoResponses = await prisma.autoResponse.findMany({
           where: { guildId },
           orderBy: { createdAt: 'desc' },
         });
 
         if (autoResponses.length === 0) {
-          await interaction.reply({ content: 'No auto-responses configured.', ephemeral: true });
+          await interaction.reply({ content: 'No hay autorespuestas configuradas.', ephemeral: true });
           return;
         }
 
@@ -99,39 +99,39 @@ export default {
 
         const embed = new EmbedBuilder()
           .setColor(moduleColor('automation'))
-          .setTitle('Auto-Responses')
+          .setTitle('Autorespuestas')
           .setDescription(lines.join('\n\n'))
-          .setFooter({ text: `${autoResponses.length} auto-response(s)` })
+          .setFooter({ text: `${autoResponses.length} autorespuesta(s)` })
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed], ephemeral: true });
         break;
       }
 
-      case 'remove': {
+      case 'eliminar': {
         const id = interaction.options.getString('id', true);
         const ar = await prisma.autoResponse.findFirst({
           where: { id: { startsWith: id }, guildId },
         });
 
         if (!ar) {
-          await interaction.reply({ content: 'Auto-response not found.', ephemeral: true });
+          await interaction.reply({ content: 'Autorespuesta no encontrada.', ephemeral: true });
           return;
         }
 
         await prisma.autoResponse.delete({ where: { id: ar.id } });
-        await interaction.reply({ content: `Auto-response \`${ar.trigger}\` deleted.`, ephemeral: true });
+        await interaction.reply({ content: `Autorespuesta \`${ar.trigger}\` eliminada.`, ephemeral: true });
         break;
       }
 
-      case 'toggle': {
+      case 'alternar': {
         const id = interaction.options.getString('id', true);
         const ar = await prisma.autoResponse.findFirst({
           where: { id: { startsWith: id }, guildId },
         });
 
         if (!ar) {
-          await interaction.reply({ content: 'Auto-response not found.', ephemeral: true });
+          await interaction.reply({ content: 'Autorespuesta no encontrada.', ephemeral: true });
           return;
         }
 
@@ -141,7 +141,7 @@ export default {
         });
 
         await interaction.reply({
-          content: `Auto-response \`${ar.trigger}\` is now **${!ar.enabled ? 'enabled' : 'disabled'}**.`,
+          content: `La autorespuesta \`${ar.trigger}\` ahora esta **${!ar.enabled ? 'activada' : 'desactivada'}**.`,
           ephemeral: true,
         });
         break;

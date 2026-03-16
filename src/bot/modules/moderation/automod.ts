@@ -101,7 +101,7 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
         try {
           if ('send' in message.channel) {
             await message.channel.send({
-              content: `<@${author.id}>, please don't use excessive caps.`,
+              content: `<@${author.id}>, por favor no uses mayusculas en exceso.`,
             }).then((m: Message) => setTimeout(() => m.delete().catch(() => {}), 5000));
           }
         } catch { /* ignore */ }
@@ -126,7 +126,7 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
         try {
           if ('send' in message.channel) {
             await message.channel.send({
-              content: `<@${author.id}>, links are not allowed in this channel.`,
+              content: `<@${author.id}>, los enlaces no estan permitidos en este canal.`,
             }).then((m: Message) => setTimeout(() => m.delete().catch(() => {}), 5000));
           }
         } catch { /* ignore */ }
@@ -148,7 +148,7 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
       try {
         if ('send' in message.channel) {
           await message.channel.send({
-            content: `<@${author.id}>, that word is not allowed here.`,
+            content: `<@${author.id}>, esa palabra no esta permitida aqui.`,
           }).then((m: Message) => setTimeout(() => m.delete().catch(() => {}), 5000));
         }
       } catch { /* ignore */ }
@@ -173,10 +173,10 @@ async function logAutomod(message: Message, config: any, type: string, details: 
       .setColor(0xeb459e)
       .setTitle(`AutoMod: ${type}`)
       .addFields(
-        { name: 'User', value: `${message.author.username} (<@${message.author.id}>)`, inline: true },
-        { name: 'Channel', value: `<#${message.channelId}>`, inline: true },
-        { name: 'Details', value: details },
-        { name: 'Message', value: message.content?.slice(0, 512) || '*empty*' }
+        { name: 'Usuario', value: `${message.author.username} (<@${message.author.id}>)`, inline: true },
+        { name: 'Canal', value: `<#${message.channelId}>`, inline: true },
+        { name: 'Detalles', value: details },
+        { name: 'Mensaje', value: message.content?.slice(0, 512) || '*vacio*' }
       )
       .setTimestamp();
 

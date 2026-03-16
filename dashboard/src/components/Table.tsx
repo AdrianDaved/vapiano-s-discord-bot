@@ -16,7 +16,7 @@ interface TableProps<T> {
 export default function Table<T extends Record<string, any>>({
   columns,
   data,
-  emptyMessage = 'No data found',
+  emptyMessage = 'No se encontraron datos',
   rowKey,
 }: TableProps<T>) {
   if (data.length === 0) {

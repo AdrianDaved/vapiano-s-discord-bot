@@ -31,103 +31,103 @@ function padNum(n: number) { return n.toString().padStart(4, '0'); }
 export default {
   data: new SlashCommandBuilder()
     .setName('ticket')
-    .setDescription('Ticket system commands')
+    .setDescription('Comandos del sistema de tickets')
 
     // ── Panel Management ──────────────────────────
     .addSubcommand((sub) =>
       sub
         .setName('panel')
-        .setDescription('Create/send a ticket panel to a channel')
-        .addStringOption((opt) => opt.setName('title').setDescription('Panel title'))
-        .addStringOption((opt) => opt.setName('description').setDescription('Panel description'))
-        .addStringOption((opt) => opt.setName('button_label').setDescription('Button text'))
-        .addStringOption((opt) => opt.setName('button_emoji').setDescription('Button emoji'))
-        .addChannelOption((opt) => opt.setName('channel').setDescription('Channel to send the panel to'))
-        .addChannelOption((opt) => opt.setName('category').setDescription('Category for new tickets'))
-        .addRoleOption((opt) => opt.setName('staff_role').setDescription('Staff role for ticket access'))
-        .addStringOption((opt) => opt.setName('name').setDescription('Internal panel name (for managing multiple panels)'))
+        .setDescription('Crear/enviar un panel de tickets a un canal')
+        .addStringOption((opt) => opt.setName('titulo').setDescription('Titulo del panel'))
+        .addStringOption((opt) => opt.setName('descripcion').setDescription('Descripcion del panel'))
+        .addStringOption((opt) => opt.setName('texto_boton').setDescription('Texto del boton'))
+        .addStringOption((opt) => opt.setName('emoji_boton').setDescription('Emoji del boton'))
+        .addChannelOption((opt) => opt.setName('canal').setDescription('Canal donde enviar el panel'))
+        .addChannelOption((opt) => opt.setName('categoria').setDescription('Categoria para tickets nuevos'))
+        .addRoleOption((opt) => opt.setName('rol_staff').setDescription('Rol del staff con acceso al ticket'))
+        .addStringOption((opt) => opt.setName('nombre').setDescription('Nombre interno del panel (para varios paneles)'))
     )
 
     // ── Close ─────────────────────────────────────
     .addSubcommand((sub) =>
       sub
-        .setName('close')
-        .setDescription('Close the current ticket')
-        .addStringOption((opt) => opt.setName('reason').setDescription('Reason for closing'))
+        .setName('cerrar')
+        .setDescription('Cerrar el ticket actual')
+        .addStringOption((opt) => opt.setName('motivo').setDescription('Motivo del cierre'))
     )
 
     // ── Close Request ─────────────────────────────
     .addSubcommand((sub) =>
       sub
-        .setName('close-request')
-        .setDescription('Send a close request to the ticket creator')
-        .addStringOption((opt) => opt.setName('reason').setDescription('Reason for the close request'))
+        .setName('solicitar-cierre')
+        .setDescription('Enviar una solicitud de cierre al creador del ticket')
+        .addStringOption((opt) => opt.setName('motivo').setDescription('Motivo de la solicitud de cierre'))
     )
 
     // ── Reopen ────────────────────────────────────
     .addSubcommand((sub) =>
-      sub.setName('reopen').setDescription('Reopen a closed ticket')
+      sub.setName('reabrir').setDescription('Reabrir un ticket cerrado')
     )
 
     // ── Delete ────────────────────────────────────
     .addSubcommand((sub) =>
-      sub.setName('delete').setDescription('Delete the current ticket channel')
+      sub.setName('eliminar').setDescription('Eliminar el canal del ticket actual')
     )
 
     // ── Transcript ────────────────────────────────
     .addSubcommand((sub) =>
-      sub.setName('transcript').setDescription('Generate an HTML transcript of this ticket')
+      sub.setName('transcripcion').setDescription('Generar una transcripcion HTML de este ticket')
     )
 
     // ── Add user ──────────────────────────────────
     .addSubcommand((sub) =>
       sub
-        .setName('add')
-        .setDescription('Add a user to the current ticket')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to add').setRequired(true))
+        .setName('agregar')
+        .setDescription('Agregar un usuario al ticket actual')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a agregar').setRequired(true))
     )
 
     // ── Remove user ───────────────────────────────
     .addSubcommand((sub) =>
       sub
-        .setName('remove')
-        .setDescription('Remove a user from the current ticket')
-        .addUserOption((opt) => opt.setName('user').setDescription('User to remove').setRequired(true))
+        .setName('quitar')
+        .setDescription('Quitar un usuario del ticket actual')
+        .addUserOption((opt) => opt.setName('usuario').setDescription('Usuario a quitar').setRequired(true))
     )
 
     // ── Claim ─────────────────────────────────────
     .addSubcommand((sub) =>
-      sub.setName('claim').setDescription('Claim this ticket as a staff member')
+      sub.setName('asignar').setDescription('Asignarte este ticket como staff')
     )
 
     // ── Unclaim ───────────────────────────────────
     .addSubcommand((sub) =>
-      sub.setName('unclaim').setDescription('Release your claim on this ticket')
+      sub.setName('desasignar').setDescription('Liberar tu asignacion de este ticket')
     )
 
     // ── Rename ────────────────────────────────────
     .addSubcommand((sub) =>
       sub
-        .setName('rename')
-        .setDescription('Rename the current ticket channel')
-        .addStringOption((opt) => opt.setName('name').setDescription('New channel name').setRequired(true))
+        .setName('renombrar')
+        .setDescription('Renombrar el canal del ticket actual')
+        .addStringOption((opt) => opt.setName('nombre').setDescription('Nuevo nombre del canal').setRequired(true))
     )
 
     // ── Priority ──────────────────────────────────
     .addSubcommand((sub) =>
       sub
-        .setName('priority')
-        .setDescription('Set ticket priority')
+        .setName('prioridad')
+        .setDescription('Definir prioridad del ticket')
         .addStringOption((opt) =>
           opt
-            .setName('level')
-            .setDescription('Priority level')
+            .setName('nivel')
+            .setDescription('Nivel de prioridad')
             .setRequired(true)
             .addChoices(
-              { name: 'Low', value: 'low' },
+              { name: 'Baja', value: 'low' },
               { name: 'Normal', value: 'normal' },
-              { name: 'High', value: 'high' },
-              { name: 'Urgent', value: 'urgent' }
+              { name: 'Alta', value: 'high' },
+              { name: 'Urgente', value: 'urgent' }
             )
         )
     )
@@ -135,17 +135,17 @@ export default {
     // ── Escalate ──────────────────────────────────
     .addSubcommand((sub) =>
       sub
-        .setName('escalate')
-        .setDescription('Escalate this ticket to another panel/team')
-        .addStringOption((opt) => opt.setName('panel_name').setDescription('Target panel name').setRequired(true))
+        .setName('escalar')
+        .setDescription('Escalar este ticket a otro panel/equipo')
+        .addStringOption((opt) => opt.setName('nombre_panel').setDescription('Nombre del panel destino').setRequired(true))
     )
 
     // ── New (command-style creation) ──────────────
     .addSubcommand((sub) =>
       sub
-        .setName('new')
-        .setDescription('Create a new ticket via command')
-        .addStringOption((opt) => opt.setName('topic').setDescription('Ticket topic/reason'))
+        .setName('nuevo')
+        .setDescription('Crear un ticket nuevo por comando')
+        .addStringOption((opt) => opt.setName('tema').setDescription('Tema/motivo del ticket'))
     ),
 
   module: 'tickets',
@@ -161,18 +161,18 @@ export default {
       // ══════════════════════════════════════════════════════════
       case 'panel': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-          await interaction.reply({ content: 'You need **Manage Server** permission.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso de **Gestionar servidor**.', ephemeral: true });
           return;
         }
 
-        const title = interaction.options.getString('title') || 'Support Tickets';
-        const description = interaction.options.getString('description') || 'Click the button below to create a support ticket.\nA staff member will assist you shortly.';
-        const buttonLabel = interaction.options.getString('button_label') || 'Create Ticket';
-        const buttonEmoji = interaction.options.getString('button_emoji') || '🎫';
-        const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
-        const category = interaction.options.getChannel('category');
-        const staffRole = interaction.options.getRole('staff_role');
-        const panelName = interaction.options.getString('name') || title;
+        const title = interaction.options.getString('titulo') || 'Tickets de soporte';
+        const description = interaction.options.getString('descripcion') || 'Haz clic en el botón de abajo para crear un ticket de soporte.\nUn miembro del staff te ayudará en breve.';
+        const buttonLabel = interaction.options.getString('texto_boton') || 'Crear ticket';
+        const buttonEmoji = interaction.options.getString('emoji_boton') || '🎫';
+        const targetChannel = interaction.options.getChannel('canal') || interaction.channel;
+        const category = interaction.options.getChannel('categoria');
+        const staffRole = interaction.options.getRole('rol_staff');
+        const panelName = interaction.options.getString('nombre') || title;
 
         const panel = await prisma.ticketPanel.create({
           data: {
@@ -192,7 +192,7 @@ export default {
           .setColor(parseInt((panel.embedColor || '#5865F2').replace('#', ''), 16))
           .setTitle(title)
           .setDescription(description)
-          .setFooter({ text: panel.footerText || 'Vapiano Bot | Ticket System' })
+          .setFooter({ text: panel.footerText || 'Vapiano Bot | Sistema de tickets' })
           .setTimestamp();
 
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -212,7 +212,7 @@ export default {
         });
 
         await interaction.reply({
-          content: `Ticket panel **${panelName}** created in <#${channel.id}>. Configure advanced settings via the dashboard.`,
+          content: `Panel de tickets **${panelName}** creado en <#${channel.id}>.`,
           ephemeral: true,
         });
         break;
@@ -221,18 +221,18 @@ export default {
       // ══════════════════════════════════════════════════════════
       // CLOSE — Close the current ticket
       // ══════════════════════════════════════════════════════════
-      case 'close': {
+      case 'cerrar': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
           include: { panel: true },
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'This is not an open ticket channel.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket abierto.', ephemeral: true });
           return;
         }
 
-        const reason = interaction.options.getString('reason');
+        const reason = interaction.options.getString('motivo');
         const panel = ticket.panel;
         const config = await getGuildConfig(guildId);
 
@@ -284,13 +284,19 @@ export default {
           await channel.setParent(panel.closedCategoryId, { lockPermissions: false }).catch(() => {});
         }
 
+        const openDurationMs = Date.now() - new Date(ticket.createdAt).getTime();
+        const openHours = Math.floor(openDurationMs / 3600000);
+        const openMins = Math.floor((openDurationMs % 3600000) / 60000);
+        const openDurationStr = openHours > 0 ? `${openHours}h ${openMins}m` : `${openMins}m`;
+
         const closedEmbed = new EmbedBuilder()
           .setColor(CLOSE_COLOR)
-          .setTitle('Ticket Closed')
+          .setTitle('Ticket cerrado')
           .setDescription(
-            `Closed by <@${interaction.user.id}>.` +
-            (reason ? `\n**Reason:** ${reason}` : '') +
-            (transcriptResult ? `\n\nTranscript saved (${transcriptResult.messages.length} messages).` : '')
+            `Cerrado por <@${interaction.user.id}>.` +
+            (reason ? `\n**Motivo:** ${reason}` : '') +
+            `\n**Tiempo abierto:** ${openDurationStr}` +
+            (transcriptResult ? `\n\nTranscripción guardada (${transcriptResult.messages.length} mensajes).` : '')
           )
           .setTimestamp();
 
@@ -307,11 +313,11 @@ export default {
                 embeds: [
                   new EmbedBuilder()
                     .setColor(INFO_COLOR)
-                    .setTitle(`Transcript: Ticket #${padNum(ticket.number)}`)
+                    .setTitle(`Transcripción: Ticket #${padNum(ticket.number)}`)
                     .addFields(
-                      { name: 'Created By', value: `<@${ticket.userId}>`, inline: true },
-                      { name: 'Closed By', value: `<@${interaction.user.id}>`, inline: true },
-                      { name: 'Messages', value: `${transcriptResult.messages.length}`, inline: true }
+                      { name: 'Creado por', value: `<@${ticket.userId}>`, inline: true },
+                      { name: 'Cerrado por', value: `<@${interaction.user.id}>`, inline: true },
+                      { name: 'Mensajes', value: `${transcriptResult.messages.length}`, inline: true }
                     )
                     .setTimestamp(),
                 ],
@@ -329,8 +335,8 @@ export default {
                 embeds: [
                   new EmbedBuilder()
                     .setColor(INFO_COLOR)
-                    .setTitle('Ticket Closed')
-                    .setDescription(`Your ticket #${padNum(ticket.number)} in **${interaction.guild!.name}** has been closed.`)
+                    .setTitle('Ticket cerrado')
+                    .setDescription(`Tu ticket #${padNum(ticket.number)} en **${interaction.guild!.name}** fue cerrado.`)
                     .setTimestamp(),
                 ],
                 files: [new AttachmentBuilder(buf, { name: `transcript-${padNum(ticket.number)}.html` })],
@@ -348,11 +354,11 @@ export default {
               embeds: [
                 new EmbedBuilder()
                   .setColor(CLOSE_COLOR)
-                  .setTitle('Ticket Closed')
+                  .setTitle('Ticket cerrado')
                   .addFields(
                     { name: 'Ticket', value: `#${padNum(ticket.number)}`, inline: true },
-                    { name: 'Closed By', value: `<@${interaction.user.id}>`, inline: true },
-                    { name: 'Reason', value: reason || 'No reason', inline: true }
+                    { name: 'Cerrado por', value: `<@${interaction.user.id}>`, inline: true },
+                    { name: 'Motivo', value: reason || 'Sin motivo', inline: true }
                   )
                   .setTimestamp(),
               ],
@@ -365,38 +371,38 @@ export default {
       // ══════════════════════════════════════════════════════════
       // CLOSE-REQUEST — Ask confirmation
       // ══════════════════════════════════════════════════════════
-      case 'close-request': {
+      case 'solicitar-cierre': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
           include: { panel: true },
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'This is not an open ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
           return;
         }
 
-        const reason = interaction.options.getString('reason');
+        const reason = interaction.options.getString('motivo');
 
         const embed = new EmbedBuilder()
           .setColor(0xfee75c)
-          .setTitle('Close Request')
+          .setTitle('Solicitud de cierre')
           .setDescription(
-            `<@${interaction.user.id}> has requested to close this ticket.` +
-            (reason ? `\n**Reason:** ${reason}` : '') +
-            `\n\nClick the button below to confirm or cancel.`
+            `<@${interaction.user.id}> solicitó cerrar este ticket.` +
+            (reason ? `\n**Motivo:** ${reason}` : '') +
+            `\n\nHaz clic en el botón de abajo para confirmar o cancelar.`
           )
           .setTimestamp();
 
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId(`ticket_confirm_close_${interaction.user.id}`)
-            .setLabel('Close Ticket')
+            .setLabel('Cerrar ticket')
             .setStyle(ButtonStyle.Danger)
             .setEmoji('🔒'),
           new ButtonBuilder()
             .setCustomId('ticket_cancel_close')
-            .setLabel('Keep Open')
+            .setLabel('Mantener abierto')
             .setStyle(ButtonStyle.Secondary)
         );
 
@@ -407,14 +413,14 @@ export default {
       // ══════════════════════════════════════════════════════════
       // REOPEN
       // ══════════════════════════════════════════════════════════
-      case 'reopen': {
+      case 'reabrir': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
           include: { panel: true },
         });
 
         if (!ticket || ticket.status !== 'closed') {
-          await interaction.reply({ content: 'This ticket is not closed.', ephemeral: true });
+          await interaction.reply({ content: 'Este ticket no está cerrado.', ephemeral: true });
           return;
         }
 
@@ -450,8 +456,8 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(SUCCESS_COLOR)
-              .setTitle('Ticket Reopened')
-              .setDescription(`Reopened by <@${interaction.user.id}>.`)
+              .setTitle('Ticket reabierto')
+              .setDescription(`Reabierto por <@${interaction.user.id}>.`)
               .setTimestamp(),
           ],
           components: [getTicketActionRow(panel)],
@@ -462,18 +468,18 @@ export default {
       // ══════════════════════════════════════════════════════════
       // DELETE
       // ══════════════════════════════════════════════════════════
-      case 'delete': {
+      case 'eliminar': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'This is not a ticket channel.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
           return;
         }
 
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageChannels)) {
-          await interaction.reply({ content: 'You need **Manage Channels** permission to delete tickets.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso de **Gestionar canales** para eliminar tickets.', ephemeral: true });
           return;
         }
 
@@ -493,11 +499,11 @@ export default {
           data: { status: 'deleted' },
         });
 
-        await interaction.reply({ content: 'This ticket will be deleted in 5 seconds...' });
+        await interaction.reply({ content: 'Este ticket se eliminara en 5 segundos...' });
         setTimeout(async () => {
           try {
             const ch = interaction.guild!.channels.cache.get(ticket.channelId);
-            if (ch) await ch.delete('Ticket deleted');
+            if (ch) await ch.delete('Ticket eliminado');
           } catch {}
         }, 5000);
         break;
@@ -506,13 +512,13 @@ export default {
       // ══════════════════════════════════════════════════════════
       // TRANSCRIPT
       // ══════════════════════════════════════════════════════════
-      case 'transcript': {
+      case 'transcripcion': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'This is not a ticket channel.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
           return;
         }
 
@@ -530,7 +536,7 @@ export default {
         });
 
         await interaction.editReply({
-          content: `Transcript generated: **${messages.length} messages**. Open the HTML file in your browser.`,
+          content: `Transcripción generada: **${messages.length} mensajes**. Abre el archivo HTML en tu navegador.`,
           files: [attachment],
         });
         break;
@@ -539,17 +545,17 @@ export default {
       // ══════════════════════════════════════════════════════════
       // ADD USER
       // ══════════════════════════════════════════════════════════
-      case 'add': {
+      case 'agregar': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'This is not an open ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
           return;
         }
 
-        const user = interaction.options.getUser('user', true);
+        const user = interaction.options.getUser('usuario', true);
         const channel = interaction.channel as TextChannel;
 
         await channel.permissionOverwrites.edit(user.id, {
@@ -570,7 +576,7 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(SUCCESS_COLOR)
-              .setDescription(`<@${user.id}> has been added to this ticket.`)
+              .setDescription(`<@${user.id}> fue agregado a este ticket.`)
               .setTimestamp(),
           ],
         });
@@ -580,17 +586,17 @@ export default {
       // ══════════════════════════════════════════════════════════
       // REMOVE USER
       // ══════════════════════════════════════════════════════════
-      case 'remove': {
+      case 'quitar': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'This is not a ticket channel.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
           return;
         }
 
-        const user = interaction.options.getUser('user', true);
+        const user = interaction.options.getUser('usuario', true);
         const channel = interaction.channel as TextChannel;
 
         await channel.permissionOverwrites.delete(user.id);
@@ -606,7 +612,7 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(CLOSE_COLOR)
-              .setDescription(`<@${user.id}> has been removed from this ticket.`)
+              .setDescription(`<@${user.id}> fue quitado de este ticket.`)
               .setTimestamp(),
           ],
         });
@@ -616,20 +622,20 @@ export default {
       // ══════════════════════════════════════════════════════════
       // CLAIM
       // ══════════════════════════════════════════════════════════
-      case 'claim': {
+      case 'asignar': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
           include: { panel: true },
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'This is not an open ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
           return;
         }
 
         if (ticket.claimedBy) {
           await interaction.reply({
-            content: `This ticket is already claimed by <@${ticket.claimedBy}>.`,
+            content: `Este ticket ya está asignado a <@${ticket.claimedBy}>.`,
             ephemeral: true,
           });
           return;
@@ -655,7 +661,7 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(INFO_COLOR)
-              .setDescription(`This ticket has been claimed by <@${interaction.user.id}>.`)
+              .setDescription(`Este ticket fue asignado a <@${interaction.user.id}>.`)
               .setTimestamp(),
           ],
         });
@@ -665,24 +671,24 @@ export default {
       // ══════════════════════════════════════════════════════════
       // UNCLAIM
       // ══════════════════════════════════════════════════════════
-      case 'unclaim': {
+      case 'desasignar': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
           include: { panel: true },
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'This is not an open ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
           return;
         }
 
         if (!ticket.claimedBy) {
-          await interaction.reply({ content: 'This ticket is not claimed.', ephemeral: true });
+          await interaction.reply({ content: 'Este ticket no está asignado.', ephemeral: true });
           return;
         }
 
         if (ticket.claimedBy !== interaction.user.id && !interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-          await interaction.reply({ content: 'You can only unclaim tickets you claimed, or have Manage Server permission.', ephemeral: true });
+          await interaction.reply({ content: 'Solo puedes desasignar tickets que tú asignaste o tener el permiso de Gestionar servidor.', ephemeral: true });
           return;
         }
 
@@ -705,7 +711,7 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(INFO_COLOR)
-              .setDescription(`This ticket is no longer claimed.`)
+              .setDescription(`Este ticket ya no está asignado.`)
               .setTimestamp(),
           ],
         });
@@ -715,17 +721,17 @@ export default {
       // ══════════════════════════════════════════════════════════
       // RENAME
       // ══════════════════════════════════════════════════════════
-      case 'rename': {
+      case 'renombrar': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'This is not a ticket channel.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
           return;
         }
 
-        const newName = interaction.options.getString('name', true).slice(0, 100);
+        const newName = interaction.options.getString('nombre', true).slice(0, 100);
         const channel = interaction.channel as TextChannel;
 
         await channel.setName(newName);
@@ -734,7 +740,7 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(INFO_COLOR)
-              .setDescription(`Ticket channel renamed to **${newName}**.`)
+              .setDescription(`Canal del ticket renombrado a **${newName}**.`)
               .setTimestamp(),
           ],
         });
@@ -744,17 +750,17 @@ export default {
       // ══════════════════════════════════════════════════════════
       // PRIORITY
       // ══════════════════════════════════════════════════════════
-      case 'priority': {
+      case 'prioridad': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'This is not a ticket channel.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
           return;
         }
 
-        const level = interaction.options.getString('level', true);
+        const level = interaction.options.getString('nivel', true);
         await prisma.ticket.update({
           where: { id: ticket.id },
           data: { priority: level },
@@ -774,7 +780,7 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(priorityColors[level] || TICKET_COLOR)
-              .setDescription(`${priorityEmojis[level]} Ticket priority set to **${level.toUpperCase()}**.`)
+              .setDescription(`${priorityEmojis[level]} Prioridad del ticket definida en **${level.toUpperCase()}**.`)
               .setTimestamp(),
           ],
         });
@@ -784,32 +790,32 @@ export default {
       // ══════════════════════════════════════════════════════════
       // ESCALATE
       // ══════════════════════════════════════════════════════════
-      case 'escalate': {
+      case 'escalar': {
         const ticket = await prisma.ticket.findUnique({
           where: { channelId: interaction.channelId },
           include: { panel: true },
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'This is not an open ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
           return;
         }
 
-        const panelName = interaction.options.getString('panel_name', true);
+        const panelName = interaction.options.getString('nombre_panel', true);
         const targetPanel = await prisma.ticketPanel.findFirst({
           where: { guildId, name: { equals: panelName, mode: 'insensitive' } },
         });
 
         if (!targetPanel) {
           await interaction.reply({
-            content: `Panel "${panelName}" not found. Available panels can be seen on the dashboard.`,
+            content: `No se encontró el panel "${panelName}".`,
             ephemeral: true,
           });
           return;
         }
 
         if (targetPanel.id === ticket.panelId) {
-          await interaction.reply({ content: 'Ticket is already on this panel.', ephemeral: true });
+          await interaction.reply({ content: 'El ticket ya está en este panel.', ephemeral: true });
           return;
         }
 
@@ -847,9 +853,9 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(0xf47b67)
-              .setTitle('Ticket Escalated')
+              .setTitle('Ticket escalado')
               .setDescription(
-                `This ticket has been escalated to **${targetPanel.name || targetPanel.title}** by <@${interaction.user.id}>.`
+                `Este ticket fue escalado a **${targetPanel.name || targetPanel.title}** por <@${interaction.user.id}>.`
               )
               .setTimestamp(),
           ],
@@ -860,8 +866,8 @@ export default {
       // ══════════════════════════════════════════════════════════
       // NEW — Command-style ticket creation
       // ══════════════════════════════════════════════════════════
-      case 'new': {
-        const topic = interaction.options.getString('topic');
+      case 'nuevo': {
+        const topic = interaction.options.getString('tema');
 
         // Find default panel for this guild
         const panels = await prisma.ticketPanel.findMany({
@@ -871,7 +877,7 @@ export default {
 
         if (panels.length === 0) {
           await interaction.reply({
-            content: 'No ticket panels configured. An admin must create one with `/ticket panel` first.',
+            content: 'No hay paneles de tickets configurados. Un admin debe crear uno primero con `/ticket panel`.',
             ephemeral: true,
           });
           return;
@@ -888,7 +894,7 @@ export default {
               where: { guildId, userId: interaction.user.id, panelId: panel.id, status: 'open' },
             });
             await interaction.reply({
-              content: `You already have an open ticket.${existing ? ` <#${existing.channelId}>` : ''}`,
+              content: `Ya tienes un ticket abierto.${existing ? ` <#${existing.channelId}>` : ''}`,
               ephemeral: true,
             });
             return;
@@ -953,14 +959,14 @@ export default {
             .setColor(parseInt((panel.welcomeColor || '#5865F2').replace('#', ''), 16))
             .setTitle(panel.welcomeTitle || `Ticket #${padNum(ticketNumber)}`)
             .setDescription(
-              (panel.welcomeMessage || 'Welcome! Please describe your issue.')
+              (panel.welcomeMessage || 'Bienvenido. Describe tu problema, por favor.')
                 .replace('{user}', `<@${interaction.user.id}>`)
                 .replace('{number}', padNum(ticketNumber))
             )
             .setTimestamp();
 
           if (topic) {
-            welcomeEmbed.addFields({ name: 'Topic', value: topic });
+            welcomeEmbed.addFields({ name: 'Tema', value: topic });
           }
 
           const mentionParts: string[] = [];
@@ -973,16 +979,16 @@ export default {
             components: [getTicketActionRow(panel)],
           });
 
-          await interaction.editReply({ content: `Ticket created: <#${channel.id}>` });
+          await interaction.editReply({ content: `Ticket creado: <#${channel.id}>` });
         } else {
           // Multiple panels — show dropdown
           const select = new StringSelectMenuBuilder()
             .setCustomId('ticket_panel_select')
-            .setPlaceholder('Select a ticket category...')
+            .setPlaceholder('Selecciona una categoria de ticket...')
             .addOptions(
               panels.map((p) => ({
                 label: p.name || p.title,
-                description: p.description?.slice(0, 100) || 'Create a ticket',
+                description: p.description?.slice(0, 100) || 'Crear un ticket',
                 value: p.id,
                 emoji: p.buttonEmoji || '🎫',
               }))
@@ -990,7 +996,7 @@ export default {
 
           const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select);
           await interaction.reply({
-            content: 'Select a ticket category:',
+            content: 'Selecciona una categoria de ticket:',
             components: [row],
             ephemeral: true,
           });
