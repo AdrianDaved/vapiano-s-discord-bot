@@ -24,6 +24,9 @@ export default {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addUserOption((opt) =>
       opt.setName('usuario').setDescription('Usuario a verificar').setRequired(true)
+    )
+    .addRoleOption((opt) =>
+      opt.setName('rol').setDescription('Rol a asignar (opcional, sobrescribe la config)').setRequired(false)
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -95,7 +98,7 @@ export default {
     }
 
     // Send to verification log channel (uses modLogChannelId from config)
-    const logChannelId = config.modLogChannelId;
+    const logChannelId = config.modLogChannelId || '1449265811624820797';
     if (!logChannelId) return;
     const logChannel = guild.channels.cache.get(logChannelId) as TextChannel | undefined;
     if (!logChannel) {

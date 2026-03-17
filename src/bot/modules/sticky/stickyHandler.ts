@@ -71,3 +71,8 @@ export async function processStickyMessage(message: Message): Promise<void> {
     logger.error(`[Sticky] Error re-sending sticky in ${channelId}: ${err}`);
   }
 }
+
+export function addToStickyCache(_channelId: string): void {}
+export function removeFromStickyCache(channelId: string): void {
+  stickyCooldowns.delete(channelId);
+}

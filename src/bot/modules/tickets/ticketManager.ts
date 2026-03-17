@@ -1270,6 +1270,35 @@ export async function handleTicketTranscriptButton(interaction: ButtonInteractio
     content: `Transcripción generada: **${messages.length} mensajes**. Abre el archivo HTML en un navegador para verla.`,
     files: [attachment],
   });
+
+  // Send transcript to fixed log channel
+  try {
+    const logChannel = interaction.guild.channels.cache.get('1449265811624820797') as TextChannel | undefined;
+    if (logChannel) {
+      const logBuf = Buffer.from(html, 'utf-8');
+      const logAttachment = new AttachmentBuilder(logBuf, {
+        name: `transcript-${ticket.number.toString().padStart(4, '0')}.html`,
+      });
+
+      const logEmbed = new EmbedBuilder()
+        .setColor(0x5865f2)
+        .setTitle(`📋 Transcripción — Ticket #${ticket.number.toString().padStart(4, '0')}`)
+        .addFields(
+          { name: 'Canal', value: `<#${interaction.channelId}>`, inline: true },
+          { name: 'Solicitado por', value: `<@${interaction.user.id}>`, inline: true },
+          { name: 'Mensajes', value: `${messages.length}`, inline: true },
+        )
+        .setTimestamp();
+      // Fetch ticket owner info for the ID line
+      let ownerTag = ticket.userId;
+      try {
+        const owner = await interaction.guild.members.fetch(ticket.userId).catch(() => null);
+        if (owner) ownerTag = owner.user.tag;
+      } catch {}
+      await logChannel.send(`🔍 ID: ${ticket.userId} — ${ownerTag}`).catch(() => {});
+      await logChannel.send({ embeds: [logEmbed], files: [logAttachment] }).catch(() => {});
+    }
+  } catch {}
 }
 
 // ═══════════════════════════════════════════════════════════════
