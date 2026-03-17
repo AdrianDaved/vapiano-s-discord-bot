@@ -17,6 +17,7 @@ import {
   ScrollText,
   Sparkles,
   Tags,
+  Send,
   X,
 } from 'lucide-react';
 import { useAuth, getAvatarUrl } from '@/hooks/useAuth';
@@ -41,6 +42,7 @@ const modules = [
   { path: '/giveaways', icon: Gift, label: 'Sorteos' },
   { path: '/suggestions', icon: Lightbulb, label: 'Sugerencias' },
   { path: '/sticky', icon: StickyNote, label: 'Mensajes fijos' },
+  { path: '/messages', icon: Send, label: 'Enviar mensaje' },
   { path: '/logging', icon: ScrollText, label: 'Registros' },
   { path: '/backups', icon: Database, label: 'Copias de seguridad' },
 ];
@@ -53,7 +55,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     <aside
       className={`
         fixed left-0 top-0 h-screen w-64 bg-discord-dark flex flex-col border-r border-discord-lighter/30
-        z-50 transition-transform duration-200 ease-in-out
+        z\-50 transition-transform duration-200 ease-in-out
         ${open ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}
@@ -61,7 +63,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       {/* Brand */}
       <div className="px-4 py-5 border-b border-discord-lighter/30 flex items-center justify-between">
         <NavLink to="/guilds" className="flex items-center gap-3" onClick={onClose}>
-          <div className="w-9 h-9 rounded-xl bg-discord-blurple flex items-center justify-center">
+          <div className="w9 h-9 rounded-xl bg-discord-blurple flex items-center justify-center">
             <Bot size={20} className="text-white" />
           </div>
           <div>

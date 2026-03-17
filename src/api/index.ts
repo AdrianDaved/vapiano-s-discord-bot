@@ -24,6 +24,7 @@ import { welcomeRouter } from './routes/welcome';
 import { reactionRolesRouter } from './routes/reactionroles';
 import { stickyRouter } from './routes/sticky';
 import { loggingRouter } from './routes/logging';
+import { messagesRouter } from './routes/messages';
 
 dotenv.config();
 
@@ -99,6 +100,7 @@ app.use('/api/guilds/:guildId/welcome', welcomeRouter);
 app.use('/api/guilds/:guildId/reactionroles', reactionRolesRouter);
 app.use('/api/guilds/:guildId/sticky', stickyRouter);
 app.use('/api/guilds/:guildId/logging', loggingRouter);
+app.use('/api/guilds/:guildId/messages', messagesRouter);
 
 // Health check
 app.get('/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
