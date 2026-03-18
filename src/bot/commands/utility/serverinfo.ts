@@ -11,6 +11,7 @@ export default {
     .setName('servidor')
     .setDescription('Ver información sobre este servidor'),
   cooldown: 10,
+  module: 'utility',
 
   async execute(interaction: ChatInputCommandInteraction) {
     const guild = interaction.guild!;

@@ -1,5 +1,6 @@
-import { Message, EmbedBuilder, TextChannel } from 'discord.js';
-import logger from '../../../shared/logger';
+import { Message, EmbedBuilder, TextChannel } from "discord.js";
+import logger from "../../../shared/logger";
+import { registerInterval } from "../timerRegistry";
 
 // Spam tracking: guildId:userId -> timestamps
 const messageTimestamps = new Map<string, number[]>();
@@ -7,10 +8,10 @@ const messageTimestamps = new Map<string, number[]>();
 // Flood tracking: channelId -> timestamps (all users combined)
 const channelFloodTimestamps = new Map<string, number[]>();
 
-// Periodic cleanup of stale entries every 5 minutes
-setInterval(() => {
+// Cleanup stale entries every 5 minutes (registered in timerRegistry for clean shutdown)
+registerInterval(() => {
   const now = Date.now();
-  const MAX_AGE = 60_000; // 1 minute
+  const MAX_AGE = 60_000;
   for (const [key, timestamps] of messageTimestamps) {
     const filtered = timestamps.filter((t) => now - t < MAX_AGE);
     if (filtered.length === 0) messageTimestamps.delete(key);
@@ -43,7 +44,7 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
   }
 
   // Skip users with ManageMessages permission
-  if (member.permissions.has('ManageMessages')) return false;
+  if (member.permissions.has("ManageMessages")) return false;
 
   // ─── Anti-Spam ─────────────────────────────────────────
   if (config.antiSpamEnabled) {
@@ -60,10 +61,12 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
     if (timestamps.length >= threshold) {
       await message.delete().catch(() => {});
       messageTimestamps.delete(key);
-      await logAutomod(message, config, 'Anti-Spam', `Sent ${threshold}+ messages in ${config.antiSpamInterval}s`);
+      await logAutomod(message, config, "Anti-Spam", `Sent ${threshold}+ messages in ${config.antiSpamInterval}s`);
       try {
-        await member.timeout(60_000, 'Auto-mod: spam detected');
-      } catch { /* may lack permission */ }
+        await member.timeout(60_000, "Auto-mod: spam detected");
+      } catch {
+        // may lack permission
+      }
       return true;
     }
   }
@@ -72,10 +75,8 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
   if (config.antiFloodEnabled) {
     const channelKey = message.channelId;
     const now = Date.now();
-    // Anti-flood: too many messages by anyone in a channel within a short window
-    // Uses same threshold/interval settings as anti-spam but applies per-channel
     const interval = (config.antiSpamInterval || 5) * 1000;
-    const threshold = (config.antiSpamThreshold || 5) * 3; // 3x the spam threshold
+    const threshold = (config.antiSpamThreshold || 5) * 3;
 
     let timestamps = channelFloodTimestamps.get(channelKey) || [];
     timestamps = timestamps.filter((t) => now - t < interval);
@@ -83,25 +84,27 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
     channelFloodTimestamps.set(channelKey, timestamps);
 
     if (timestamps.length >= threshold) {
-      // Enable slowmode on the channel for 10 seconds
       channelFloodTimestamps.delete(channelKey);
-      await logAutomod(message, config, 'Anti-Flood', `${threshold}+ messages in ${config.antiSpamInterval}s in channel`);
+      await logAutomod(message, config, "Anti-Flood", `${threshold}+ messages in ${config.antiSpamInterval}s in channel`);
       try {
-        if ('setRateLimitPerUser' in message.channel) {
+        if ("setRateLimitPerUser" in message.channel) {
           const textChannel = message.channel as TextChannel;
           const currentSlowmode = textChannel.rateLimitPerUser || 0;
           if (currentSlowmode < 10) {
-            await textChannel.setRateLimitPerUser(10, 'Auto-mod: flood detected');
-            // Remove slowmode after 30 seconds
+            await textChannel.setRateLimitPerUser(10, "Auto-mod: flood detected");
             setTimeout(async () => {
               try {
-                await textChannel.setRateLimitPerUser(currentSlowmode, 'Auto-mod: flood cooldown expired');
-              } catch { /* ignore */ }
+                await textChannel.setRateLimitPerUser(currentSlowmode, "Auto-mod: flood cooldown expired");
+              } catch {
+                // ignore
+              }
             }, 30_000);
           }
         }
-      } catch { /* may lack permission */ }
-      return false; // Don't delete the message, just apply slowmode
+      } catch {
+        // may lack permission
+      }
+      return false;
     }
   }
 
@@ -109,19 +112,22 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
   const minCapsLength = config.antiCapsMinLength ?? 10;
   if (config.antiCapsEnabled && message.content.length > minCapsLength) {
     const threshold = config.antiCapsThreshold || 70;
-    const uppercase = message.content.replace(/[^a-zA-Z]/g, '');
-    if (uppercase.length > 0) {
-      const capsPercent = (uppercase.replace(/[^A-Z]/g, '').length / uppercase.length) * 100;
+    const letters = message.content.replace(/[^a-zA-Z]/g, "");
+    if (letters.length > 0) {
+      const capsPercent = (letters.replace(/[^A-Z]/g, "").length / letters.length) * 100;
       if (capsPercent >= threshold) {
         await message.delete().catch(() => {});
-        await logAutomod(message, config, 'Anti-Caps', `${Math.round(capsPercent)}% uppercase (threshold: ${threshold}%)`);
+        await logAutomod(message, config, "Anti-Caps", `${Math.round(capsPercent)}% uppercase (threshold: ${threshold}%)`);
         try {
-          if ('send' in message.channel) {
-            await message.channel.send({
+          if ("send" in message.channel) {
+            const warn = await message.channel.send({
               content: `<@${author.id}>, por favor no uses mayusculas en exceso.`,
-            }).then((m: Message) => setTimeout(() => m.delete().catch(() => {}), 5000));
+            });
+            setTimeout(() => warn.delete().catch(() => {}), 5000);
           }
-        } catch { /* ignore */ }
+        } catch {
+          // ignore
+        }
         return true;
       }
     }
@@ -133,42 +139,48 @@ export async function checkAutomod(message: Message, config: any): Promise<boole
     const urls = message.content.match(urlRegex);
     if (urls && urls.length > 0) {
       const whitelist: string[] = config.antiLinksWhitelist || [];
-      const hasBlockedUrl = urls.some((url: string) => {
-        return !whitelist.some((w: string) => url.toLowerCase().includes(w.toLowerCase()));
-      });
+      const hasBlockedUrl = urls.some((url: string) =>
+        !whitelist.some((w: string) => url.toLowerCase().includes(w.toLowerCase())),
+      );
 
       if (hasBlockedUrl) {
         await message.delete().catch(() => {});
-        await logAutomod(message, config, 'Anti-Links', `Blocked URL: ${urls[0]}`);
+        await logAutomod(message, config, "Anti-Links", `Blocked URL: ${urls[0]}`);
         try {
-          if ('send' in message.channel) {
-            await message.channel.send({
+          if ("send" in message.channel) {
+            const warn = await message.channel.send({
               content: `<@${author.id}>, los enlaces no estan permitidos en este canal.`,
-            }).then((m: Message) => setTimeout(() => m.delete().catch(() => {}), 5000));
+            });
+            setTimeout(() => warn.delete().catch(() => {}), 5000);
           }
-        } catch { /* ignore */ }
+        } catch {
+          // ignore
+        }
         return true;
       }
     }
   }
 
   // ─── Blacklisted Words ─────────────────────────────────
-  if (config.blacklistEnabled && config.blacklistedWords && config.blacklistedWords.length > 0) {
+  if (config.blacklistEnabled && config.blacklistedWords?.length > 0) {
     const lowerContent = message.content.toLowerCase();
     const triggeredWord = config.blacklistedWords.find((w: string) =>
-      lowerContent.includes(w.toLowerCase())
+      lowerContent.includes(w.toLowerCase()),
     );
 
     if (triggeredWord) {
       await message.delete().catch(() => {});
-      await logAutomod(message, config, 'Blacklisted Word', `Triggered: ||${triggeredWord}||`);
+      await logAutomod(message, config, "Blacklisted Word", `Triggered: ||${triggeredWord}||`);
       try {
-        if ('send' in message.channel) {
-          await message.channel.send({
+        if ("send" in message.channel) {
+          const warn = await message.channel.send({
             content: `<@${author.id}>, esa palabra no esta permitida aqui.`,
-          }).then((m: Message) => setTimeout(() => m.delete().catch(() => {}), 5000));
+          });
+          setTimeout(() => warn.delete().catch(() => {}), 5000);
         }
-      } catch { /* ignore */ }
+      } catch {
+        // ignore
+      }
       return true;
     }
   }
@@ -190,10 +202,10 @@ async function logAutomod(message: Message, config: any, type: string, details: 
       .setColor(0xeb459e)
       .setTitle(`AutoMod: ${type}`)
       .addFields(
-        { name: 'Usuario', value: `${message.author.username} (<@${message.author.id}>)`, inline: true },
-        { name: 'Canal', value: `<#${message.channelId}>`, inline: true },
-        { name: 'Detalles', value: details },
-        { name: 'Mensaje', value: message.content?.slice(0, 512) || '*vacio*' }
+        { name: "Usuario", value: `${message.author.username} (<@${message.author.id}>)`, inline: true },
+        { name: "Canal", value: `<#${message.channelId}>`, inline: true },
+        { name: "Detalles", value: details },
+        { name: "Mensaje", value: message.content?.slice(0, 512) || "*vacio*" },
       )
       .setTimestamp();
 

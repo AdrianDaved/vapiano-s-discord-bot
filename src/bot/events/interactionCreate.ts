@@ -1,17 +1,14 @@
 import {
   Events,
   Interaction,
-  ChatInputCommandInteraction,
   ButtonInteraction,
-  StringSelectMenuInteraction,
-  ModalSubmitInteraction,
   EmbedBuilder,
   PermissionsBitField,
   Collection,
-} from 'discord.js';
-import { BotClient } from '../../shared/types';
-import logger from '../../shared/logger';
-import { getGuildConfig } from '../utils';
+} from "discord.js";
+import { BotClient } from "../../shared/types";
+import logger from "../../shared/logger";
+import { getGuildConfig } from "../utils";
 import {
   handleTicketButton,
   handleTicketCloseButton,
@@ -24,11 +21,11 @@ import {
   handleTicketDropdown,
   handleTicketFormSubmit,
   handleTicketFeedback,
-} from '../modules/tickets/ticketManager';
-import { handleReactionRoleButton } from '../modules/moderation/reactionRoles';
-import { handlePollVote } from '../modules/automation/polls';
-import { handleGiveawayButton } from '../modules/giveaway/giveawayManager';
-import prisma from '../../database/client';
+} from "../modules/tickets/ticketManager";
+import { handleReactionRoleButton } from "../modules/moderation/reactionRoles";
+import { handlePollVote } from "../modules/automation/polls";
+import { handleGiveawayButton } from "../modules/giveaway/giveawayManager";
+import prisma from "../../database/client";
 
 export default {
   name: Events.InteractionCreate,
@@ -64,13 +61,13 @@ export default {
       setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
 
       // Permission check
-      if (command.permissions && command.permissions.length > 0 && interaction.memberPermissions) {
+      if (command.permissions?.length && interaction.memberPermissions) {
         const missing = command.permissions.filter(
-          (p) => !interaction.memberPermissions!.has(p)
+          (p) => !interaction.memberPermissions!.has(p),
         );
         if (missing.length > 0) {
           await interaction.reply({
-            content: 'No tienes permiso para usar este comando.',
+            content: "No tienes permiso para usar este comando.",
             ephemeral: true,
           });
           return;
@@ -81,7 +78,7 @@ export default {
       if (command.module && interaction.guildId) {
         const config = await getGuildConfig(interaction.guildId);
         const moduleField = `${command.module}Enabled`;
-        if (config[moduleField] === false && command.module !== 'config') {
+        if (config[moduleField] === false && command.module !== "config") {
           await interaction.reply({
             content: `El módulo **${command.module}** está desactivado. Actívalo con \`/configuracion modulo activar name:${command.module}\`.`,
             ephemeral: true,
@@ -89,13 +86,13 @@ export default {
           return;
         }
 
-        // Check module role restrictions (skip for admins and 'config' module)
-        if (command.module !== 'config' && interaction.member) {
+        // Check module role restrictions (skip for admins and config module)
+        if (command.module !== "config" && interaction.member) {
           const allowedRoles = (config.moduleAllowedRoles as Record<string, string[]> | null)?.[command.module] ?? [];
           if (allowedRoles.length > 0) {
             const memberRoles = (interaction.member as any).roles?.cache ?? new Map();
             const hasRole = allowedRoles.some((rid: string) => memberRoles.has(rid));
-            const isAdmin = (interaction.memberPermissions as PermissionsBitField)?.has('Administrator') ?? false;
+            const isAdmin = (interaction.memberPermissions as PermissionsBitField)?.has("Administrator") ?? false;
             if (!hasRole && !isAdmin) {
               await interaction.reply({
                 content: `No tienes permiso para usar comandos de **${command.module}**.`,
@@ -111,10 +108,7 @@ export default {
         await command.execute(interaction);
       } catch (err) {
         logger.error(`Error executing /${command.data.name}: ${err}`);
-        const reply = {
-          content: 'Ocurrió un error al ejecutar este comando.',
-          ephemeral: true,
-        };
+        const reply = { content: "Ocurrió un error al ejecutar este comando.", ephemeral: true };
         if (interaction.replied || interaction.deferred) {
           await interaction.followUp(reply);
         } else {
@@ -125,78 +119,54 @@ export default {
 
     // ─── Button Interactions ─────────────────────────────
     if (interaction.isButton()) {
-      const btn = interaction as ButtonInteraction;
-      const customId = btn.customId;
+      const { customId } = interaction;
 
       try {
-        // ── Ticket buttons ────────────────────────
-        if (customId.startsWith('ticket_create_')) {
-          await handleTicketButton(btn);
-        } else if (customId === 'ticket_close') {
-          await handleTicketCloseButton(btn);
-        } else if (customId.startsWith('ticket_confirm_close_')) {
-          await handleTicketConfirmClose(btn);
-        } else if (customId === 'ticket_cancel_close') {
-          await handleTicketCancelClose(btn);
-        } else if (customId === 'ticket_reopen') {
-          await handleTicketReopen(btn);
-        } else if (customId === 'ticket_delete') {
-          await handleTicketDelete(btn);
-        } else if (customId === 'ticket_claim') {
-          await handleTicketClaim(btn);
-        } else if (customId === 'ticket_transcript') {
-          await handleTicketTranscriptButton(btn);
-        } else if (customId.startsWith('ticket_feedback_')) {
-          await handleTicketFeedback(btn);
-        }
-        // ── Other buttons ─────────────────────────
-        else if (customId.startsWith('rr_')) {
-          await handleReactionRoleButton(btn);
-        } else if (customId.startsWith('poll_')) {
-          await handlePollVote(btn);
-        } else if (customId === 'giveaway_enter') {
-          await handleGiveawayButton(btn);
-        } else if (customId.startsWith('suggest_up_') || customId.startsWith('suggest_down_')) {
-          await handleSuggestionVote(btn);
-        }
+        if (customId.startsWith("ticket_create_")) await handleTicketButton(interaction);
+        else if (customId === "ticket_close") await handleTicketCloseButton(interaction);
+        else if (customId.startsWith("ticket_confirm_close_")) await handleTicketConfirmClose(interaction);
+        else if (customId === "ticket_cancel_close") await handleTicketCancelClose(interaction);
+        else if (customId === "ticket_reopen") await handleTicketReopen(interaction);
+        else if (customId === "ticket_delete") await handleTicketDelete(interaction);
+        else if (customId === "ticket_claim") await handleTicketClaim(interaction);
+        else if (customId === "ticket_transcript") await handleTicketTranscriptButton(interaction);
+        else if (customId.startsWith("ticket_feedback_")) await handleTicketFeedback(interaction);
+        else if (customId.startsWith("rr_")) await handleReactionRoleButton(interaction);
+        else if (customId.startsWith("poll_")) await handlePollVote(interaction);
+        else if (customId === "giveaway_enter") await handleGiveawayButton(interaction);
+        else if (customId.startsWith("suggest_up_") || customId.startsWith("suggest_down_")) await handleSuggestionVote(interaction);
       } catch (err) {
         logger.error(`Error handling button ${customId}: ${err}`);
-        if (!btn.replied && !btn.deferred) {
-          await btn.reply({ content: 'Ocurrió un error.', ephemeral: true }).catch(() => {});
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: "Ocurrió un error.", ephemeral: true }).catch(() => {});
         }
       }
     }
 
     // ─── Select Menu Interactions ────────────────────────
     if (interaction.isStringSelectMenu()) {
-      const select = interaction as StringSelectMenuInteraction;
-      const customId = select.customId;
-
       try {
-        if (customId === 'ticket_panel_select') {
-          await handleTicketDropdown(select);
+        if (interaction.customId === "ticket_panel_select") {
+          await handleTicketDropdown(interaction);
         }
       } catch (err) {
-        logger.error(`Error handling select menu ${customId}: ${err}`);
-        if (!select.replied && !select.deferred) {
-          await select.reply({ content: 'Ocurrió un error.', ephemeral: true }).catch(() => {});
+        logger.error(`Error handling select menu ${interaction.customId}: ${err}`);
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: "Ocurrió un error.", ephemeral: true }).catch(() => {});
         }
       }
     }
 
     // ─── Modal Submit Interactions ───────────────────────
     if (interaction.isModalSubmit()) {
-      const modal = interaction as ModalSubmitInteraction;
-      const customId = modal.customId;
-
       try {
-        if (customId.startsWith('ticket_form_')) {
-          await handleTicketFormSubmit(modal);
+        if (interaction.customId.startsWith("ticket_form_")) {
+          await handleTicketFormSubmit(interaction);
         }
       } catch (err) {
-        logger.error(`Error handling modal ${customId}: ${err}`);
-        if (!modal.replied && !modal.deferred) {
-          await modal.reply({ content: 'Ocurrió un error.', ephemeral: true }).catch(() => {});
+        logger.error(`Error handling modal ${interaction.customId}: ${err}`);
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: "Ocurrió un error.", ephemeral: true }).catch(() => {});
         }
       }
     }
@@ -205,16 +175,13 @@ export default {
 
 /** Handle suggestion upvote/downvote buttons */
 async function handleSuggestionVote(btn: ButtonInteraction) {
-  const customId = btn.customId;
-  const isUpvote = customId.startsWith('suggest_up_');
-  const suggestionId = customId.replace('suggest_up_', '').replace('suggest_down_', '');
+  const { customId } = btn;
+  const isUpvote = customId.startsWith("suggest_up_");
+  const suggestionId = customId.replace("suggest_up_", "").replace("suggest_down_", "");
 
-  const suggestion = await prisma.suggestion.findUnique({
-    where: { id: suggestionId },
-  });
-
+  const suggestion = await prisma.suggestion.findUnique({ where: { id: suggestionId } });
   if (!suggestion) {
-    await btn.reply({ content: 'Sugerencia no encontrada.', ephemeral: true });
+    await btn.reply({ content: "Sugerencia no encontrada.", ephemeral: true });
     return;
   }
 
@@ -247,7 +214,7 @@ async function handleSuggestionVote(btn: ButtonInteraction) {
   try {
     const embed = EmbedBuilder.from(btn.message.embeds[0]);
     const fields = embed.data.fields || [];
-    const votesFieldIdx = fields.findIndex((f) => f.name === 'Votos');
+    const votesFieldIdx = fields.findIndex((f) => f.name === "Votos");
     if (votesFieldIdx >= 0) {
       fields[votesFieldIdx].value = `👍 ${upvotes.length} | 👎 ${downvotes.length}`;
     }
@@ -258,7 +225,7 @@ async function handleSuggestionVote(btn: ButtonInteraction) {
   }
 
   await btn.reply({
-    content: isUpvote ? '👍 Voto registrado!' : '👎 Voto registrado!',
+    content: isUpvote ? "👍 Voto registrado!" : "👎 Voto registrado!",
     ephemeral: true,
   });
 }

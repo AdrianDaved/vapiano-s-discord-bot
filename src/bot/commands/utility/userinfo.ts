@@ -14,6 +14,7 @@ export default {
       opt.setName('usuario').setDescription('Usuario a consultar (por defecto: tú mismo)').setRequired(false)
     ),
   cooldown: 5,
+  module: 'utility',
 
   async execute(interaction: ChatInputCommandInteraction) {
     const user = interaction.options.getUser('usuario') || interaction.user;

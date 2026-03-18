@@ -8,6 +8,7 @@ import { initTempActions } from '../modules/moderation/tempActions';
 import { initGiveawayTimer } from '../modules/giveaway/giveawayManager';
 import { initReminderTimer } from '../modules/utility/reminderTimer';
 import { initAutoClose } from '../modules/tickets/ticketManager';
+import { initStickyCache } from '../modules/sticky/stickyHandler';
 
 // Global invite cache: guildId -> Map<code, InviteData>
 export const inviteCache = new Map<string, Map<string, InviteData>>();
@@ -59,6 +60,9 @@ export default {
 
     // Start reminder delivery timer
     initReminderTimer(client);
+
+    // Initialize sticky message cache
+    await initStickyCache();
 
     // Start ticket auto-close timer
     initAutoClose(client);

@@ -1,8 +1,12 @@
-import prisma from '../../database/client';
-import logger from '../../shared/logger';
-import { CachedGuildConfig } from '../../shared/types';
+import { ChatInputCommandInteraction, EmbedBuilder, TextChannel } from "discord.js";
+import prisma from "../../database/client";
+import logger from "../../shared/logger";
+import { CachedGuildConfig } from "../../shared/types";
 
-// In-memory cache with TTL
+// ═══════════════════════════════════════════════════════════════
+// GUILD CONFIG CACHE
+// ═══════════════════════════════════════════════════════════════
+
 const cache = new Map<string, CachedGuildConfig>();
 const CACHE_TTL = 60_000; // 1 minute
 
@@ -54,6 +58,39 @@ export async function isModuleEnabled(guildId: string, moduleField: string): Pro
   return (config as any)[moduleField] === true;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// MOD LOG (shared across all moderation commands)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Send an embed to the guild mod log channel (if configured).
+ * Accepts either a config object or a guild ID (will fetch config).
+ */
+export async function sendModLog(
+  interaction: ChatInputCommandInteraction,
+  configOrGuildId: any | string,
+  embed: EmbedBuilder,
+): Promise<void> {
+  const config = typeof configOrGuildId === "string"
+    ? await getGuildConfig(configOrGuildId)
+    : configOrGuildId;
+
+  if (!config.modLogChannelId || !interaction.guild) return;
+
+  try {
+    const logChannel = interaction.guild.channels.cache.get(config.modLogChannelId) as TextChannel;
+    if (logChannel) {
+      await logChannel.send({ embeds: [embed] });
+    }
+  } catch {
+    // Canal no encontrado o sin permisos
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FORMATTING HELPERS
+// ═══════════════════════════════════════════════════════════════
+
 /**
  * Format a duration in seconds to human-readable.
  */
@@ -68,7 +105,7 @@ export function formatDuration(seconds: number): string {
   if (h > 0) parts.push(`${h}h`);
   if (m > 0) parts.push(`${m}m`);
   if (s > 0) parts.push(`${s}s`);
-  return parts.join(' ') || '0s';
+  return parts.join(" ") || "0s";
 }
 
 /**
@@ -83,11 +120,11 @@ export function parseDuration(input: string): number | null {
     const val = parseInt(match[1], 10);
     const unit = match[2].toLowerCase();
 
-    if (unit.startsWith('s')) total += val;
-    else if (unit.startsWith('m')) total += val * 60;
-    else if (unit.startsWith('h')) total += val * 3600;
-    else if (unit.startsWith('d')) total += val * 86400;
-    else if (unit.startsWith('w')) total += val * 604800;
+    if (unit.startsWith("s")) total += val;
+    else if (unit.startsWith("m")) total += val * 60;
+    else if (unit.startsWith("h")) total += val * 3600;
+    else if (unit.startsWith("d")) total += val * 86400;
+    else if (unit.startsWith("w")) total += val * 604800;
   }
 
   return total > 0 ? total : null;
@@ -98,11 +135,11 @@ export function parseDuration(input: string): number | null {
  */
 export function replaceTemplateVars(
   template: string,
-  vars: Record<string, string>
+  vars: Record<string, string>,
 ): string {
   let result = template;
   for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+    result = result.replace(new RegExp(`\\{${key}\\}`, "g"), value);
   }
   return result;
 }
@@ -112,7 +149,7 @@ export function replaceTemplateVars(
  */
 export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength - 3) + '...';
+  return text.slice(0, maxLength - 3) + "...";
 }
 
 /**
@@ -120,19 +157,19 @@ export function truncate(text: string, maxLength: number): string {
  */
 export function moduleColor(module: string): number {
   const colors: Record<string, number> = {
-    invites: 0x5865f2,     // blurple
-    backup: 0x57f287,      // green
-    moderation: 0xed4245,  // red
-    automod: 0xeb459e,     // fuchsia
-    automation: 0xf47b67,  // orange
-    tickets: 0x5865f2,     // blurple
-    config: 0x99aab5,      // grey
-    reputation: 0x57f287,  // green
-    giveaway: 0xf47b67,    // orange
-    suggestions: 0x3498db, // blue
-    starboard: 0xfee75c,   // yellow
-    utility: 0x99aab5,     // grey
-    afk: 0x99aab5,         // grey
+    invites: 0x5865f2,
+    backup: 0x57f287,
+    moderation: 0xed4245,
+    automod: 0xeb459e,
+    automation: 0xf47b67,
+    tickets: 0x5865f2,
+    config: 0x99aab5,
+    reputation: 0x57f287,
+    giveaway: 0xf47b67,
+    suggestions: 0x3498db,
+    starboard: 0xfee75c,
+    utility: 0x99aab5,
+    afk: 0x99aab5,
     default: 0x5865f2,
   };
   return colors[module] || colors.default;
