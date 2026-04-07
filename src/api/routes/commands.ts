@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { REST, Routes } from 'discord.js';
 import { z } from 'zod';
 import prisma from '../../database/client';
 import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
@@ -74,6 +75,32 @@ commandsRouter.patch('/:command', asyncHandler(async (req: AuthRequest, res: Res
     update: body,
     create: { guildId, command, disabled: body.disabled ?? false, roleIds: body.roleIds ?? [] },
   });
+
+  // Sync with Discord's native command permissions so roles can see the command in the menu
+  try {
+    const appId = process.env.CLIENT_ID!;
+    const botRest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
+
+    // Get all guild commands to find the ID of this command
+    const guildCmds = await botRest.get(Routes.applicationGuildCommands(appId, guildId)) as any[];
+    const discordCmd = guildCmds.find((c: any) => c.name === command);
+
+    if (discordCmd && req.user?.accessToken) {
+      const userRest = new REST({ version: '10', authPrefix: 'Bearer' }).setToken(req.user.accessToken);
+      const roleIds: string[] = body.roleIds ?? perm.roleIds ?? [];
+
+      // Build permissions array: each allowed role gets permission: true
+      const permissions = roleIds.map((id: string) => ({ id, type: 1, permission: true }));
+
+      await userRest.put(
+        Routes.applicationCommandPermissions(appId, guildId, discordCmd.id),
+        { body: { permissions } },
+      );
+    }
+  } catch (err) {
+    // Non-fatal: DB is source of truth, Discord sync is best-effort
+    console.error('Discord permission sync failed:', err);
+  }
 
   res.json(perm);
 }));

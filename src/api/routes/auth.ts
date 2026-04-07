@@ -18,7 +18,7 @@ authRouter.get('/login', (req: Request, res: Response) => {
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'code',
-    scope: 'identify guilds',
+    scope: 'identify guilds applications.commands.permissions.update',
   });
   res.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
 });
