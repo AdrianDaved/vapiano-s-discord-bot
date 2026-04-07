@@ -63,20 +63,20 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
 
   // Rep description block
   const bar = progressBar(repTotal, Math.max(repTotal, 50));
-  const rankLine = repRank > 0 ? `> 🏆 Puesto **#${repRank}** en el ranking global` : '';
   const repDesc = [
-    `> ⭐ **${repTotal}** recibidas  ·  💝 **${repGiven}** dadas`,
-    rankLine,
-    `> \`${bar}\``,
-  ].filter(Boolean).join('\n');
+    `✦ **${repTotal}** recibidas  ·  **${repGiven}** dadas` + (repRank > 0 ? `  ·  **#${repRank}** global` : ''),
+    `\`${bar}\``,
+  ].join('\n');
 
   // Last reps preview
   const repLines = lastReps.length > 0
     ? lastReps.map(r => {
-        const reason = r.reason ? `*"${r.reason}"*` : '*sin razón*';
-        return `> ⭐ <@${r.giverId}> — ${reason} · ${timeAgo(r.createdAt)}`;
+        const reason = r.reason ? `"${r.reason}"` : '*sin razón*';
+        return `◦ <@${r.giverId}> — ${reason} · ${timeAgo(r.createdAt)}`;
       }).join('\n')
-    : '> *Aún no tiene reps recibidas*';
+    : '*Sin reps recibidas aún*';
+
+  const SEP = { name: '⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯', value: '\u200b', inline: false };
 
   const embed = new EmbedBuilder()
     .setColor(color)
@@ -87,31 +87,30 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
     .setThumbnail(target.user.displayAvatarURL({ size: 256 }))
     .setDescription(repDesc)
     .addFields(
-      { name: '\u200b', value: '\u200b', inline: false },
+      SEP,
       {
-        name: '📨 Invitaciones',
+        name: '🔗 Invitaciones',
         value: `**${inviteCount}** miembros`,
         inline: true,
       },
       {
-        name: '👑 Rol más alto',
+        name: '🎖️ Rol más alto',
         value: highestRole ? `<@&${highestRole.id}>` : '*Ninguno*',
         inline: true,
       },
       {
-        name: '📅 En el servidor',
+        name: '🗓️ En el servidor',
         value: joinedTs
           ? `**${joinedDaysAgo}d** · <t:${joinedTs}:D>`
           : '*Desconocido*',
         inline: true,
       },
       {
-        name: '🎂 Cuenta creada',
+        name: '📅 Cuenta de Discord',
         value: `<t:${accountTs}:D>`,
         inline: true,
       },
-      { name: '\u200b', value: '\u200b', inline: true },
-      { name: '\u200b', value: '\u200b', inline: true },
+      SEP,
       {
         name: '💬 Últimas reps recibidas',
         value: repLines,
