@@ -68,12 +68,12 @@ export default {
         const member = await guild.members.fetch(user.id).catch(() => null);
 
         if (!member) {
-          await interaction.reply({ content: 'Usuario no encontrado en este servidor.', ephemeral: true });
+          await interaction.reply({ content: 'Usuario no encontrado en este servidor.', flags: 64 });
           return;
         }
 
         if (!canManageRole(interaction.member as GuildMember, role, guild)) {
-          await interaction.reply({ content: 'No puedes gestionar este rol (puede ser superior al tuyo).', ephemeral: true });
+          await interaction.reply({ content: 'No puedes gestionar este rol (puede ser superior al tuyo).', flags: 64 });
           return;
         }
 
@@ -95,12 +95,12 @@ export default {
         const member = await guild.members.fetch(user.id).catch(() => null);
 
         if (!member) {
-          await interaction.reply({ content: 'Usuario no encontrado en este servidor.', ephemeral: true });
+          await interaction.reply({ content: 'Usuario no encontrado en este servidor.', flags: 64 });
           return;
         }
 
         if (!canManageRole(interaction.member as GuildMember, role, guild)) {
-          await interaction.reply({ content: 'No puedes gestionar este rol.', ephemeral: true });
+          await interaction.reply({ content: 'No puedes gestionar este rol.', flags: 64 });
           return;
         }
 
@@ -121,7 +121,7 @@ export default {
         const action = interaction.options.getString('accion', true);
 
         if (!canManageRole(interaction.member as GuildMember, role, guild)) {
-          await interaction.reply({ content: 'No puedes gestionar este rol.', ephemeral: true });
+          await interaction.reply({ content: 'No puedes gestionar este rol.', flags: 64 });
           return;
         }
 

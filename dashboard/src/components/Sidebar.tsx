@@ -1,4 +1,5 @@
 import { NavLink, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Settings,
@@ -18,9 +19,21 @@ import {
   Sparkles,
   Tags,
   Send,
+  ArrowLeftRight,
   X,
 } from 'lucide-react';
 import { useAuth, getAvatarUrl } from '@/hooks/useAuth';
+
+interface StoredGuild {
+  id: string;
+  name: string;
+  icon: string | null;
+}
+
+function getGuildIconUrl(guild: StoredGuild, size = 48): string | null {
+  if (!guild.icon) return null;
+  return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.webp?size=${size}`;
+}
 
 interface SidebarProps {
   open: boolean;
@@ -45,11 +58,24 @@ const modules = [
   { path: '/messages', icon: Send, label: 'Enviar mensaje' },
   { path: '/logging', icon: ScrollText, label: 'Registros' },
   { path: '/backups', icon: Database, label: 'Copias de seguridad' },
+  { path: '/migration', icon: ArrowLeftRight, label: 'Migración' },
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const { guildId } = useParams();
   const { user, logout } = useAuth();
+  const [currentGuild, setCurrentGuild] = useState<StoredGuild | null>(null);
+
+  useEffect(() => {
+    if (!guildId) { setCurrentGuild(null); return; }
+    try {
+      const stored = localStorage.getItem('selectedGuild');
+      if (stored) {
+        const guild = JSON.parse(stored) as StoredGuild;
+        if (guild.id === guildId) setCurrentGuild(guild);
+      }
+    } catch { /* ignore */ }
+  }, [guildId]);
 
   return (
     <aside
@@ -62,13 +88,29 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     >
       {/* Brand */}
       <div className="px-4 py-5 border-b border-discord-lighter/30 flex items-center justify-between">
-        <NavLink to="/guilds" className="flex items-center gap-3" onClick={onClose}>
-          <div className="w9 h-9 rounded-xl bg-discord-blurple flex items-center justify-center">
-            <Bot size={20} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-discord-white">Vapiano Bot</h1>
-             <p className="text-xs text-discord-muted">Panel</p>
+        <NavLink to="/guilds" className="flex items-center gap-3 min-w-0" onClick={onClose}>
+          {currentGuild ? (
+            getGuildIconUrl(currentGuild) ? (
+              <img
+                src={getGuildIconUrl(currentGuild)!}
+                alt=""
+                className="w-9 h-9 rounded-xl flex-shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-discord-lighter flex items-center justify-center text-discord-muted font-bold text-xs flex-shrink-0">
+                {currentGuild.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2)}
+              </div>
+            )
+          ) : (
+            <div className="w-9 h-9 rounded-xl bg-discord-blurple flex items-center justify-center flex-shrink-0">
+              <Bot size={20} className="text-white" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold text-discord-white truncate">
+              {currentGuild ? currentGuild.name : 'Vapiano Bot'}
+            </h1>
+            <p className="text-xs text-discord-muted">Panel de control</p>
           </div>
         </NavLink>
         <button

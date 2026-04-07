@@ -317,7 +317,7 @@ export async function handleTicketButton(interaction: ButtonInteraction): Promis
   const panelId = interaction.customId.replace('ticket_create_', '');
   const panel = await prisma.ticketPanel.findUnique({ where: { id: panelId } });
   if (!panel) {
-    await interaction.reply({ content: 'Este panel de tickets ya no existe.', ephemeral: true });
+    await interaction.reply({ content: 'Este panel de tickets ya no existe.', flags: 64 });
     return;
   }
 
@@ -332,7 +332,7 @@ export async function handleTicketButton(interaction: ButtonInteraction): Promis
     });
     await interaction.reply({
       content: `Ya tienes ${openCount} ticket(s) abierto(s) (límite: ${limit}).${existingTicket ? ` Ve a <#${existingTicket.channelId}>` : ''}`,
-      ephemeral: true,
+      flags: 64,
     });
     return;
   }
@@ -374,7 +374,7 @@ export async function handleTicketButton(interaction: ButtonInteraction): Promis
   }
 
   // No form — create ticket directly
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: 64 });
   await createTicket(interaction, panel, null);
 }
 
@@ -387,7 +387,7 @@ export async function handleTicketDropdown(interaction: StringSelectMenuInteract
   const panelId = interaction.values[0];
   const panel = await prisma.ticketPanel.findUnique({ where: { id: panelId } });
   if (!panel) {
-    await interaction.reply({ content: 'Este panel de tickets ya no existe.', ephemeral: true });
+    await interaction.reply({ content: 'Este panel de tickets ya no existe.', flags: 64 });
     return;
   }
 
@@ -395,7 +395,7 @@ export async function handleTicketDropdown(interaction: StringSelectMenuInteract
     where: { guildId: interaction.guild.id, userId: interaction.user.id, panelId: panel.id, status: 'open' },
   });
   if (openCount >= (panel.ticketLimit || 1)) {
-    await interaction.reply({ content: 'Ya tienes el máximo de tickets abiertos para esta categoría.', ephemeral: true });
+    await interaction.reply({ content: 'Ya tienes el máximo de tickets abiertos para esta categoría.', flags: 64 });
     return;
   }
 
@@ -420,7 +420,7 @@ export async function handleTicketDropdown(interaction: StringSelectMenuInteract
     }
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: 64 });
   await createTicket(interaction, panel, null);
 }
 
@@ -433,11 +433,11 @@ export async function handleTicketFormSubmit(interaction: ModalSubmitInteraction
   const panelId = interaction.customId.replace('ticket_form_', '');
   const panel = await prisma.ticketPanel.findUnique({ where: { id: panelId } });
   if (!panel) {
-    await interaction.reply({ content: 'El panel ya no existe.', ephemeral: true });
+    await interaction.reply({ content: 'El panel ya no existe.', flags: 64 });
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: 64 });
 
   // Collect form answers
   const questions = (panel.formQuestions || []) as Array<{ label: string }>;
@@ -463,8 +463,13 @@ async function createTicket(
 
   try {
     const config = await getGuildConfig(interaction.guild.id);
-    const ticketNumber = (config.ticketCounter || 0) + 1;
-    await updateGuildConfig(interaction.guild.id, { ticketCounter: ticketNumber });
+    // Atomic increment to prevent duplicate ticket numbers under concurrent load
+    const updatedConfig = await prisma.guildConfig.update({
+      where: { id: interaction.guild.id },
+      data: { ticketCounter: { increment: 1 } },
+      select: { ticketCounter: true },
+    });
+    const ticketNumber = updatedConfig.ticketCounter;
 
     const categoryId = panel.categoryId || config.ticketCategoryId;
     const staffRoleIds = panel.staffRoleIds.length > 0 ? panel.staffRoleIds : config.ticketStaffRoleIds || [];
@@ -495,6 +500,7 @@ async function createTicket(
     }
 
     for (const roleId of staffRoleIds) {
+      if (!interaction.guild.roles.cache.has(roleId)) continue;
       permissionOverwrites.push({
         id: roleId,
         allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AttachFiles],
@@ -538,7 +544,7 @@ async function createTicket(
           .replace('{panel}', panel.name || panel.title)
       )
       .setTimestamp()
-      .setFooter({ text: `Ticket #${ticketNumber.toString().padStart(4, '0')} | ${panel.name || panel.title}` });
+      .setFooter({ text: `Ticket #${ticketNumber.toString().padStart(4, '0')} | ${panel.title || panel.name}` });
 
     // Add form answers to embed if present
     if (formAnswers && formAnswers.length > 0) {
@@ -606,7 +612,7 @@ export async function handleTicketCloseButton(interaction: ButtonInteraction): P
   });
 
   if (!ticket || ticket.status !== 'open') {
-    await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
+    await interaction.reply({ content: 'Este no es un ticket abierto.', flags: 64 });
     return;
   }
 
@@ -653,7 +659,7 @@ export async function handleTicketConfirmClose(interaction: ButtonInteraction): 
   });
 
   if (!ticket || ticket.status !== 'open') {
-    await interaction.reply({ content: 'Este ticket ya está cerrado.', ephemeral: true });
+    await interaction.reply({ content: 'Este ticket ya está cerrado.', flags: 64 });
     return;
   }
 
@@ -882,7 +888,7 @@ export async function closeTicketByCommand(interaction: ChatInputCommandInteract
   });
 
   if (!ticket || ticket.status !== 'open') {
-    await interaction.reply({ content: 'Este no es un canal de ticket abierto.', ephemeral: true });
+    await interaction.reply({ content: 'Este no es un canal de ticket abierto.', flags: 64 });
     return;
   }
 
@@ -1019,7 +1025,7 @@ export async function handleTicketReopen(interaction: ButtonInteraction): Promis
   });
 
   if (!ticket || ticket.status !== 'closed') {
-    await interaction.reply({ content: 'Este ticket no está cerrado.', ephemeral: true });
+    await interaction.reply({ content: 'Este ticket no está cerrado.', flags: 64 });
     return;
   }
 
@@ -1107,7 +1113,7 @@ export async function handleTicketDelete(interaction: ButtonInteraction): Promis
   });
 
   if (!ticket) {
-    await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
+    await interaction.reply({ content: 'Este no es un canal de ticket.', flags: 64 });
     return;
   }
 
@@ -1118,7 +1124,7 @@ export async function handleTicketDelete(interaction: ButtonInteraction): Promis
     member.permissions.has(PermissionFlagsBits.ManageChannels);
 
   if (!isStaff) {
-    await interaction.reply({ content: 'Solo el staff puede eliminar tickets.', ephemeral: true });
+    await interaction.reply({ content: 'Solo el staff puede eliminar tickets.', flags: 64 });
     return;
   }
 
@@ -1172,20 +1178,35 @@ export async function handleTicketClaim(interaction: ButtonInteraction): Promise
   });
 
   if (!ticket || ticket.status !== 'open') {
-    await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
+    await interaction.reply({ content: 'Este no es un ticket abierto.', flags: 64 });
     return;
   }
 
   if (!ticket.panel?.claimEnabled) {
-    await interaction.reply({ content: 'Reclamar no está habilitado para este panel.', ephemeral: true });
+    await interaction.reply({ content: 'Reclamar no está habilitado para este panel.', flags: 64 });
     return;
   }
 
   if (ticket.claimedBy) {
     await interaction.reply({
       content: `Este ticket ya fue reclamado por <@${ticket.claimedBy}>.`,
-      ephemeral: true,
+      flags: 64,
     });
+    return;
+  }
+
+  // Only staff can claim tickets
+  const member = interaction.member as GuildMember;
+  const config = await getGuildConfig(interaction.guild.id);
+  const staffRoleIds = ticket.panel && ticket.panel.staffRoleIds.length > 0
+    ? ticket.panel.staffRoleIds
+    : (config.ticketStaffRoleIds as string[] || []);
+  const isStaff = staffRoleIds.some((id: string) => member.roles.cache.has(id)) ||
+    (ticket.panel?.adminRoleIds as string[] | undefined)?.some((id: string) => member.roles.cache.has(id)) ||
+    member.permissions.has(PermissionFlagsBits.ManageGuild);
+
+  if (!isStaff) {
+    await interaction.reply({ content: 'Solo el staff puede reclamar tickets.', flags: 64 });
     return;
   }
 
@@ -1198,6 +1219,7 @@ export async function handleTicketClaim(interaction: ButtonInteraction): Promise
   if (ticket.panel?.claimLockOthers) {
     const channel = interaction.channel as TextChannel;
     for (const roleId of ticket.panel.staffRoleIds) {
+      if (!interaction.guild?.roles.cache.has(roleId)) continue;
       await channel.permissionOverwrites.edit(roleId, {
         SendMessages: false,
       }).catch(() => {});
@@ -1218,7 +1240,6 @@ export async function handleTicketClaim(interaction: ButtonInteraction): Promise
   await interaction.reply({ embeds: [claimEmbed] });
 
   // Log
-  const config = await getGuildConfig(interaction.guild.id);
   const logChannelId = ticket.panel?.logChannelId || config.ticketLogChannelId;
   if (logChannelId) {
     const logChannel = interaction.guild.channels.cache.get(logChannelId) as TextChannel;
@@ -1252,11 +1273,11 @@ export async function handleTicketTranscriptButton(interaction: ButtonInteractio
   });
 
   if (!ticket) {
-    await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
+    await interaction.reply({ content: 'Este no es un canal de ticket.', flags: 64 });
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: 64 });
 
   const channel = interaction.channel as TextChannel;
   const { html, messages } = await generateTranscript(channel, ticket, interaction.user.id);
@@ -1312,7 +1333,7 @@ export async function handleTicketFeedback(interaction: ButtonInteraction): Prom
   const rating = parseInt(parts[3], 10);
 
   if (!ticketId || isNaN(rating) || rating < 1 || rating > 5) {
-    await interaction.reply({ content: 'Valoración inválida.', ephemeral: true });
+    await interaction.reply({ content: 'Valoración inválida.', flags: 64 });
     return;
   }
 

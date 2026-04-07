@@ -1,12 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { welcome as welcomeApi, config as configApi } from '@/lib/api';
+import { welcome as welcomeApi, config as configApi, guilds as guildsApi } from '@/lib/api';
 import Card from '@/components/Card';
 import Toggle from '@/components/Toggle';
-import Input, { Textarea } from '@/components/Input';
 import Button from '@/components/Button';
 import Loader from '@/components/Loader';
+import ChannelSelect from '@/components/ChannelSelect';
+import RoleMultiSelect from '@/components/RoleMultiSelect';
+import VariableTextarea from '@/components/VariableTextarea';
+import DiscordEmbedPreview from '@/components/DiscordEmbedPreview';
 import toast from 'react-hot-toast';
+
+const WELCOME_VARS = [
+  { tag: '{user}', description: 'Mención @usuario' },
+  { tag: '{username}', description: 'Nombre del usuario' },
+  { tag: '{server}', description: 'Nombre del servidor' },
+  { tag: '{memberCount}', description: 'Total de miembros' },
+];
 
 export default function Welcome() {
   const { guildId } = useParams();
@@ -14,6 +24,10 @@ export default function Welcome() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+
+  // Guild data
+  const [guildChannels, setGuildChannels] = useState<{ id: string; name: string; type: number; parentId: string | null }[]>([]);
+  const [guildRoles, setGuildRoles] = useState<{ id: string; name: string; color: number }[]>([]);
 
   // Welcome settings
   const [welcomeEnabled, setWelcomeEnabled] = useState(false);
@@ -27,14 +41,18 @@ export default function Welcome() {
   const [farewellMessage, setFarewellMessage] = useState('');
 
   // Join roles
-  const [joinRoleIds, setJoinRoleIds] = useState('');
+  const [joinRoleIds, setJoinRoleIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!guildId) return;
     setLoading(true);
     setError(null);
-    welcomeApi.get(guildId)
-      .then((data) => {
+    Promise.all([
+      welcomeApi.get(guildId),
+      guildsApi.channels(guildId).catch(() => []),
+      guildsApi.roles(guildId).catch(() => []),
+    ])
+      .then(([data, channels, roles]) => {
         setWelcomeEnabled(data.welcomeEnabled ?? false);
         setWelcomeChannelId(data.welcomeChannelId ?? '');
         setWelcomeMessage(data.welcomeMessage ?? '');
@@ -42,7 +60,9 @@ export default function Welcome() {
         setFarewellEnabled(data.farewellEnabled ?? false);
         setFarewellChannelId(data.farewellChannelId ?? '');
         setFarewellMessage(data.farewellMessage ?? '');
-        setJoinRoleIds((data.joinRoleIds ?? []).join(', '));
+        setJoinRoleIds(data.joinRoleIds ?? []);
+        setGuildChannels(channels);
+        setGuildRoles(roles);
       })
       .catch((err) => setError(err.message || 'No se pudo cargar la configuración de bienvenida'))
       .finally(() => setLoading(false));
@@ -62,14 +82,13 @@ export default function Welcome() {
     if (!guildId) return;
     setSaving(true);
     try {
-      const roleIds = joinRoleIds.split(',').map((s) => s.trim()).filter(Boolean);
       await welcomeApi.update(guildId, {
         welcomeChannelId: welcomeChannelId || null,
         welcomeMessage: welcomeMessage || null,
         welcomeImageEnabled,
         farewellChannelId: farewellChannelId || null,
         farewellMessage: farewellMessage || null,
-        joinRoleIds: roleIds,
+        joinRoleIds,
       });
       toast.success('Configuración de bienvenida guardada');
     } catch {
@@ -113,19 +132,24 @@ export default function Welcome() {
               enabled={welcomeImageEnabled}
               onChange={(v) => setWelcomeImageEnabled(v)}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="ID del canal de bienvenida"
-                placeholder="ID del canal"
-                value={welcomeChannelId}
-                onChange={(e) => setWelcomeChannelId(e.target.value)}
-              />
-            </div>
-            <Textarea
+            <ChannelSelect
+              label="Canal de bienvenida"
+              description="Canal donde se enviarán los mensajes de bienvenida"
+              channels={guildChannels}
+              value={welcomeChannelId}
+              onChange={setWelcomeChannelId}
+            />
+            <VariableTextarea
               label="Mensaje de bienvenida"
-              placeholder="¡Bienvenido {user}! Usa {user}, {server}, {memberCount}"
               value={welcomeMessage}
-              onChange={(e) => setWelcomeMessage(e.target.value)}
+              onChange={setWelcomeMessage}
+              variables={WELCOME_VARS}
+              placeholder="¡Bienvenido {user} al servidor {server}!"
+              rows={3}
+              maxLength={2000}
+            />
+            <DiscordEmbedPreview
+              description={welcomeMessage}
             />
           </div>
         </Card>
@@ -138,32 +162,34 @@ export default function Welcome() {
               enabled={farewellEnabled}
               onChange={(v) => { setFarewellEnabled(v); toggleSetting('farewellEnabled', v); }}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="ID del canal de despedida"
-                placeholder="ID del canal"
-                value={farewellChannelId}
-                onChange={(e) => setFarewellChannelId(e.target.value)}
-              />
-            </div>
-            <Textarea
+            <ChannelSelect
+              label="Canal de despedida"
+              description="Canal donde se enviarán los mensajes de despedida"
+              channels={guildChannels}
+              value={farewellChannelId}
+              onChange={setFarewellChannelId}
+            />
+            <VariableTextarea
               label="Mensaje de despedida"
-              placeholder="¡Adiós {user}, te vamos a extrañar!"
               value={farewellMessage}
-              onChange={(e) => setFarewellMessage(e.target.value)}
+              onChange={setFarewellMessage}
+              variables={WELCOME_VARS}
+              placeholder="¡Adiós {username}, te vamos a extrañar!"
+              rows={3}
+              maxLength={2000}
             />
           </div>
         </Card>
 
         <Card title="Roles automáticos al entrar">
           <div className="mt-3">
-            <Input
-              label="IDs de roles (separados por coma)"
-              placeholder="123456789, 987654321"
-              value={joinRoleIds}
-              onChange={(e) => setJoinRoleIds(e.target.value)}
+            <RoleMultiSelect
+              label="Roles de entrada automática"
+              description="Roles asignados automáticamente a miembros nuevos al entrar al servidor"
+              roles={guildRoles}
+              selected={joinRoleIds}
+              onChange={setJoinRoleIds}
             />
-            <p className="text-xs text-discord-muted mt-1">Roles asignados automáticamente a miembros nuevos</p>
           </div>
         </Card>
 

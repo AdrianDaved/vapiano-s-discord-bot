@@ -38,7 +38,7 @@ export default {
     const channel = (interaction.options.getChannel('canal') || interaction.channel) as TextChannel;
 
     if (!channel || !('setRateLimitPerUser' in channel)) {
-      await interaction.reply({ content: 'Canal de texto inválido.', ephemeral: true });
+      await interaction.reply({ content: 'Canal de texto inválido.', flags: 64 });
       return;
     }
 
@@ -48,7 +48,7 @@ export default {
     } else {
       const parsed = parseDuration(durationStr);
       if (!parsed) {
-        await interaction.reply({ content: 'Duración inválida. Usa formatos como `5s`, `1m`, `1h`, o `off`.', ephemeral: true });
+        await interaction.reply({ content: 'Duración inválida. Usa formatos como `5s`, `1m`, `1h`, o `off`.', flags: 64 });
         return;
       }
       seconds = parsed;
@@ -56,7 +56,7 @@ export default {
 
     // Modo lento máximo de Discord es 6 horas (21600 segundos)
     if (seconds > 21600) {
-      await interaction.reply({ content: 'El modo lento máximo es de 6 horas (21600 segundos).', ephemeral: true });
+      await interaction.reply({ content: 'El modo lento máximo es de 6 horas (21600 segundos).', flags: 64 });
       return;
     }
 

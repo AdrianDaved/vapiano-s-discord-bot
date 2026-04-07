@@ -4,15 +4,26 @@ import { asyncHandler, validate } from '../middleware/validate';
 import { configUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
 
-// Fields grouped by section for cloning
+// Fields grouped by section for cloning — matched to actual GuildConfig schema fields
 const CLONE_SECTIONS: Record<string, string[]> = {
-  general: ['prefix', 'language', 'muteRoleId', 'ticketStaffRoleIds', 'ticketCategoryId', 'ticketLogChannelId', 'ticketCounter'],
-  welcome: ['welcomeEnabled', 'joinMessage', 'joinChannelId', 'joinRoleIds', 'leaveMessage', 'leaveChannelId', 'joinDmMessage', 'joinDmEnabled'],
-  logging: ['loggingEnabled', 'logChannelId', 'logEvents'],
-  automod: ['autoModEnabled', 'antiSpamEnabled', 'maxMentions', 'maxMessages', 'antiLinkEnabled', 'allowedLinks', 'antiCapsEnabled', 'capsThreshold', 'capsMinLength', 'badWordsEnabled', 'badWords', 'antiRaidEnabled', 'raidThreshold', 'autoModLogChannelId', 'autoModIgnoredRoles', 'autoModIgnoredChannels'],
-  leveling: ['levelingEnabled', 'xpPerMessage', 'xpCooldown', 'xpMultiplier', 'levelUpMessage', 'levelUpChannelId', 'levelingIgnoredRoles', 'levelingIgnoredChannels', 'noXpRoles'],
-  moderation: ['modLogChannelId', 'modLogEnabled'],
-  suggestions: ['suggestionsEnabled', 'suggestionChannelId', 'suggestionLogChannelId'],
+  general: ['prefix', 'language', 'muteRoleId'],
+  welcome: [
+    'welcomeEnabled', 'welcomeChannelId', 'welcomeMessage', 'welcomeImageEnabled',
+    'farewellEnabled', 'farewellChannelId', 'farewellMessage',
+    'joinRoleIds',
+  ],
+  logging: [
+    'loggingEnabled', 'modLogChannelId', 'warnLogChannelId', 'messageLogChannelId',
+    'joinLeaveLogChannelId', 'auditLogChannelId', 'voiceLogChannelId',
+  ],
+  automod: [
+    'automodEnabled', 'antiSpamEnabled', 'antiSpamThreshold', 'antiSpamInterval',
+    'antiCapsEnabled', 'antiCapsThreshold', 'antiCapsMinLength',
+    'antiLinksEnabled', 'antiLinksWhitelist',
+    'blacklistedWords', 'automodExemptRoleIds', 'automodExemptChannelIds',
+  ],
+  moderation: ['modLogChannelId', 'warnLogChannelId', 'muteRoleId'],
+  suggestions: ['suggestionsEnabled', 'suggestionsChannelId'],
   reputation: ['reputationEnabled', 'repChannelId'],
 };
 

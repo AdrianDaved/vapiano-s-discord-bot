@@ -5,6 +5,7 @@ import { Events, VoiceState, EmbedBuilder, TextChannel } from 'discord.js';
 import { BotClient } from '../../shared/types';
 import { getGuildConfig } from '../utils';
 import logger from '../../shared/logger';
+import { sendAudit } from '../modules/audit/auditLogger';
 
 export default {
   name: Events.VoiceStateUpdate,
@@ -38,6 +39,7 @@ export default {
           .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
+        await sendAudit(guild.id, embed, client, logChannelId);
       }
       // Left a voice channel
       else if (oldState.channelId && !newState.channelId) {
@@ -52,6 +54,7 @@ export default {
           .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
+        await sendAudit(guild.id, embed, client, logChannelId);
       }
       // Moved between voice channels
       else if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
@@ -67,6 +70,7 @@ export default {
           .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
+        await sendAudit(guild.id, embed, client, logChannelId);
       }
 
       // Server mute/deafen changes
@@ -82,6 +86,7 @@ export default {
           .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
+        await sendAudit(guild.id, embed, client, logChannelId);
       }
 
       if (oldState.serverDeaf !== newState.serverDeaf) {
@@ -96,6 +101,7 @@ export default {
           .setFooter({ text: `ID de usuario: ${member.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
+        await sendAudit(guild.id, embed, client, logChannelId);
       }
     } catch (err) {
       logger.error(`[Logging] Error in voiceStateUpdate: ${err}`);

@@ -1,74 +1,32 @@
-import { ButtonInteraction, EmbedBuilder, Client, TextChannel } from 'discord.js';
+import { ButtonInteraction, Client, GuildMember, TextChannel } from 'discord.js';
 import prisma from '../../../database/client';
 import logger from '../../../shared/logger';
 import { registerInterval } from '../timerRegistry';
+import { buildPollEmbed } from '../../commands/automation/poll';
 
-/**
- * Initialize the poll auto-end timer. Checks every 30 seconds for expired polls.
- */
 export function initPollTimer(client: Client) {
   registerInterval(async () => {
     try {
       const now = new Date();
       const expiredPolls = await prisma.poll.findMany({
-        where: {
-          ended: false,
-          endsAt: { lte: now },
-        },
+        where: { ended: false, endsAt: { lte: now } },
       });
 
       for (const poll of expiredPolls) {
         try {
-          await prisma.poll.update({
-            where: { id: poll.id },
-            data: { ended: true },
-          });
+          await prisma.poll.update({ where: { id: poll.id }, data: { ended: true } });
 
-          const votes: Record<string, string[]> = (poll.votes as any) || {};
-          const totalVotes = Object.values(votes).reduce((sum, arr) => sum + arr.length, 0);
+          const embed = buildPollEmbed(poll, true);
 
-          // Find winner
-          let maxVotes = 0;
-          let winnerIdx = 0;
-          for (let i = 0; i < poll.options.length; i++) {
-            const count = (votes[i.toString()] || []).length;
-            if (count > maxVotes) {
-              maxVotes = count;
-              winnerIdx = i;
-            }
-          }
-
-          const description = poll.options
-            .map((option: string, i: number) => {
-              const count = (votes[i.toString()] || []).length;
-              const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-              const bar = createBar(percentage);
-              return `**${i + 1}.** ${option}\n${bar} ${count} votos (${percentage}%)`;
-            })
-            .join('\n\n');
-
-          const embed = new EmbedBuilder()
-            .setColor(0x57f287)
-            .setTitle(`📊 ${poll.question} (FINALIZADA)`)
-            .setDescription(
-              `${description}\n\n🏆 **Ganador: ${poll.options[winnerIdx]}** con ${maxVotes} voto(s)`
-            )
-            .setFooter({ text: `Votos totales: ${totalVotes} | Encuesta finalizada` })
-            .setTimestamp();
-
-          // Update original message
           const guild = client.guilds.cache.get(poll.guildId);
           if (!guild) continue;
-
           const channel = guild.channels.cache.get(poll.channelId) as TextChannel;
           if (!channel || !poll.messageId) continue;
 
           try {
             const msg = await channel.messages.fetch(poll.messageId);
             await msg.edit({ embeds: [embed], components: [] });
-          } catch {
-            // Message may have been deleted
-          }
+          } catch { /* message deleted */ }
 
           logger.info(`[Polls] Auto-ended poll ${poll.id} — ${poll.question}`);
         } catch (err) {
@@ -78,89 +36,71 @@ export function initPollTimer(client: Client) {
     } catch (err) {
       logger.error(`[Polls] Timer error: ${err}`);
     }
-  }, 30_000); // Check every 30 seconds
+  }, 30_000);
 
   logger.info('[Polls] Auto-end timer initialized');
 }
 
-/**
- * Handle a poll vote button click.
- * customId format: poll_<pollId>_<optionIndex>
- */
 export async function handlePollVote(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split('_');
   if (parts.length < 3) return;
 
-  const pollId = parts[1];
+  const pollId      = parts[1];
   const optionIndex = parseInt(parts[2], 10);
 
   const poll = await prisma.poll.findUnique({ where: { id: pollId } });
   if (!poll) {
-    await interaction.reply({ content: 'Esta encuesta ya no existe.', ephemeral: true });
+    await interaction.reply({ content: 'Esta encuesta ya no existe.', flags: 64 });
     return;
   }
-
   if (poll.ended) {
-    await interaction.reply({ content: 'Esta encuesta ya termino.', ephemeral: true });
+    await interaction.reply({ content: 'Esta encuesta ya terminó.', flags: 64 });
     return;
   }
-
   if (poll.endsAt && new Date() > poll.endsAt) {
-    await interaction.reply({ content: 'Esta encuesta ha expirado.', ephemeral: true });
+    await interaction.reply({ content: 'Esta encuesta ha expirado.', flags: 64 });
     return;
   }
 
-  // Parse votes
+  // Role check
+  const allowedRoles: string[] = (poll as any).allowedRoleIds ?? [];
+  if (allowedRoles.length > 0) {
+    const member = interaction.member as GuildMember;
+    const memberRoles = member?.roles?.cache;
+    const hasRole = memberRoles && allowedRoles.some((rid) => memberRoles.has(rid));
+    if (!hasRole) {
+      const roleList = allowedRoles.map((id) => `<@&${id}>`).join(', ');
+      await interaction.reply({
+        content: `❌ Solo pueden votar los miembros con los roles: ${roleList}`,
+        flags: 64,
+      });
+      return;
+    }
+  }
+
   const votes: Record<string, string[]> = (poll.votes as any) || {};
   const userId = interaction.user.id;
 
-  // Remove previous vote from any option
+  // Toggle: if already voted for this option, remove vote
+  const alreadyVotedThis = (votes[optionIndex.toString()] || []).includes(userId);
+
   for (const key of Object.keys(votes)) {
     votes[key] = (votes[key] || []).filter((id: string) => id !== userId);
   }
 
-  // Add new vote
-  const optionKey = optionIndex.toString();
-  if (!votes[optionKey]) votes[optionKey] = [];
-  votes[optionKey].push(userId);
+  if (!alreadyVotedThis) {
+    if (!votes[optionIndex.toString()]) votes[optionIndex.toString()] = [];
+    votes[optionIndex.toString()].push(userId);
+  }
 
-  // Update database
-  await prisma.poll.update({
-    where: { id: pollId },
-    data: { votes: votes as any },
-  });
+  await prisma.poll.update({ where: { id: pollId }, data: { votes: votes as any } });
 
-  // Update the embed with new vote counts
   try {
-    const totalVotes = Object.values(votes).reduce((sum, arr) => sum + arr.length, 0);
-    const description = poll.options
-      .map((option: string, i: number) => {
-        const count = (votes[i.toString()] || []).length;
-        const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-        const bar = createBar(percentage);
-        return `**${i + 1}.** ${option}\n${bar} ${count} votos (${percentage}%)`;
-      })
-      .join('\n\n');
-
-    const embed = new EmbedBuilder()
-      .setColor(0xf47b67)
-      .setTitle(`📊 ${poll.question}`)
-      .setDescription(description)
-      .setFooter({ text: `Votos totales: ${totalVotes}${poll.endsAt ? ` | Termina` : ''}` })
-      .setTimestamp(poll.endsAt || undefined);
-
+    const updatedPoll = { ...poll, votes, allowedRoleIds: (poll as any).allowedRoleIds };
+    const embed = buildPollEmbed(updatedPoll);
     await interaction.update({ embeds: [embed] });
   } catch (err) {
     logger.error(`[Polls] Error updating poll embed: ${err}`);
-    await interaction.reply({ content: 'Tu voto ha sido registrado!', ephemeral: true });
+    await interaction.reply({ content: '✅ Tu voto ha sido registrado.', flags: 64 });
   }
-}
-
-/**
- * Create a visual progress bar.
- */
-function createBar(percentage: number): string {
-  const filled = Math.round(percentage / 10);
-  const empty = 10 - filled;
-  return '▓'.repeat(filled) + '░'.repeat(empty);
 }

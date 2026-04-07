@@ -54,7 +54,7 @@ export default {
     switch (sub) {
       case 'crear': {
         const name = interaction.options.getString('nombre', true);
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: 64 });
 
         try {
           const data = await createBackupData(interaction.guild!);
@@ -98,7 +98,7 @@ export default {
         });
 
         if (backups.length === 0) {
-          await interaction.reply({ content: 'No se encontraron respaldos para este servidor.', ephemeral: true });
+          await interaction.reply({ content: 'No se encontraron respaldos para este servidor.', flags: 64 });
           return;
         }
 
@@ -113,7 +113,7 @@ export default {
           .setDescription(lines.join('\n'))
           .setFooter({ text: `${backups.length} respaldo(s) | Usa /respaldo info <id> para detalles` });
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
 
@@ -126,11 +126,11 @@ export default {
         });
 
         if (!backup) {
-          await interaction.reply({ content: 'Respaldo no encontrado.', ephemeral: true });
+          await interaction.reply({ content: 'Respaldo no encontrado.', flags: 64 });
           return;
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: 64 });
 
         const result = await restoreBackupData(interaction.guild!, backup.data as any, {
           clearExisting,
@@ -156,12 +156,12 @@ export default {
         });
 
         if (!backup) {
-          await interaction.reply({ content: 'Respaldo no encontrado.', ephemeral: true });
+          await interaction.reply({ content: 'Respaldo no encontrado.', flags: 64 });
           return;
         }
 
         await prisma.backup.delete({ where: { id: backup.id } });
-        await interaction.reply({ content: `Respaldo **${backup.name}** eliminado.`, ephemeral: true });
+        await interaction.reply({ content: `Respaldo **${backup.name}** eliminado.`, flags: 64 });
         break;
       }
 
@@ -173,7 +173,7 @@ export default {
         });
 
         if (!backup) {
-          await interaction.reply({ content: 'Respaldo no encontrado.', ephemeral: true });
+          await interaction.reply({ content: 'Respaldo no encontrado.', flags: 64 });
           return;
         }
 
@@ -196,7 +196,7 @@ export default {
           .setFooter({ text: 'Usa /respaldo restaurar <id> para restaurar este respaldo' })
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
     }

@@ -28,7 +28,9 @@ import Starboard from '@/pages/modules/Starboard';
 import ReactionRoles from '@/pages/modules/ReactionRoles';
 import StickyMessages from '@/pages/modules/StickyMessages';
 import Logging from '@/pages/modules/Logging';
+import Rifas from '@/pages/modules/Rifas';
 import MessageSender from '@/pages/modules/MessageSender';
+import Migration from '@/pages/modules/Migration';
 
 /** Wrapper that redirects to /login when user is not authenticated */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -82,6 +84,7 @@ function AppRoutes() {
         <Route path="tickets" element={<Tickets />} />
         <Route path="automation" element={<Automation />} />
         <Route path="backups" element={<Backups />} />
+        <Route path="migration" element={<Migration />} />
         <Route path="reputation" element={<Reputation />} />
         <Route path="giveaways" element={<Giveaways />} />
         <Route path="suggestions" element={<Suggestions />} />
@@ -91,6 +94,7 @@ function AppRoutes() {
         <Route path="sticky" element={<StickyMessages />} />
         <Route path="logging" element={<Logging />} />
         <Route path="messages" element={<MessageSender />} />
+        <Route path="rifas" element={<Rifas />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 

@@ -5,6 +5,7 @@ import { Events, GuildMember, EmbedBuilder, TextChannel, PartialGuildMember } fr
 import { BotClient } from '../../shared/types';
 import { getGuildConfig } from '../utils';
 import logger from '../../shared/logger';
+import { sendAudit } from '../modules/audit/auditLogger';
 
 export default {
   name: Events.GuildMemberUpdate,
@@ -41,6 +42,7 @@ export default {
             .setFooter({ text: `ID de usuario: ${newMember.id}` })
             .setTimestamp();
           await logChannel.send({ embeds: [embed] });
+        await sendAudit(newMember.guild.id, embed, client, logChannelId);
         }
 
         if (removedRoles.size > 0) {
@@ -55,6 +57,7 @@ export default {
             .setFooter({ text: `ID de usuario: ${newMember.id}` })
             .setTimestamp();
           await logChannel.send({ embeds: [embed] });
+        await sendAudit(newMember.guild.id, embed, client, logChannelId);
         }
       }
 
@@ -75,6 +78,7 @@ export default {
           .setFooter({ text: `ID de usuario: ${newMember.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
+        await sendAudit(newMember.guild.id, embed, client, logChannelId);
       }
 
       // ─── Timeout Changes ──────────────────────────────
@@ -93,6 +97,7 @@ export default {
           .setFooter({ text: `ID de usuario: ${newMember.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
+        await sendAudit(newMember.guild.id, embed, client, logChannelId);
       } else if (oldTimeout && !newTimeout) {
         const embed = new EmbedBuilder()
           .setColor(0x57f287)
@@ -104,6 +109,7 @@ export default {
           .setFooter({ text: `ID de usuario: ${newMember.id}` })
           .setTimestamp();
         await logChannel.send({ embeds: [embed] });
+        await sendAudit(newMember.guild.id, embed, client, logChannelId);
       }
     } catch (err) {
       logger.error(`[Logging] Error in guildMemberUpdate: ${err}`);

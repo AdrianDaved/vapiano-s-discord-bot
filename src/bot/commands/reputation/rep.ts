@@ -1,13 +1,7 @@
-/**
- * /rep @usuario [razon] — Dar reputación directamente (atajo).
- */
-import {
-  SlashCommandBuilder,
-  ChatInputCommandInteraction,
-  EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import prisma from '../../../database/client';
 import { moduleColor, getGuildConfig } from '../../utils';
+import { getGlobalRep, LINKED_GUILD_IDS } from '../../modules/reputation/globalRep';
 
 export default {
   data: new SlashCommandBuilder()
@@ -24,26 +18,24 @@ export default {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId!;
-    const target = interaction.options.getUser('usuario', true);
-    const reason = interaction.options.getString('razon');
+    const target  = interaction.options.getUser('usuario', true);
+    const reason  = interaction.options.getString('razon');
 
-    // Verificar canal permitido (si está configurado)
     const config = await getGuildConfig(guildId);
     if (config.repChannelId && interaction.channelId !== config.repChannelId) {
       await interaction.reply({
         content: `Las reputaciones solo se pueden dar en <#${config.repChannelId}>.`,
-        ephemeral: true,
+        flags: 64,
       });
       return;
     }
 
     if (target.id === interaction.user.id) {
-      await interaction.reply({ content: 'No puedes darte reputación a ti mismo.', ephemeral: true });
+      await interaction.reply({ content: 'No puedes darte reputación a ti mismo.', flags: 64 });
       return;
     }
-
     if (target.bot) {
-      await interaction.reply({ content: 'No puedes dar reputación a bots.', ephemeral: true });
+      await interaction.reply({ content: 'No puedes dar reputación a bots.', flags: 64 });
       return;
     }
 
@@ -51,12 +43,13 @@ export default {
       data: { guildId, userId: target.id, giverId: interaction.user.id, reason: reason || null },
     });
 
-    const totalRep = await prisma.reputation.count({ where: { guildId, userId: target.id } });
+    // Rep global sincronizada (suma de ambos servidores)
+    const totalRep = await getGlobalRep(target.id);
 
     const embed = new EmbedBuilder()
       .setColor(moduleColor('reputation'))
       .setDescription(`${interaction.user} dio **+1 rep** a ${target}${reason ? `\n**Razón:** ${reason}` : ''}`)
-      .setFooter({ text: `${target.username} ahora tiene ${totalRep} rep` })
+      .setFooter({ text: `${target.username} tiene ${totalRep} rep en total (Vapiano + HubStore)` })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

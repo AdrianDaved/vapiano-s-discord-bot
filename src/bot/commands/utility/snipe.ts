@@ -46,7 +46,7 @@ export default {
     if (!sniped) {
       await interaction.reply({
         content: 'Nada que recuperar — no hay mensajes eliminados recientemente en este canal.',
-        ephemeral: true,
+        flags: 64,
       });
       return;
     }

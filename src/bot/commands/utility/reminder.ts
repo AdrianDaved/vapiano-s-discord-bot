@@ -53,7 +53,7 @@ export default {
         if (!seconds || seconds < 10) {
           await interaction.reply({
             content: 'Duración inválida. El mínimo es 10 segundos. Usa formatos como `10m`, `2h`, `1d`.',
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -62,7 +62,7 @@ export default {
         if (seconds > 30 * 86400) {
           await interaction.reply({
             content: 'La duración máxima del recordatorio es de 30 días.',
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -107,7 +107,7 @@ export default {
         if (reminders.length === 0) {
           await interaction.reply({
             content: 'No tienes recordatorios activos.',
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -124,7 +124,7 @@ export default {
           .setFooter({ text: `${reminders.length} recordatorio(s) activo(s)` })
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
 
@@ -144,7 +144,7 @@ export default {
         if (!reminder) {
           await interaction.reply({
             content: 'Recordatorio no encontrado. Usa `/recordatorio lista` para ver tus recordatorios activos.',
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -153,7 +153,7 @@ export default {
 
         await interaction.reply({
           content: `Recordatorio eliminado: **${reminder.message.slice(0, 80)}**`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }

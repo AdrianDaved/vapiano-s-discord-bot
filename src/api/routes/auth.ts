@@ -80,7 +80,8 @@ authRouter.get('/callback', async (req: Request, res: Response) => {
       { expiresIn: '7d' }
     );
 
-    // Set cookie and redirect to dashboard
+    // Store JWT in session and set httpOnly cookie
+    (req.session as any).token = jwtToken;
     res.cookie('token', jwtToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -88,11 +89,27 @@ authRouter.get('/callback', async (req: Request, res: Response) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
 
-    res.redirect(`${DASHBOARD_URL}/callback?token=${jwtToken}`);
+    // Redirect to dashboard — frontend reads token from /auth/me (no token in URL)
+    res.redirect(`${DASHBOARD_URL}/callback`);
   } catch (err) {
     logger.error(`OAuth2 callback error: ${err}`);
     res.redirect(`${DASHBOARD_URL}/login?error=unknown`);
   }
+});
+
+/**
+ * GET /auth/exchange — Return the JWT once after OAuth callback (clears from session after use)
+ * Called by the dashboard Callback page to retrieve the token without it being in the URL.
+ */
+authRouter.get('/exchange', (req: Request, res: Response) => {
+  const sessionToken = (req.session as any).token;
+  if (!sessionToken) {
+    res.status(401).json({ error: 'No pending token' });
+    return;
+  }
+  // One-time use — clear after retrieval
+  delete (req.session as any).token;
+  res.json({ token: sessionToken });
 });
 
 /**

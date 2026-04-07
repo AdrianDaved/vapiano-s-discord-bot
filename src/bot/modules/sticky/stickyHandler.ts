@@ -76,11 +76,21 @@ export function channelHasSticky(channelId: string): boolean {
 export async function processStickyMessage(message: Message): Promise<void> {
   const channelId = message.channelId;
 
-  // 1. Fast in-memory check
-  if (!stickyChannels.has(channelId)) return;
-
-  // 2. Ignore bot messages (prevents infinite loop)
+  // 2. Ignore bot messages first (prevents infinite loop)
   if (message.author.bot) return;
+
+  // 1. Fast in-memory check — with DB fallback for stickies created after startup
+  if (!stickyChannels.has(channelId)) {
+    try {
+      const exists = await prisma.stickyMessage.findUnique({
+        where: { channelId },
+        select: { enabled: true },
+      });
+      if (!exists?.enabled) return;
+      // Found in DB but not in cache — add it so future messages are fast
+      stickyChannels.add(channelId);
+    } catch { return; }
+  }
 
   // 3. Cooldown check
   const lastResend = cooldownMap.get(channelId) ?? 0;

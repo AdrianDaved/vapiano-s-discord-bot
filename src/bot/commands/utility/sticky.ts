@@ -89,11 +89,11 @@ async function handleSet(interaction: ChatInputCommandInteraction, guildId: stri
   const channel = (interaction.options.getChannel('canal') || interaction.channel) as TextChannel;
 
   if (!channel || !channel.isTextBased()) {
-    await interaction.reply({ content: 'Canal inválido.', ephemeral: true });
+    await interaction.reply({ content: 'Canal inválido.', flags: 64 });
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: 64 });
 
   // Parsear color
   let colorInt = 0x5865F2;
@@ -161,11 +161,11 @@ async function handleRemove(interaction: ChatInputCommandInteraction, guildId: s
   const channel = (interaction.options.getChannel('canal') || interaction.channel) as TextChannel;
 
   if (!channel) {
-    await interaction.reply({ content: 'Canal inválido.', ephemeral: true });
+    await interaction.reply({ content: 'Canal inválido.', flags: 64 });
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: 64 });
 
   const existing = await prisma.stickyMessage.findUnique({
     where: { channelId: channel.id },
@@ -196,7 +196,7 @@ async function handleRemove(interaction: ChatInputCommandInteraction, guildId: s
 
 // ─── /fijo lista ────────────────────────────────────
 async function handleList(interaction: ChatInputCommandInteraction, guildId: string) {
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: 64 });
 
   const stickies = await prisma.stickyMessage.findMany({
     where: { guildId },

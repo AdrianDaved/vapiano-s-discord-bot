@@ -236,7 +236,7 @@ export default {
           .setFooter({ text: 'Usa /configuracion modulo activar/desactivar <name> para cambiarlo' })
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         return;
       }
 
@@ -248,7 +248,7 @@ export default {
 
       await interaction.reply({
         content: `${enable ? '✅' : '❌'} El módulo **${moduleName}** ha sido **${enable ? 'activado' : 'desactivado'}**.`,
-        ephemeral: true,
+        flags: 64,
       });
       return;
     }
@@ -268,7 +268,7 @@ export default {
           await updateGuildConfig(guildId, data);
           await interaction.reply({
             content: `Canal de bienvenida establecido en <#${channel.id}>.${message ? ' Mensaje actualizado.' : ''}${imagen !== null ? ` Imagen de bienvenida ${imagen ? 'activada' : 'desactivada'}.` : ''}`,
-            ephemeral: true,
+            flags: 64,
           });
           break;
         }
@@ -283,7 +283,7 @@ export default {
           await updateGuildConfig(guildId, data);
           await interaction.reply({
             content: `Canal de despedida establecido en <#${channel.id}>.${message ? ' Mensaje actualizado.' : ''}`,
-            ephemeral: true,
+            flags: 64,
           });
           break;
         }
@@ -291,21 +291,21 @@ export default {
         case 'modlog': {
           const channel = interaction.options.getChannel('canal', true);
           await updateGuildConfig(guildId, { modLogChannelId: channel.id });
-          await interaction.reply({ content: `Canal de logs de moderacion establecido en <#${channel.id}>.`, ephemeral: true });
+          await interaction.reply({ content: `Canal de logs de moderacion establecido en <#${channel.id}>.`, flags: 64 });
           break;
         }
 
         case 'messagelog': {
           const channel = interaction.options.getChannel('canal', true);
           await updateGuildConfig(guildId, { messageLogChannelId: channel.id });
-          await interaction.reply({ content: `Canal de logs de mensajes establecido en <#${channel.id}>.`, ephemeral: true });
+          await interaction.reply({ content: `Canal de logs de mensajes establecido en <#${channel.id}>.`, flags: 64 });
           break;
         }
 
         case 'joinleavelog': {
           const channel = interaction.options.getChannel('canal', true);
           await updateGuildConfig(guildId, { joinLeaveLogChannelId: channel.id });
-          await interaction.reply({ content: `Canal de logs de entradas/salidas establecido en <#${channel.id}>.`, ephemeral: true });
+          await interaction.reply({ content: `Canal de logs de entradas/salidas establecido en <#${channel.id}>.`, flags: 64 });
           break;
         }
 
@@ -319,13 +319,13 @@ export default {
           if (remove) {
             joinRoleIds = joinRoleIds.filter((id: string) => id !== role.id);
             await updateGuildConfig(guildId, { joinRoleIds });
-            await interaction.reply({ content: `Se quitó **${role.name}** de los roles de entrada.`, ephemeral: true });
+            await interaction.reply({ content: `Se quitó **${role.name}** de los roles de entrada.`, flags: 64 });
           } else {
             if (!joinRoleIds.includes(role.id)) {
               joinRoleIds.push(role.id);
             }
             await updateGuildConfig(guildId, { joinRoleIds });
-            await interaction.reply({ content: `Se agregó **${role.name}** como rol de entrada.`, ephemeral: true });
+            await interaction.reply({ content: `Se agregó **${role.name}** como rol de entrada.`, flags: 64 });
           }
           break;
         }
@@ -333,7 +333,7 @@ export default {
         case 'muterole': {
           const role = interaction.options.getRole('rol', true);
           await updateGuildConfig(guildId, { muteRoleId: role.id });
-          await interaction.reply({ content: `Rol de silencio establecido en **${role.name}**.`, ephemeral: true });
+          await interaction.reply({ content: `Rol de silencio establecido en **${role.name}**.`, flags: 64 });
           break;
         }
 
@@ -349,7 +349,7 @@ export default {
           await updateGuildConfig(guildId, data);
           await interaction.reply({
             content: `Canal de starboard establecido en <#${channel.id}>.${threshold ? ` Umbral: ${threshold} estrellas.` : ''}${emoji ? ` Emoji: ${emoji}` : ''}`,
-            ephemeral: true,
+            flags: 64,
           });
           break;
         }
@@ -357,7 +357,7 @@ export default {
         case 'suggestions': {
           const channel = interaction.options.getChannel('canal', true);
           await updateGuildConfig(guildId, { suggestionsChannelId: channel.id });
-          await interaction.reply({ content: `Canal de sugerencias establecido en <#${channel.id}>.`, ephemeral: true });
+          await interaction.reply({ content: `Canal de sugerencias establecido en <#${channel.id}>.`, flags: 64 });
           break;
         }
 
@@ -365,26 +365,26 @@ export default {
           const channel = interaction.options.getChannel('canal');
 
           if (!channel) {
-            await interaction.reply({ content: 'No se proporcionaron ajustes.', ephemeral: true });
+            await interaction.reply({ content: 'No se proporcionaron ajustes.', flags: 64 });
             return;
           }
 
           await updateGuildConfig(guildId, { repChannelId: channel.id });
-          await interaction.reply({ content: `Canal de reputación establecido en <#${channel.id}>.`, ephemeral: true });
+          await interaction.reply({ content: `Canal de reputación establecido en <#${channel.id}>.`, flags: 64 });
           break;
         }
 
         case 'auditlog': {
           const channel = interaction.options.getChannel('canal', true);
           await updateGuildConfig(guildId, { auditLogChannelId: channel.id });
-          await interaction.reply({ content: `Canal de logs de auditoría establecido en <#${channel.id}>.`, ephemeral: true });
+          await interaction.reply({ content: `Canal de logs de auditoría establecido en <#${channel.id}>.`, flags: 64 });
           break;
         }
 
         case 'voicelog': {
           const channel = interaction.options.getChannel('canal', true);
           await updateGuildConfig(guildId, { voiceLogChannelId: channel.id });
-          await interaction.reply({ content: `Canal de logs de voz establecido en <#${channel.id}>.`, ephemeral: true });
+          await interaction.reply({ content: `Canal de logs de voz establecido en <#${channel.id}>.`, flags: 64 });
           break;
         }
 
@@ -410,7 +410,7 @@ export default {
           if (dmTranscript !== null) data.ticketDMTranscript = dmTranscript;
 
           if (Object.keys(data).length === 0) {
-            await interaction.reply({ content: 'No se proporcionaron ajustes.', ephemeral: true });
+            await interaction.reply({ content: 'No se proporcionaron ajustes.', flags: 64 });
             return;
           }
 
@@ -424,7 +424,7 @@ export default {
           if (closeConfirm !== null) parts.push(`Confirmación de cierre: ${closeConfirm ? 'activada' : 'desactivada'}`);
           if (dmTranscript !== null) parts.push(`DM de transcripción: ${dmTranscript ? 'activado' : 'desactivado'}`);
 
-          await interaction.reply({ content: parts.join('\n'), ephemeral: true });
+          await interaction.reply({ content: parts.join('\n'), flags: 64 });
           break;
         }
       }
@@ -446,7 +446,7 @@ export default {
           await updateGuildConfig(guildId, data);
           await interaction.reply({
             content: `Anti-spam ${enabled ? 'activado' : 'desactivado'}.${threshold ? ` Umbral: ${threshold} mensajes.` : ''}${interval ? ` Intervalo: ${interval}s.` : ''}`,
-            ephemeral: true,
+            flags: 64,
           });
           break;
         }
@@ -461,7 +461,7 @@ export default {
           await updateGuildConfig(guildId, data);
           await interaction.reply({
             content: `Anti-mayusculas ${enabled ? 'activado' : 'desactivado'}.${threshold ? ` Umbral: ${threshold}%.` : ''}`,
-            ephemeral: true,
+            flags: 64,
           });
           break;
         }
@@ -469,7 +469,7 @@ export default {
         case 'antilinks': {
           const enabled = interaction.options.getBoolean('activado', true);
           await updateGuildConfig(guildId, { antiLinksEnabled: enabled });
-          await interaction.reply({ content: `Anti-enlaces ${enabled ? 'activado' : 'desactivado'}.`, ephemeral: true });
+          await interaction.reply({ content: `Anti-enlaces ${enabled ? 'activado' : 'desactivado'}.`, flags: 64 });
           break;
         }
 
@@ -483,11 +483,11 @@ export default {
           if (remove) {
             blacklist = blacklist.filter((w: string) => w !== word);
             await updateGuildConfig(guildId, { blacklistedWords: blacklist });
-            await interaction.reply({ content: `Se quitó \`${word}\` de la lista negra.`, ephemeral: true });
+            await interaction.reply({ content: `Se quitó \`${word}\` de la lista negra.`, flags: 64 });
           } else {
             if (!blacklist.includes(word)) blacklist.push(word);
             await updateGuildConfig(guildId, { blacklistedWords: blacklist });
-            await interaction.reply({ content: `Se agregó \`${word}\` a la lista negra.`, ephemeral: true });
+            await interaction.reply({ content: `Se agregó \`${word}\` a la lista negra.`, flags: 64 });
           }
           break;
         }
@@ -498,7 +498,7 @@ export default {
           const remove = interaction.options.getBoolean('quitar') ?? false;
 
           if (!role && !channel) {
-            await interaction.reply({ content: 'Proporciona un rol o canal para excluir.', ephemeral: true });
+            await interaction.reply({ content: 'Proporciona un rol o canal para excluir.', flags: 64 });
             return;
           }
 
@@ -528,7 +528,7 @@ export default {
           await updateGuildConfig(guildId, data);
           await interaction.reply({
             content: `Exclusión de AutoMod actualizada.${role ? ` Rol: ${role.name} (${remove ? 'quitado' : 'agregado'})` : ''}${channel ? ` Canal: <#${channel.id}> (${remove ? 'quitado' : 'agregado'})` : ''}`,
-            ephemeral: true,
+            flags: 64,
           });
           break;
         }

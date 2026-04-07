@@ -65,7 +65,7 @@ export async function handleReactionRoleButton(interaction: ButtonInteraction): 
   });
 
   if (!reactionRole) {
-    await interaction.reply({ content: 'Este boton de rol ya no esta configurado.', ephemeral: true });
+    await interaction.reply({ content: 'Este boton de rol ya no esta configurado.', flags: 64 });
     return;
   }
 
@@ -73,14 +73,14 @@ export async function handleReactionRoleButton(interaction: ButtonInteraction): 
   const role = interaction.guild.roles.cache.get(reactionRole.roleId);
 
   if (!role) {
-    await interaction.reply({ content: 'El rol configurado ya no existe.', ephemeral: true });
+    await interaction.reply({ content: 'El rol configurado ya no existe.', flags: 64 });
     return;
   }
 
   // Check bot can assign this role
   const botMember = interaction.guild.members.me;
   if (!botMember || role.position >= botMember.roles.highest.position) {
-    await interaction.reply({ content: 'No puedo asignar este rol (esta por encima de mi rol mas alto).', ephemeral: true });
+    await interaction.reply({ content: 'No puedo asignar este rol (esta por encima de mi rol mas alto).', flags: 64 });
     return;
   }
 
@@ -89,30 +89,30 @@ export async function handleReactionRoleButton(interaction: ButtonInteraction): 
       // Only give, never remove
       if (!member.roles.cache.has(role.id)) {
         await member.roles.add(role);
-        await interaction.reply({ content: `Se te asigno el rol **${role.name}**.`, ephemeral: true });
+        await interaction.reply({ content: `Se te asigno el rol **${role.name}**.`, flags: 64 });
       } else {
-        await interaction.reply({ content: `Ya tienes el rol **${role.name}**.`, ephemeral: true });
+        await interaction.reply({ content: `Ya tienes el rol **${role.name}**.`, flags: 64 });
       }
     } else if (reactionRole.type === 'remove') {
       // Only remove, never give
       if (member.roles.cache.has(role.id)) {
         await member.roles.remove(role);
-        await interaction.reply({ content: `Se removio el rol **${role.name}**.`, ephemeral: true });
+        await interaction.reply({ content: `Se removio el rol **${role.name}**.`, flags: 64 });
       } else {
-        await interaction.reply({ content: `No tienes el rol **${role.name}**.`, ephemeral: true });
+        await interaction.reply({ content: `No tienes el rol **${role.name}**.`, flags: 64 });
       }
     } else {
       // Toggle (default)
       if (member.roles.cache.has(role.id)) {
         await member.roles.remove(role);
-        await interaction.reply({ content: `Se removio el rol **${role.name}**.`, ephemeral: true });
+        await interaction.reply({ content: `Se removio el rol **${role.name}**.`, flags: 64 });
       } else {
         await member.roles.add(role);
-        await interaction.reply({ content: `Se agrego el rol **${role.name}**.`, ephemeral: true });
+        await interaction.reply({ content: `Se agrego el rol **${role.name}**.`, flags: 64 });
       }
     }
   } catch (err) {
     logger.error(`[ReactionRoles] Error toggling role: ${err}`);
-    await interaction.reply({ content: 'No se pudieron actualizar tus roles. Intenta de nuevo.', ephemeral: true });
+    await interaction.reply({ content: 'No se pudieron actualizar tus roles. Intenta de nuevo.', flags: 64 });
   }
 }

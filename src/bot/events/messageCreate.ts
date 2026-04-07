@@ -1,11 +1,17 @@
-import { Events, Message, EmbedBuilder, TextChannel } from 'discord.js';
+import { Events, Message, EmbedBuilder, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { BotClient } from '../../shared/types';
 import { getGuildConfig, moduleColor } from '../utils';
 import { checkAutomod } from '../modules/moderation/automod';
 import { checkAutoResponses } from '../modules/automation/autoResponses';
 import { processStickyMessage } from '../modules/sticky/stickyHandler';
 import prisma from '../../database/client';
+import { getGlobalRep } from '../modules/reputation/globalRep';
 import logger from '../../shared/logger';
+
+// Prevent concurrent reposts in the same channel
+const repostingChannels = new Set<string>();
+// Per-channel cooldown: channelId -> timestamp of last repost
+const repostCooldownMap = new Map<string, number>();
 
 export default {
   name: Events.MessageCreate,
@@ -15,14 +21,14 @@ export default {
 
     const config = await getGuildConfig(message.guild.id);
 
-    // ─── AutoMod Check (runs first, may delete message) ──
+    // --- AutoMod Check (runs first, may delete message) ---
     if (config.automodEnabled) {
       const blocked = await checkAutomod(message, config);
       if (blocked) return; // message was deleted by automod
     }
 
-    // ─── AFK System ─────────────────────────────────────
-    // Check if the sender is AFK — remove their status
+    // --- AFK System ---
+    // Check if the sender is AFK -- remove their status
     try {
       const afkStatus = await prisma.afkStatus.findUnique({
         where: { guildId_userId: { guildId: message.guild.id, userId: message.author.id } },
@@ -66,12 +72,12 @@ export default {
       } catch { /* ignore */ }
     }
 
-    // ─── Auto-Responses ─────────────────────────────────
+    // --- Auto-Responses ---
     if (config.automationEnabled) {
       await checkAutoResponses(message, config);
     }
 
-    // ─── +rep message command ────────────────────────────
+    // --- +rep message command ---
     if (config.reputationEnabled && message.content.startsWith('+rep')) {
       const args = message.content.slice(4).trim();
       const target = message.mentions.users.first();
@@ -95,13 +101,12 @@ export default {
             },
           });
 
-          const totalRep = await prisma.reputation.count({
-            where: { guildId: message.guild.id, userId: target.id },
-          });
+          const totalRep = await getGlobalRep(target.id); // was: prisma.reputation.count({
+            
 
           const embed = new EmbedBuilder()
             .setColor(moduleColor('reputation'))
-            .setDescription(`${message.author} dio **+1 rep** a ${target}${reason ? `\n**Razón:** ${reason}` : ''}`)
+            .setDescription(`${message.author} dio **+1 rep** a ${target}${reason ? `\nRazón: ${reason}` : ''}`)
             .setFooter({ text: `${target.username} ahora tiene ${totalRep} rep` })
             .setTimestamp();
 
@@ -110,15 +115,82 @@ export default {
       }
     }
 
-    // ─── Ticket Activity Tracking ────────────────────────
+    // --- Ticket Activity Tracking ---
     try {
       await prisma.ticket.updateMany({
         where: { channelId: message.channelId, status: 'open' },
         data: { lastActivityAt: new Date() },
       });
-    } catch { /* ignore — channel is not a ticket */ }
+    } catch { /* ignore -- channel is not a ticket */ }
 
-    // ─── Sticky Messages ─────────────────────────────────
+    // --- Panel Auto-Repost (Sticky Ticket Panel) ---
+    if (!repostingChannels.has(message.channelId)) {
+      try {
+        const panel = await prisma.ticketPanel.findFirst({
+          where: { channelId: message.channelId, guildId: message.guild.id, panelAutoRepost: true, messageId: { not: null } },
+        });
+        if (panel && panel.messageId) {
+          // Skip bot messages if configured to do so
+          if (message.author.bot && (panel as any).panelAutoRepostIgnoreBots !== false) {
+            // ignore
+          } else {
+            // Cooldown check (per-channel)
+            const cooldownMs = ((panel as any).panelAutoRepostCooldown ?? 5) * 1000;
+            const lastRepost = repostCooldownMap.get(message.channelId) ?? 0;
+            if (Date.now() - lastRepost >= cooldownMs) {
+              repostingChannels.add(message.channelId);
+              repostCooldownMap.set(message.channelId, Date.now());
+              try {
+                const channel = message.channel as TextChannel;
+
+                // Delete old panel message
+                const oldMsg = await channel.messages.fetch(panel.messageId).catch(() => null);
+                if (oldMsg) await oldMsg.delete().catch(() => {});
+
+                // Rebuild panel embed
+                const colorHex = (panel.embedColor || '#5865F2').replace('#', '');
+                const colorInt = parseInt(colorHex, 16) || 0x5865f2;
+                const panelEmbed = new EmbedBuilder().setColor(colorInt);
+                if (panel.title) panelEmbed.setTitle(panel.title);
+                if (panel.description) panelEmbed.setDescription(panel.description);
+                if (panel.footerText) panelEmbed.setFooter({ text: panel.footerText });
+
+                // Build the "open ticket" button (not the in-ticket management row)
+                const buttonLabel = panel.buttonLabel || 'Abrir ticket';
+                const buttonColorMap: Record<string, ButtonStyle> = {
+                  Primary: ButtonStyle.Primary,
+                  Secondary: ButtonStyle.Secondary,
+                  Success: ButtonStyle.Success,
+                  Danger: ButtonStyle.Danger,
+                };
+                const buttonStyle = buttonColorMap[panel.buttonColor || 'Primary'] ?? ButtonStyle.Primary;
+                const btn = new ButtonBuilder()
+                  .setCustomId(`ticket_create_${panel.id}`)
+                  .setLabel(buttonLabel)
+                  .setStyle(buttonStyle);
+                if (panel.buttonEmoji) btn.setEmoji(panel.buttonEmoji);
+                const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btn);
+
+                const newMsg = await channel.send({ embeds: [panelEmbed], components: [row] });
+
+                await prisma.ticketPanel.update({
+                  where: { id: panel.id },
+                  data: { messageId: newMsg.id },
+                });
+
+                logger.info(`[PanelRepost] Re-posted panel "${panel.name}" in ${message.channelId}`);
+              } catch (err) {
+                logger.error(`[PanelRepost] Failed to repost panel: ${err}`);
+              } finally {
+                repostingChannels.delete(message.channelId);
+              }
+            }
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    // --- Sticky Messages ---
     // Re-send sticky message if this channel has one (runs last, after all other checks)
     await processStickyMessage(message);
   },

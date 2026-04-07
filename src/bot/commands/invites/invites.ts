@@ -77,7 +77,7 @@ export default {
         });
 
         if (inviterStats.length === 0) {
-          await interaction.reply({ content: 'Aún no hay datos de invitaciones.', ephemeral: true });
+          await interaction.reply({ content: 'Aún no hay datos de invitaciones.', flags: 64 });
           return;
         }
 
@@ -110,7 +110,7 @@ export default {
         if (!inviteRecord) {
           await interaction.reply({
             content: `No se pudo determinar quién invitó a **${user.username}**. Puede que se haya unido por una URL de vanidad o que no se rastrearon los datos de invitación.`,
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -128,7 +128,7 @@ export default {
 
       case 'reiniciar': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
-          await interaction.reply({ content: 'Solo los administradores pueden reiniciar datos de invitaciones.', ephemeral: true });
+          await interaction.reply({ content: 'Solo los administradores pueden reiniciar datos de invitaciones.', flags: 64 });
           return;
         }
 
@@ -139,7 +139,7 @@ export default {
 
         await interaction.reply({
           content: `Se reiniciaron **${deleted.count}** registros de invitación de ${user.username}.`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }

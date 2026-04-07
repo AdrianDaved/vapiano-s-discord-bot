@@ -11,6 +11,12 @@ import {
 import prisma from '../../../database/client';
 import { moduleColor, parseDuration, formatDuration } from '../../utils';
 
+const MENTION_CHOICES = [
+  { name: '@everyone', value: '@everyone' },
+  { name: '@here', value: '@here' },
+  { name: 'Ninguno', value: 'none' },
+];
+
 export default {
   data: new SlashCommandBuilder()
     .setName('sorteo')
@@ -24,6 +30,9 @@ export default {
         .addIntegerOption((opt) => opt.setName('ganadores').setDescription('Número de ganadores (por defecto: 1)').setRequired(false).setMinValue(1).setMaxValue(20))
         .addStringOption((opt) => opt.setName('descripcion').setDescription('Descripción adicional').setRequired(false))
         .addChannelOption((opt) => opt.setName('canal').setDescription('Canal donde publicar (por defecto: actual)').setRequired(false))
+        .addStringOption((opt) =>
+          opt.setName('mencionar').setDescription('Mencionar antes del sorteo').addChoices(...MENTION_CHOICES).setRequired(false)
+        )
     )
     .addSubcommand((sub) =>
       sub
@@ -51,15 +60,16 @@ export default {
 
     switch (sub) {
       case 'iniciar': {
-        const prize = interaction.options.getString('premio', true);
-        const durationStr = interaction.options.getString('duracion', true);
+        const prize        = interaction.options.getString('premio', true);
+        const durationStr  = interaction.options.getString('duracion', true);
         const winnersCount = interaction.options.getInteger('ganadores') || 1;
-        const description = interaction.options.getString('descripcion');
-        const channel = (interaction.options.getChannel('canal') || interaction.channel) as TextChannel;
+        const description  = interaction.options.getString('descripcion');
+        const channel      = (interaction.options.getChannel('canal') || interaction.channel) as TextChannel;
+        const mentionOpt   = interaction.options.getString('mencionar') ?? 'none';
 
         const durationSec = parseDuration(durationStr);
         if (!durationSec) {
-          await interaction.reply({ content: 'Duración inválida. Usa formatos como `1h`, `1d`, `7d`.', ephemeral: true });
+          await interaction.reply({ content: 'Duración inválida. Usa formatos como `1h`, `1d`, `7d`.', flags: 64 });
           return;
         }
 
@@ -91,7 +101,14 @@ export default {
             .setDisabled(true),
         );
 
-        const msg = await channel.send({ embeds: [embed], components: [row] });
+        const mentionContent = mentionOpt !== 'none' ? mentionOpt : undefined;
+
+        const msg = await channel.send({
+          content: mentionContent,
+          allowedMentions: mentionContent ? { parse: ['everyone'] } : { parse: [] },
+          embeds: [embed],
+          components: [row],
+        });
 
         await prisma.giveaway.create({
           data: {
@@ -106,11 +123,10 @@ export default {
           },
         });
 
-        if (channel.id !== interaction.channelId) {
-          await interaction.reply({ content: `¡Sorteo iniciado en ${channel}!`, ephemeral: true });
-        } else {
-          await interaction.reply({ content: '¡Sorteo iniciado!', ephemeral: true });
-        }
+        await interaction.reply({
+          content: channel.id !== interaction.channelId ? `¡Sorteo iniciado en ${channel}!` : '¡Sorteo iniciado!',
+          flags: 64,
+        });
         break;
       }
 
@@ -122,11 +138,10 @@ export default {
         });
 
         if (!giveaway) {
-          await interaction.reply({ content: 'Sorteo no encontrado o ya finalizado.', ephemeral: true });
+          await interaction.reply({ content: 'Sorteo no encontrado o ya finalizado.', flags: 64 });
           return;
         }
 
-        // Elegir ganadores
         const winners = pickWinners(giveaway.entries, giveaway.winners);
 
         await prisma.giveaway.update({
@@ -134,14 +149,10 @@ export default {
           data: { ended: true, winnerIds: winners },
         });
 
-        // Actualizar el mensaje del sorteo
         try {
           const channel = await interaction.guild!.channels.fetch(giveaway.channelId) as TextChannel;
           const msg = await channel.messages.fetch(giveaway.messageId!);
-
-          const winnersText = winners.length > 0
-            ? winners.map((w) => `<@${w}>`).join(', ')
-            : 'No hay participantes válidos.';
+          const winnersText = winners.length > 0 ? winners.map((w) => `<@${w}>`).join(', ') : 'No hay participantes válidos.';
 
           const embed = EmbedBuilder.from(msg.embeds[0])
             .setTitle('🎉 SORTEO FINALIZADO 🎉')
@@ -157,14 +168,14 @@ export default {
           if (winners.length > 0) {
             await channel.send(`🎉 ¡Felicidades ${winnersText}! Ganaste **${giveaway.prize}**!`);
           }
-        } catch { /* el mensaje puede haber sido eliminado */ }
+        } catch { /* mensaje eliminado */ }
 
-        await interaction.reply({ content: '¡Sorteo finalizado!', ephemeral: true });
+        await interaction.reply({ content: '¡Sorteo finalizado!', flags: 64 });
         break;
       }
 
       case 'resortear': {
-        const messageId = interaction.options.getString('id', true);
+        const messageId    = interaction.options.getString('id', true);
         const newWinnerCount = interaction.options.getInteger('ganadores') || 1;
 
         const giveaway = await prisma.giveaway.findFirst({
@@ -172,19 +183,15 @@ export default {
         });
 
         if (!giveaway) {
-          await interaction.reply({ content: 'Sorteo finalizado no encontrado.', ephemeral: true });
+          await interaction.reply({ content: 'Sorteo finalizado no encontrado.', flags: 64 });
           return;
         }
 
         const winners = pickWinners(giveaway.entries, newWinnerCount);
-
-        await prisma.giveaway.update({
-          where: { id: giveaway.id },
-          data: { winnerIds: winners },
-        });
+        await prisma.giveaway.update({ where: { id: giveaway.id }, data: { winnerIds: winners } });
 
         if (winners.length === 0) {
-          await interaction.reply({ content: 'No hay participantes válidos para resortear.', ephemeral: true });
+          await interaction.reply({ content: 'No hay participantes válidos para resortear.', flags: 64 });
           return;
         }
 
@@ -195,7 +202,7 @@ export default {
           await channel.send(`🎉 ¡Nuevo(s) ganador(es) de **${giveaway.prize}**: ${winnersText}! ¡Felicidades!`);
         } catch { /* ignorar */ }
 
-        await interaction.reply({ content: `¡Resorteado! Nuevo(s) ganador(es): ${winnersText}`, ephemeral: true });
+        await interaction.reply({ content: `¡Resorteado! Nuevo(s) ganador(es): ${winnersText}`, flags: 64 });
         break;
       }
 
@@ -206,7 +213,7 @@ export default {
         });
 
         if (active.length === 0) {
-          await interaction.reply({ content: 'No hay sorteos activos.', ephemeral: true });
+          await interaction.reply({ content: 'No hay sorteos activos.', flags: 64 });
           return;
         }
 
@@ -228,7 +235,6 @@ export default {
   },
 };
 
-/** Elegir ganadores aleatorios de un array de IDs de usuario */
 function pickWinners(entries: string[], count: number): string[] {
   const shuffled = [...entries].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, shuffled.length));

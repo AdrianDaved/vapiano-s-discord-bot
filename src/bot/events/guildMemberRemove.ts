@@ -3,6 +3,7 @@ import { BotClient } from '../../shared/types';
 import { getGuildConfig, replaceTemplateVars } from '../utils';
 import prisma from '../../database/client';
 import logger from '../../shared/logger';
+import { sendAudit } from '../modules/audit/auditLogger';
 
 export default {
   name: Events.GuildMemberRemove,
@@ -75,5 +76,25 @@ export default {
         logger.error(`[Log] Error sending leave log: ${err}`);
       }
     }
+
+    // ── Audit log ────────────────────────────────────────────
+    try {
+      const auditRoles = member.roles.cache
+        .filter((r) => r.id !== guild.id)
+        .map((r) => r.toString())
+        .join(', ') || 'Ninguno';
+      const auditEmbed = new EmbedBuilder()
+        .setColor(0xed4245)
+        .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL() })
+        .setTitle('📤 Miembro salió')
+        .addFields(
+          { name: '👤 Usuario',  value: `<@${member.id}> \`${member.user.username}\``, inline: true },
+          { name: '📅 Se unió',  value: member.joinedAt ? `<t:${Math.floor(member.joinedAt.getTime() / 1000)}:R>` : 'Desconocido', inline: true },
+          { name: '🏷️ Roles',    value: auditRoles.length > 512 ? auditRoles.slice(0, 509) + '...' : auditRoles },
+        )
+        .setFooter({ text: `ID: ${member.id}` })
+        .setTimestamp();
+      await sendAudit(guild.id, auditEmbed, client, config.joinLeaveLogChannelId ?? null);
+    } catch { /* ignore */ }
   },
 };

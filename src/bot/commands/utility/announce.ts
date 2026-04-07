@@ -62,7 +62,7 @@ export default {
     const publish = interaction.options.getBoolean('publicar') ?? false;
 
     if (!channel || !('send' in channel)) {
-      await interaction.reply({ content: 'Canal inválido.', ephemeral: true });
+      await interaction.reply({ content: 'Canal inválido.', flags: 64 });
       return;
     }
 
@@ -103,7 +103,7 @@ export default {
 
     await interaction.reply({
       content: `Anuncio enviado a <#${channel.id}>.${publish && isNewsChannel ? ' (Publicado)' : ''}`,
-      ephemeral: true,
+      flags: 64,
     });
   },
 };

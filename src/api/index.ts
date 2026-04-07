@@ -25,6 +25,7 @@ import { reactionRolesRouter } from './routes/reactionroles';
 import { stickyRouter } from './routes/sticky';
 import { loggingRouter } from './routes/logging';
 import { messagesRouter } from './routes/messages';
+import { rifasRouter } from './routes/rifas';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ for (const key of requiredEnv) {
 }
 
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (nginx)
 const PORT = parseInt(process.env.API_PORT || '3001', 10);
 
 // ─── Security Middleware ─────────────────────────────────
@@ -61,7 +63,7 @@ app.use(cors({
   origin: process.env.DASHBOARD_URL || 'http://localhost:5173',
   credentials: true,
 }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '512kb' }));
 app.use(cookieParser());
 app.use(session({
   secret: process.env.SESSION_SECRET!,
@@ -101,6 +103,7 @@ app.use('/api/guilds/:guildId/reactionroles', reactionRolesRouter);
 app.use('/api/guilds/:guildId/sticky', stickyRouter);
 app.use('/api/guilds/:guildId/logging', loggingRouter);
 app.use('/api/guilds/:guildId/messages', messagesRouter);
+app.use('/api/guilds/:guildId/rifas', rifasRouter);
 
 // Health check
 app.get('/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

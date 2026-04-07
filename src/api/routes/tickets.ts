@@ -106,10 +106,11 @@ ticketsRouter.get('/panels', asyncHandler(async (req: AuthRequest, res: Response
  * GET /api/guilds/:guildId/tickets/panels/:id — Get single panel
  */
 ticketsRouter.get('/panels/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
+  const guildId = req.params.guildId as string;
 
-  const panel = await prisma.ticketPanel.findUnique({
-    where: { id: id as string },
+  const panel = await prisma.ticketPanel.findFirst({
+    where: { id, guildId },
     include: {
       _count: { select: { tickets: true, transcripts: true } },
     },
@@ -148,7 +149,7 @@ ticketsRouter.post('/panels', validate(ticketPanelCreateSchema) as any, asyncHan
  * PATCH /api/guilds/:guildId/tickets/panels/:id — Update a panel
  */
 ticketsRouter.patch('/panels/:id', validate(ticketPanelUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const { id, guildId } = req.params;
   const data = req.body;
 
   if (Object.keys(data).length === 0) {
@@ -157,7 +158,7 @@ ticketsRouter.patch('/panels/:id', validate(ticketPanelUpdateSchema) as any, asy
   }
 
   const panel = await prisma.ticketPanel.update({
-    where: { id: id as string },
+    where: { id: id as string, guildId: guildId as string },
     data,
     include: { _count: { select: { tickets: true, transcripts: true } } },
   });
@@ -254,9 +255,15 @@ ticketsRouter.post('/panels/deploy', asyncHandler(async (req: AuthRequest, res: 
  * DELETE /api/guilds/:guildId/tickets/panels/:id — Delete a panel
  */
 ticketsRouter.delete('/panels/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
+  const guildId = req.params.guildId as string;
 
-  await prisma.ticketPanel.delete({ where: { id: id as string } });
+  const panel = await prisma.ticketPanel.findFirst({ where: { id, guildId } });
+  if (!panel) {
+    res.status(404).json({ error: 'Panel not found' });
+    return;
+  }
+  await prisma.ticketPanel.delete({ where: { id } });
   res.json({ success: true });
 }));
 
@@ -303,12 +310,14 @@ ticketsRouter.get('/transcripts', asyncHandler(async (req: AuthRequest, res: Res
  * GET /api/guilds/:guildId/tickets/transcripts/:id — Get transcript messages (JSON)
  */
 ticketsRouter.get('/transcripts/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
+  const guildId = req.params.guildId as string;
 
   const transcript = await prisma.ticketTranscript.findUnique({
-    where: { id: id as string },
+    where: { id },
     select: {
       id: true,
+      guildId: true,
       ticketId: true,
       userId: true,
       closedBy: true,
@@ -319,7 +328,7 @@ ticketsRouter.get('/transcripts/:id', asyncHandler(async (req: AuthRequest, res:
     },
   });
 
-  if (!transcript) {
+  if (!transcript || transcript.guildId !== guildId) {
     res.status(404).json({ error: 'Transcript not found' });
     return;
   }
@@ -331,14 +340,15 @@ ticketsRouter.get('/transcripts/:id', asyncHandler(async (req: AuthRequest, res:
  * GET /api/guilds/:guildId/tickets/transcripts/:id/html — Download HTML transcript
  */
 ticketsRouter.get('/transcripts/:id/html', asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
+  const guildId = req.params.guildId as string;
 
   const transcript = await prisma.ticketTranscript.findUnique({
-    where: { id: id as string },
-    select: { id: true, htmlContent: true, ticket: { select: { number: true } } },
+    where: { id },
+    select: { id: true, guildId: true, htmlContent: true, ticket: { select: { number: true } } },
   });
 
-  if (!transcript) {
+  if (!transcript || transcript.guildId !== guildId) {
     res.status(404).json({ error: 'Transcript not found' });
     return;
   }
@@ -361,10 +371,11 @@ ticketsRouter.get('/transcripts/:id/html', asyncHandler(async (req: AuthRequest,
  * GET /api/guilds/:guildId/tickets/:id — Get single ticket with panel and transcripts
  */
 ticketsRouter.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
+  const guildId = req.params.guildId as string;
 
   const ticket = await prisma.ticket.findUnique({
-    where: { id: id as string },
+    where: { id },
     include: {
       panel: { select: { id: true, name: true, title: true } },
       transcripts: {
@@ -374,7 +385,7 @@ ticketsRouter.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) =
     },
   });
 
-  if (!ticket) {
+  if (!ticket || ticket.guildId !== guildId) {
     res.status(404).json({ error: 'Ticket not found' });
     return;
   }
@@ -386,7 +397,8 @@ ticketsRouter.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) =
  * PATCH /api/guilds/:guildId/tickets/:id — Update ticket (priority, topic, status)
  */
 ticketsRouter.patch('/:id', validate(ticketUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
+  const guildId = req.params.guildId as string;
   const { priority, topic, status } = req.body;
 
   const data: Record<string, any> = {};
@@ -402,8 +414,14 @@ ticketsRouter.patch('/:id', validate(ticketUpdateSchema) as any, asyncHandler(as
     return;
   }
 
+  const existing = await prisma.ticket.findUnique({ where: { id } });
+  if (!existing || existing.guildId !== guildId) {
+    res.status(404).json({ error: 'Ticket not found' });
+    return;
+  }
+
   const ticket = await prisma.ticket.update({
-    where: { id: id as string },
+    where: { id },
     data,
     include: { panel: { select: { id: true, name: true, title: true } } },
   });

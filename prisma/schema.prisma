@@ -28,6 +28,12 @@ model GuildConfig {
   farewellEnabled   Boolean @default(false)
   reputationEnabled Boolean @default(false)
   giveawayEnabled   Boolean @default(false)
+  rifaEnabled        Boolean @default(true)
+  rifaCategoryId     String? @default("1489245171953434805")
+  rifaPanelChannelId String?
+  rifaPanelMessageId String?
+  rifaLogChannelId   String?
+  rifaStaffRoleIds   String[] @default([])
   suggestionsEnabled Boolean @default(false)
   starboardEnabled  Boolean @default(false)
   afkEnabled        Boolean @default(true)
@@ -47,6 +53,7 @@ model GuildConfig {
 
   // Moderation
   modLogChannelId     String?
+  warnLogChannelId    String? // dedicated channel for warnings
   messageLogChannelId String?
   joinLeaveLogChannelId String?
   auditLogChannelId   String? // server changes: roles, channels, etc.
@@ -106,6 +113,7 @@ model GuildConfig {
   polls         Poll[]
   reputations   Reputation[]
   giveaways     Giveaway[]
+  rifas          Rifa[]
   suggestions   Suggestion[]
   starboardEntries StarboardEntry[]
   afkStatuses    AfkStatus[]
@@ -235,6 +243,7 @@ model Poll {
   votes     Json       @default("{}") // { optionIndex: [userId, ...] }
   creatorId String
   endsAt    DateTime?
+  allowedRoleIds String[]   // empty = everyone can vote
   ended     Boolean    @default(false)
   createdAt DateTime @default(now())
 
@@ -318,6 +327,10 @@ model TicketPanel {
   feedbackMessage String? @default("How would you rate the support you received?")
 
   // Auto-close
+  panelAutoRepost         Boolean @default(false) // auto-repost panel when a message is sent in channel
+  panelAutoRepostCooldown Int     @default(5)     // seconds between reposts (prevents spam)
+  panelAutoRepostIgnoreBots Boolean @default(true) // ignore bot messages for repost trigger
+
   autoCloseHours Int @default(0) // hours of inactivity before auto-close (0 = disabled)
 
   createdAt   DateTime @default(now())
@@ -504,4 +517,31 @@ model Reminder {
   @@index([remindAt, fired])
   @@index([userId, guildId])
   @@map("reminders")
+}
+
+// ─── Rifa Module ─────────────────────────────────────────────
+model Rifa {
+  id             String   @id @default(uuid())
+  guildId        String
+  guild          GuildConfig @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  channelId      String
+  messageId      String?
+  hostId         String
+  prize          String
+  description    String?
+  maxSlots       Int
+  participants   String[] @default([])
+  winnerIds      String[] @default([])
+  winnersCount   Int      @default(1)
+  endsAt         DateTime?
+  ended          Boolean  @default(false)
+  cancelled      Boolean  @default(false)
+  autoDrawOnFull Boolean  @default(false)
+  allowSelfJoin  Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+
+  @@index([guildId])
+  @@index([endsAt])
+  @@map("rifas")
 }

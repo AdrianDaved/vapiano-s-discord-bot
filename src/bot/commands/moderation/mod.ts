@@ -110,7 +110,7 @@ export default {
         const reason = interaction.options.getString("razon") || "Sin razón proporcionada";
 
         if (user.id === interaction.user.id) {
-          await interaction.reply({ content: "No puedes advertirte a ti mismo.", ephemeral: true });
+          await interaction.reply({ content: "No puedes advertirte a ti mismo.", flags: 64 });
           return;
         }
 
@@ -151,7 +151,14 @@ export default {
           // DMs cerrados
         }
 
-        await sendModLog(interaction, config, embed);
+        // Send to dedicated warn channel if configured, otherwise fall back to modLog
+        const warnChannelId = (config as any).warnLogChannelId ?? config.modLogChannelId;
+        if (warnChannelId && interaction.guild) {
+          try {
+            const warnCh = interaction.guild.channels.cache.get(warnChannelId) as TextChannel;
+            if (warnCh) await warnCh.send({ embeds: [embed] });
+          } catch { /* channel unavailable */ }
+        }
         break;
       }
 
@@ -164,7 +171,7 @@ export default {
         });
 
         if (warnings.length === 0) {
-          await interaction.reply({ content: `${user.username} no tiene advertencias.`, ephemeral: true });
+          await interaction.reply({ content: `${user.username} no tiene advertencias.`, flags: 64 });
           return;
         }
 
@@ -180,13 +187,13 @@ export default {
           .setFooter({ text: `${warnings.length} advertencia(s) en total` })
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
 
       case "limpiar-advertencias": {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
-          await interaction.reply({ content: "Solo los administradores pueden borrar advertencias.", ephemeral: true });
+          await interaction.reply({ content: "Solo los administradores pueden borrar advertencias.", flags: 64 });
           return;
         }
 
@@ -195,7 +202,7 @@ export default {
 
         await interaction.reply({
           content: `Se borraron **${deleted.count}** advertencia(s) de ${user.username}.`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }
@@ -207,23 +214,23 @@ export default {
         const durationSec = parseDuration(durationStr);
 
         if (!durationSec || durationSec < 1) {
-          await interaction.reply({ content: "Duración inválida. Usa formatos como `1h`, `30m`, `1d`.", ephemeral: true });
+          await interaction.reply({ content: "Duración inválida. Usa formatos como `1h`, `30m`, `1d`.", flags: 64 });
           return;
         }
 
         if (durationSec > 28 * 86400) {
-          await interaction.reply({ content: "La duración máxima del silencio es de 28 días.", ephemeral: true });
+          await interaction.reply({ content: "La duración máxima del silencio es de 28 días.", flags: 64 });
           return;
         }
 
         const member = interaction.guild!.members.cache.get(user.id);
         if (!member) {
-          await interaction.reply({ content: "Usuario no encontrado en este servidor.", ephemeral: true });
+          await interaction.reply({ content: "Usuario no encontrado en este servidor.", flags: 64 });
           return;
         }
 
         if (!member.moderatable) {
-          await interaction.reply({ content: "No puedo silenciar a este usuario (jerarquía de roles).", ephemeral: true });
+          await interaction.reply({ content: "No puedo silenciar a este usuario (jerarquía de roles).", flags: 64 });
           return;
         }
 
@@ -261,7 +268,7 @@ export default {
         const user = interaction.options.getUser("usuario", true);
         const member = interaction.guild!.members.cache.get(user.id);
         if (!member) {
-          await interaction.reply({ content: "Usuario no encontrado en este servidor.", ephemeral: true });
+          await interaction.reply({ content: "Usuario no encontrado en este servidor.", flags: 64 });
           return;
         }
 
@@ -286,12 +293,12 @@ export default {
 
         const member = interaction.guild!.members.cache.get(user.id);
         if (!member) {
-          await interaction.reply({ content: "Usuario no encontrado en este servidor.", ephemeral: true });
+          await interaction.reply({ content: "Usuario no encontrado en este servidor.", flags: 64 });
           return;
         }
 
         if (!member.kickable) {
-          await interaction.reply({ content: "No puedo expulsar a este usuario (jerarquía de roles).", ephemeral: true });
+          await interaction.reply({ content: "No puedo expulsar a este usuario (jerarquía de roles).", flags: 64 });
           return;
         }
 
@@ -337,7 +344,7 @@ export default {
 
         const member = interaction.guild!.members.cache.get(user.id);
         if (member && !member.bannable) {
-          await interaction.reply({ content: "No puedo banear a este usuario (jerarquía de roles).", ephemeral: true });
+          await interaction.reply({ content: "No puedo banear a este usuario (jerarquía de roles).", flags: 64 });
           return;
         }
 
@@ -406,13 +413,13 @@ export default {
         const durationSec = parseDuration(durationStr);
 
         if (!durationSec) {
-          await interaction.reply({ content: "Duración inválida.", ephemeral: true });
+          await interaction.reply({ content: "Duración inválida.", flags: 64 });
           return;
         }
 
         const member = interaction.guild!.members.cache.get(user.id);
         if (member && !member.bannable) {
-          await interaction.reply({ content: "No puedo banear a este usuario.", ephemeral: true });
+          await interaction.reply({ content: "No puedo banear a este usuario.", flags: 64 });
           return;
         }
 
@@ -456,7 +463,7 @@ export default {
           });
           await interaction.reply({ content: `El usuario \`${userId}\` ha sido desbaneado.` });
         } catch {
-          await interaction.reply({ content: "No se pudo desbanear a ese usuario. Verifica que el ID sea correcto.", ephemeral: true });
+          await interaction.reply({ content: "No se pudo desbanear a ese usuario. Verifica que el ID sea correcto.", flags: 64 });
         }
         break;
       }
@@ -474,7 +481,7 @@ export default {
           .setTimestamp();
 
         await channel.send({ embeds: [embed] });
-        await interaction.reply({ content: `<#${channel.id}> ha sido bloqueado.`, ephemeral: true });
+        await interaction.reply({ content: `<#${channel.id}> ha sido bloqueado.`, flags: 64 });
         break;
       }
 
@@ -490,7 +497,7 @@ export default {
           .setTimestamp();
 
         await channel.send({ embeds: [embed] });
-        await interaction.reply({ content: `<#${channel.id}> ha sido desbloqueado.`, ephemeral: true });
+        await interaction.reply({ content: `<#${channel.id}> ha sido desbloqueado.`, flags: 64 });
         break;
       }
 
@@ -503,7 +510,7 @@ export default {
         });
 
         if (actions.length === 0) {
-          await interaction.reply({ content: `No hay historial de moderación para ${user.username}.`, ephemeral: true });
+          await interaction.reply({ content: `No hay historial de moderación para ${user.username}.`, flags: 64 });
           return;
         }
 
@@ -529,7 +536,7 @@ export default {
           .setDescription(lines.join("\n\n"))
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
     }

@@ -11,130 +11,106 @@ import { BotClient } from '../../../shared/types';
 import { moduleColor } from '../../utils';
 
 const moduleEmojis: Record<string, string> = {
-  invites: '📨',
-  moderation: '🛡️',
-  automod: '🤖',
-  tickets: '🎫',
-  automation: '⚡',
-  reputation: '⭐',
-  giveaway: '🎉',
-  suggestions: '💡',
-  config: '⚙️',
-  utility: '🔧',
-  backup: '💾',
-  social: '👥',
-  sticky: '📌',
-  afk: '💤',
-  starboard: '⭐',
-  logging: '📝',
+  invites: '📨', moderation: '🛡️', automod: '🤖', tickets: '🎫',
+  automation: '⚡', reputation: '⭐', giveaway: '🎉', suggestions: '💡',
+  config: '⚙️', utility: '🔧', backup: '💾', social: '👥',
+  sticky: '📌', afk: '💤', starboard: '✨', logging: '📝',
 };
 
 const moduleNames: Record<string, string> = {
-  invites: 'Invitaciones',
-  moderation: 'Moderación',
-  automod: 'AutoMod',
-  tickets: 'Tickets',
-  automation: 'Automatización',
-  reputation: 'Reputación',
-  giveaway: 'Sorteos',
-  suggestions: 'Sugerencias',
-  config: 'Configuración',
-  utility: 'Utilidades',
-  backup: 'Respaldos',
-  social: 'Social',
-  sticky: 'Mensajes Fijos',
-  afk: 'AFK',
-  starboard: 'Starboard',
-  logging: 'Registros',
+  invites: 'Invitaciones', moderation: 'Moderación', automod: 'AutoMod',
+  tickets: 'Tickets', automation: 'Automatización', reputation: 'Reputación',
+  giveaway: 'Sorteos', suggestions: 'Sugerencias', config: 'Configuración',
+  utility: 'Utilidades', backup: 'Respaldos', social: 'Social',
+  sticky: 'Mensajes Fijos', afk: 'AFK', starboard: 'Starboard', logging: 'Registros',
 };
 
-/** Static detailed descriptions for each command and its subcommands */
 const commandDetails: Record<string, { desc: string; subs?: Record<string, string> }> = {
-  // ─── Moderación ─────────────────────────
+  // ─── Moderación ─────────────────────────────────────────────────────────
   ban: {
-    desc: 'Banear a un usuario del servidor',
+    desc: 'Banear permanentemente a un usuario. El log se envía automáticamente al canal de bans con el moderador correcto.',
   },
   limpiar: {
-    desc: 'Eliminar mensajes de un canal (1-100)',
+    desc: 'Eliminar entre 1 y 100 mensajes de un canal.',
   },
   mod: {
     desc: 'Comandos de moderación avanzada',
     subs: {
-      advertir: 'Advertir a un usuario',
-      advertencias: 'Ver advertencias de un usuario',
-      'quitar-advertencia': 'Eliminar una advertencia específica',
-      mute: 'Silenciar a un usuario temporalmente',
-      unmute: 'Quitar el silencio a un usuario',
+      advertir: 'Advertir a un usuario (se registra y puede enviarse al canal de advertencias)',
+      advertencias: 'Ver el historial de advertencias de un usuario',
+      'quitar-advertencia': 'Eliminar una advertencia específica por ID',
+      mute: 'Silenciar a un usuario temporalmente (timeout)',
+      unmute: 'Quitar el silencio/timeout a un usuario',
       kick: 'Expulsar a un usuario del servidor',
-      historial: 'Ver el historial de moderación de un usuario',
+      historial: 'Ver el historial de acciones de moderación de un usuario',
     },
   },
   purgar: {
-    desc: 'Eliminar mensajes masivamente con filtros (usuario, bots, embeds, archivos, etc.)',
+    desc: 'Eliminar mensajes masivamente con filtros: por usuario, solo bots, solo embeds, solo archivos, etc.',
   },
   rolreaccion: {
-    desc: 'Gestionar roles por botones de reacción',
+    desc: 'Gestionar paneles de roles por botón de reacción',
     subs: {
       crear: 'Crear un nuevo panel de roles por reacción',
-      agregar: 'Agregar un botón de rol a un panel',
+      agregar: 'Agregar un botón de rol a un panel existente',
       quitar: 'Quitar un botón de rol de un panel',
-      lista: 'Listar todos los paneles de roles por reacción',
+      lista: 'Listar todos los paneles del servidor',
     },
   },
   rol: {
-    desc: 'Gestionar roles de los miembros',
+    desc: 'Gestionar roles de los miembros del servidor',
     subs: {
       dar: 'Dar un rol a un miembro',
       quitar: 'Quitar un rol a un miembro',
       todos: 'Dar o quitar un rol a todos los miembros',
-      info: 'Ver información sobre un rol',
+      info: 'Ver información detallada sobre un rol',
     },
   },
   modolento: {
-    desc: 'Establecer o quitar el modo lento de un canal',
+    desc: 'Establecer o quitar el modo lento de un canal (0 = desactivar).',
   },
   verificacion: {
-    desc: 'Verificar un usuario: asigna rol, anuncia y guarda transcripción',
+    desc: 'Verificar un usuario: asigna rol de verificado, anuncia y puede guardar transcripción.',
   },
 
-  // ─── Utilidades ─────────────────────────
+  // ─── Utilidades ─────────────────────────────────────────────────────────
   ayuda: {
-    desc: 'Ver todos los comandos e información del bot',
+    desc: 'Centro de ayuda interactivo con todos los módulos y comandos del bot.',
   },
   anunciar: {
-    desc: 'Enviar un anuncio formateado con embed, menciones e imagen',
+    desc: 'Enviar un anuncio con embed personalizado. Soporta mención de rol, @everyone, imagen y auto-publicación en canales de anuncios.',
   },
   embed: {
     desc: 'Crear y gestionar embeds personalizados',
     subs: {
-      enviar: 'Enviar un embed personalizado a un canal',
-      editar: 'Editar un embed existente enviado por el bot',
+      enviar: 'Enviar un embed personalizado. Opción `mencionar` para @everyone/@here fuera del embed.',
+      editar: 'Editar un embed existente enviado por el bot (por ID de mensaje)',
     },
   },
   hablar: {
-    desc: 'Hacer que el bot envíe un mensaje (texto e imágenes) en un canal',
+    desc: 'Hacer que el bot envíe un mensaje de texto e imágenes en cualquier canal.',
   },
   snipe: {
-    desc: 'Ver el último mensaje eliminado en un canal',
+    desc: 'Ver el último mensaje eliminado en el canal actual.',
   },
   recordatorio: {
-    desc: 'Gestionar recordatorios personales',
+    desc: 'Gestionar recordatorios personales con tiempo relativo',
     subs: {
-      crear: 'Crear un nuevo recordatorio',
+      crear: 'Crear un nuevo recordatorio (ej. 30m, 2h, 1d)',
       lista: 'Ver tus recordatorios activos',
-      eliminar: 'Eliminar un recordatorio',
+      eliminar: 'Eliminar un recordatorio por ID',
     },
   },
   servidor: {
-    desc: 'Ver información detallada sobre el servidor',
+    desc: 'Ver información detallada sobre el servidor: miembros, roles, canales, boost, etc.',
   },
   usuario: {
-    desc: 'Ver información sobre un usuario',
+    desc: 'Ver información de un usuario: roles, fecha de entrada, creación de cuenta, etc.',
   },
 
-  // ─── Mensajes Fijos ─────────────────────
+  // ─── Mensajes Fijos ──────────────────────────────────────────────────────
   fijo: {
-    desc: 'Gestionar mensajes fijos que se mantienen al final del canal',
+    desc: 'Mensajes fijos que se reenvían al final del canal cada vez que alguien escribe.',
     subs: {
       establecer: 'Establecer un mensaje fijo en un canal',
       quitar: 'Quitar el mensaje fijo de un canal',
@@ -142,115 +118,115 @@ const commandDetails: Record<string, { desc: string; subs?: Record<string, strin
     },
   },
 
-  // ─── Social / AFK ──────────────────────
+  // ─── Social / AFK ────────────────────────────────────────────────────────
   afk: {
-    desc: 'Gestionar tu estado AFK',
+    desc: 'Gestionar tu estado AFK. El bot notifica a quienes te mencionen y te retira el AFK al escribir.',
     subs: {
       establecer: 'Ponerte como AFK con una razón opcional',
-      quitar: 'Quitar tu estado AFK',
+      quitar: 'Quitar tu estado AFK manualmente',
     },
   },
   sorteo: {
-    desc: 'Sistema de sorteos',
+    desc: 'Sistema completo de sorteos con botón de participación',
     subs: {
-      iniciar: 'Iniciar un nuevo sorteo',
-      finalizar: 'Finalizar un sorteo antes de tiempo',
-      relista: 'Volver a sortear ganadores',
-      lista: 'Listar sorteos activos',
+      iniciar: 'Iniciar un sorteo. Opción `mencionar` para @everyone/@here antes del sorteo.',
+      finalizar: 'Finalizar un sorteo antes de tiempo y anunciar ganadores',
+      resortear: 'Elegir nuevos ganadores de un sorteo ya finalizado',
+      lista: 'Ver todos los sorteos activos del servidor',
     },
   },
   sugerencia: {
-    desc: 'Sistema de sugerencias',
+    desc: 'Sistema de sugerencias de la comunidad',
     subs: {
-      crear: 'Enviar una nueva sugerencia',
-      aprobar: 'Aprobar una sugerencia (solo mods)',
-      rechazar: 'Rechazar una sugerencia (solo mods)',
-      estado: 'Ver el estado de una sugerencia',
+      crear: 'Enviar una nueva sugerencia al canal de sugerencias',
+      aprobar: 'Aprobar una sugerencia (solo moderadores)',
+      rechazar: 'Rechazar una sugerencia (solo moderadores)',
+      estado: 'Ver el estado actual de una sugerencia',
     },
   },
 
-  // ─── Automatización ─────────────────────
+  // ─── Automatización ──────────────────────────────────────────────────────
   autorespuesta: {
-    desc: 'Gestionar autorespuestas automáticas',
+    desc: 'Respuestas automáticas del bot ante ciertos mensajes',
     subs: {
-      agregar: 'Agregar una autorespuesta',
-      lista: 'Listar todas las autorespuestas',
+      agregar: 'Agregar una autorespuesta (exacta, contiene, inicia con, regex)',
+      lista: 'Listar todas las autorespuestas activas',
       eliminar: 'Eliminar una autorespuesta',
     },
   },
   encuesta: {
-    desc: 'Crear y gestionar encuestas',
+    desc: 'Sistema de encuestas con barras de progreso en tiempo real',
     subs: {
-      crear: 'Crear una nueva encuesta',
-      finalizar: 'Finalizar una encuesta activa',
+      crear: 'Crear encuesta. Opciones: `mencionar` (@everyone/@here), `rol1`-`rol5` para restringir quién vota.',
+      finalizar: 'Finalizar una encuesta activa por ID',
     },
   },
   programar: {
-    desc: 'Gestionar mensajes programados (cron)',
+    desc: 'Mensajes programados con expresiones cron',
     subs: {
-      agregar: 'Agregar un mensaje programado',
+      agregar: 'Programar un mensaje recurrente (ej. "0 9 * * 1" = cada lunes a las 9h)',
       lista: 'Listar todos los mensajes programados',
       eliminar: 'Eliminar un mensaje programado',
     },
   },
 
-  // ─── Configuración ─────────────────────
+  // ─── Configuración ───────────────────────────────────────────────────────
   configuracion: {
-    desc: 'Configuración general del bot',
+    desc: 'Configuración general del bot para el servidor',
     subs: {
-      'modulo activar': 'Activar un módulo',
-      'modulo desactivar': 'Desactivar un módulo',
-      'modulo estado': 'Ver el estado de los módulos',
+      'modulo activar': 'Activar un módulo del bot',
+      'modulo desactivar': 'Desactivar un módulo del bot',
+      'modulo estado': 'Ver el estado de todos los módulos',
     },
   },
 
-  // ─── Invitaciones ──────────────────────
+  // ─── Invitaciones ────────────────────────────────────────────────────────
   invitaciones: {
-    desc: 'Seguimiento de invitaciones',
+    desc: 'Sistema de seguimiento de invitaciones',
     subs: {
       info: 'Ver estadísticas de invitaciones de un usuario',
-      ranking: 'Ver el ranking de invitaciones',
-      quien: 'Ver quién invitó a un usuario',
-      reiniciar: 'Reiniciar las invitaciones de un usuario',
+      ranking: 'Ver el ranking de invitaciones del servidor',
+      quien: 'Ver quién invitó a un usuario específico',
+      reiniciar: 'Reiniciar el contador de invitaciones de un usuario',
     },
   },
 
-  // ─── Respaldos ─────────────────────────
+  // ─── Respaldos ───────────────────────────────────────────────────────────
   respaldo: {
-    desc: 'Gestión de respaldos del servidor',
+    desc: 'Respaldos completos de la estructura del servidor',
     subs: {
-      crear: 'Crear un respaldo del servidor',
-      lista: 'Listar todos los respaldos',
-      restaurar: 'Restaurar un respaldo (destructivo)',
-      eliminar: 'Eliminar un respaldo',
+      crear: 'Crear un respaldo de canales, roles y configuración',
+      lista: 'Listar todos los respaldos disponibles',
+      restaurar: 'Restaurar un respaldo (elimina y recrea canales/roles)',
+      eliminar: 'Eliminar un respaldo por ID',
     },
   },
 
-  // ─── Reputación ────────────────────────
+  // ─── Reputación ──────────────────────────────────────────────────────────
   rep: {
-    desc: 'Dar reputación a un usuario (atajo rápido)',
+    desc: 'Atajo rápido: dar +1 rep a un usuario mencionado. También funciona con `+rep @usuario` en el chat.',
   },
   reputacion: {
-    desc: 'Gestionar reputación',
+    desc: 'Sistema de reputación entre miembros',
     subs: {
-      ver: 'Ver la reputación de un usuario',
-      ranking: 'Ver el ranking de reputación',
-      historial: 'Ver historial de rep dada/recibida',
+      ver: 'Ver la reputación total de un usuario',
+      ranking: 'Ver el ranking de reputación del servidor',
+      historial: 'Ver historial de rep dada y recibida',
     },
   },
 
-  // ─── Tickets ───────────────────────────
+  // ─── Tickets ─────────────────────────────────────────────────────────────
   ticket: {
-    desc: 'Sistema completo de tickets',
+    desc: 'Sistema completo de tickets con paneles configurables desde el dashboard',
     subs: {
-      panel: 'Gestionar paneles de tickets',
-      cerrar: 'Cerrar un ticket',
+      panel: 'Gestionar paneles de tickets (crear, editar, eliminar, desplegar)',
+      cerrar: 'Cerrar el ticket actual',
       añadir: 'Añadir un usuario al ticket',
       quitar: 'Quitar un usuario del ticket',
-      prioridad: 'Cambiar la prioridad del ticket',
-      renombrar: 'Renombrar el ticket',
-      reclamar: 'Reclamar un ticket',
-      transferir: 'Transferir un ticket a otro staff',
+      prioridad: 'Cambiar la prioridad (baja/media/alta/urgente)',
+      renombrar: 'Renombrar el canal del ticket',
+      reclamar: 'Reclamar el ticket como staff',
+      transferir: 'Transferir el ticket a otro miembro del staff',
     },
   },
 };
@@ -260,10 +236,7 @@ export default {
     .setName('ayuda')
     .setDescription('Ver todos los comandos e información del bot')
     .addStringOption((opt) =>
-      opt
-        .setName('comando')
-        .setDescription('Obtener ayuda detallada de un comando específico')
-        .setRequired(false)
+      opt.setName('comando').setDescription('Obtener ayuda detallada de un comando específico').setRequired(false)
     ),
   cooldown: 5,
   module: 'utility',
@@ -272,19 +245,18 @@ export default {
     const client = interaction.client as BotClient;
     const specificCommand = interaction.options.getString('comando');
 
-    // ─── Specific command help ────────────────────────
     if (specificCommand) {
       const cmdName = specificCommand.toLowerCase().replace('/', '');
       const command = client.commands.get(cmdName);
       const details = commandDetails[cmdName];
 
       if (!command) {
-        await interaction.reply({ content: `Comando \`/${cmdName}\` no encontrado.`, ephemeral: true });
+        await interaction.reply({ content: `Comando \`/${cmdName}\` no encontrado.`, flags: 64 });
         return;
       }
 
-      const mod = command.module || 'utility';
-      const emoji = moduleEmojis[mod] || '📦';
+      const mod     = command.module || 'utility';
+      const emoji   = moduleEmojis[mod] || '📦';
       const modName = moduleNames[mod] || mod;
 
       const embed = new EmbedBuilder()
@@ -296,46 +268,30 @@ export default {
           { name: '⏱️ Cooldown', value: `${command.cooldown || 3}s`, inline: true },
         );
 
-      // Show subcommands if available
       if (details?.subs) {
         const subsText = Object.entries(details.subs)
           .map(([sub, desc]) => `\`/${cmdName} ${sub}\`\n╰ ${desc}`)
           .join('\n\n');
-        embed.addFields({ name: '📋 Subcomandos', value: subsText, inline: false });
+        embed.addFields({ name: '📋 Subcomandos', value: subsText });
       }
 
-      // Show permissions if any
-      if (command.permissions && command.permissions.length > 0) {
-        embed.addFields({
-          name: '🔒 Permisos requeridos',
-          value: 'Requiere permisos de administración/moderación',
-          inline: false,
-        });
+      if (command.permissions?.length) {
+        embed.addFields({ name: '🔒 Permisos requeridos', value: 'Requiere permisos de administración/moderación' });
       }
 
       embed.setFooter({ text: 'Usa /ayuda para ver todos los módulos' }).setTimestamp();
-
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: 64 });
       return;
     }
 
-    // ─── Main help view ───────────────────────────────
-
-    // Organize commands by module
-    const modules: Record<string, { name: string; description: string; hasSubs: boolean }[]> = {};
-
+    // Organizar comandos por módulo
+    const modules: Record<string, { name: string; description: string }[]> = {};
     for (const [, cmd] of client.commands) {
       const mod = cmd.module || 'utility';
       if (!modules[mod]) modules[mod] = [];
-      const details = commandDetails[cmd.data.name];
-      modules[mod].push({
-        name: `/${cmd.data.name}`,
-        description: cmd.data.description,
-        hasSubs: !!(details?.subs && Object.keys(details.subs).length > 0),
-      });
+      modules[mod].push({ name: `/${cmd.data.name}`, description: cmd.data.description });
     }
 
-    // Sort modules in a logical order
     const moduleOrder = [
       'moderation', 'utility', 'sticky', 'social', 'afk',
       'automation', 'config', 'invites', 'tickets',
@@ -349,18 +305,11 @@ export default {
       return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     });
 
-    // Build fields for main embed
-    const fields = sortedModules.map(([mod, cmds]) => {
-      const emoji = moduleEmojis[mod] || '📦';
-      const cmdList = cmds.map((c) => `\`${c.name}\``).join(' ');
-      return {
-        name: `${emoji} ${moduleNames[mod] || mod.charAt(0).toUpperCase() + mod.slice(1)} (${cmds.length})`,
-        value: cmdList,
-        inline: false,
-      };
-    });
-
-    const totalCommands = client.commands.size;
+    const fields = sortedModules.map(([mod, cmds]) => ({
+      name: `${moduleEmojis[mod] || '📦'} ${moduleNames[mod] || mod} (${cmds.length})`,
+      value: cmds.map((c) => `\`${c.name}\``).join(' '),
+      inline: false,
+    }));
 
     const mainEmbed = new EmbedBuilder()
       .setColor(moduleColor('default'))
@@ -370,33 +319,30 @@ export default {
       })
       .setDescription(
         `Bienvenido al centro de ayuda de **${client.user?.username || 'Vapiano Bot'}**.\n\n` +
-        `📌 Usa el **menú desplegable** para ver los comandos de cada módulo en detalle.\n` +
-        `📌 Usa \`/ayuda comando:<nombre>\` para ver detalles y subcomandos de un comando específico.\n` +
-        `📌 También puedes usar \`+rep @usuario\` en el chat para dar reputación.\n\n` +
-        `**Dashboard**: Gestiona tu servidor desde el panel web con todas las opciones.`
+        `📌 Selecciona un módulo en el **menú de abajo** para ver sus comandos en detalle.\n` +
+        `📌 Usa \`/ayuda comando:<nombre>\` para ver subcomandos y detalles de un comando.\n` +
+        `📌 Escribe \`+rep @usuario\` en el chat para dar reputación rápidamente.\n\n` +
+        `💡 **Consejo:** Varios comandos tienen la opción \`mencionar\` para enviar @everyone o @here fuera del embed.`
       )
       .addFields(fields)
-      .setFooter({ text: `${totalCommands} comandos en ${sortedModules.length} módulos • Selecciona un módulo ↓` })
+      .setFooter({ text: `${client.commands.size} comandos en ${sortedModules.length} módulos • Selecciona un módulo ↓` })
       .setTimestamp();
 
-    // Build select menu
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('ayuda_modulo')
       .setPlaceholder('📂 Selecciona un módulo para ver detalles...')
       .addOptions(
         sortedModules.map(([mod, cmds]) => ({
           label: moduleNames[mod] || mod.charAt(0).toUpperCase() + mod.slice(1),
-          description: `${cmds.length} comando${cmds.length !== 1 ? 's' : ''} — Ver detalles y subcomandos`,
+          description: `${cmds.length} comando${cmds.length !== 1 ? 's' : ''}`,
           value: mod,
           emoji: moduleEmojis[mod] || '📦',
         }))
       );
 
     const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
-
     const reply = await interaction.reply({ embeds: [mainEmbed], components: [row] });
 
-    // Collector for module selection (3 minutes)
     const collector = reply.createMessageComponentCollector({
       componentType: ComponentType.StringSelect,
       time: 180_000,
@@ -408,32 +354,27 @@ export default {
       const cmds = modules[selectedMod];
       if (!cmds) return;
 
-      const emoji = moduleEmojis[selectedMod] || '📦';
+      const emoji   = moduleEmojis[selectedMod] || '📦';
       const modName = moduleNames[selectedMod] || selectedMod.charAt(0).toUpperCase() + selectedMod.slice(1);
 
-      // Build detailed command list with subcommands
       const commandLines: string[] = [];
       for (const cmd of cmds) {
         const cmdName = cmd.name.replace('/', '');
         const details = commandDetails[cmdName];
-        const desc = details?.desc || cmd.description;
-
-        commandLines.push(`**${cmd.name}** — ${desc}`);
-
+        commandLines.push(`**${cmd.name}** — ${details?.desc || cmd.description}`);
         if (details?.subs) {
           for (const [sub, subDesc] of Object.entries(details.subs)) {
             commandLines.push(`  ╰ \`${cmd.name} ${sub}\` — ${subDesc}`);
           }
         }
-
-        commandLines.push(''); // blank line separator
+        commandLines.push('');
       }
 
       const moduleEmbed = new EmbedBuilder()
         .setColor(moduleColor(selectedMod))
         .setTitle(`${emoji} Módulo: ${modName}`)
         .setDescription(commandLines.join('\n').trim())
-        .setFooter({ text: `Usa /ayuda comando:<nombre> para más detalles de un comando específico` })
+        .setFooter({ text: 'Usa /ayuda comando:<nombre> para más detalles' })
         .setTimestamp();
 
       await menuInteraction.update({ embeds: [moduleEmbed], components: [row] });
@@ -441,9 +382,7 @@ export default {
 
     collector.on('end', () => {
       selectMenu.setDisabled(true);
-      reply.edit({
-        components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)],
-      }).catch(() => {});
+      reply.edit({ components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)] }).catch(() => {});
     });
   },
 };

@@ -90,14 +90,14 @@ export default {
 
         const channel = interaction.channel;
         if (!channel || !('send' in channel)) {
-          await interaction.reply({ content: 'No se pueden enviar mensajes en este canal.', ephemeral: true });
+          await interaction.reply({ content: 'No se pueden enviar mensajes en este canal.', flags: 64 });
           return;
         }
         const msg = await channel.send({ embeds: [embed] });
 
         await interaction.reply({
           content: `Panel de roles por reacción creado. ID del mensaje: \`${msg.id}\`\nUsa \`/rolreaccion agregar id_mensaje:${msg.id} rol:@rol\` para añadir botones.`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }
@@ -114,13 +114,13 @@ export default {
         try {
           message = await channel.messages.fetch(messageId);
         } catch {
-          await interaction.reply({ content: 'Mensaje no encontrado en este canal.', ephemeral: true });
+          await interaction.reply({ content: 'Mensaje no encontrado en este canal.', flags: 64 });
           return;
         }
 
         // Asegurar que el mensaje es del bot
         if (message.author.id !== interaction.client.user!.id) {
-          await interaction.reply({ content: 'Solo puedo añadir botones a mis propios mensajes.', ephemeral: true });
+          await interaction.reply({ content: 'Solo puedo añadir botones a mis propios mensajes.', flags: 64 });
           return;
         }
 
@@ -171,7 +171,7 @@ export default {
 
         await interaction.reply({
           content: `Se añadió el botón de **${role.name}** al panel. ID: \`${rr.id.slice(0, 8)}\``,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }
@@ -184,7 +184,7 @@ export default {
         });
 
         if (!rr) {
-          await interaction.reply({ content: 'Rol de reacción no encontrado.', ephemeral: true });
+          await interaction.reply({ content: 'Rol de reacción no encontrado.', flags: 64 });
           return;
         }
 
@@ -226,7 +226,7 @@ export default {
           }
         } catch { /* el mensaje puede haber sido eliminado */ }
 
-        await interaction.reply({ content: 'Rol de reacción eliminado.', ephemeral: true });
+        await interaction.reply({ content: 'Rol de reacción eliminado.', flags: 64 });
         break;
       }
 
@@ -242,7 +242,7 @@ export default {
         try {
           await channel.messages.fetch(messageId);
         } catch {
-          await interaction.reply({ content: 'Mensaje no encontrado en este canal.', ephemeral: true });
+          await interaction.reply({ content: 'Mensaje no encontrado en este canal.', flags: 64 });
           return;
         }
 
@@ -255,7 +255,7 @@ export default {
         const typeNames: Record<string, string> = { toggle: 'alternar (dar/quitar)', give: 'solo dar', remove: 'solo quitar' };
         await interaction.reply({
           content: `Listo. Cuando alguien reaccione con ${emoji} en ese mensaje, se le ${typeNames[type]} el rol **${role.name}**.`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }
@@ -266,7 +266,7 @@ export default {
         });
 
         if (reactionRoles.length === 0) {
-          await interaction.reply({ content: 'No hay roles de reacción configurados.', ephemeral: true });
+          await interaction.reply({ content: 'No hay roles de reacción configurados.', flags: 64 });
           return;
         }
 
@@ -293,7 +293,7 @@ export default {
           .setDescription(lines.join('\n'))
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
     }

@@ -8,6 +8,7 @@ import { initTempActions } from '../modules/moderation/tempActions';
 import { initGiveawayTimer } from '../modules/giveaway/giveawayManager';
 import { initReminderTimer } from '../modules/utility/reminderTimer';
 import { initAutoClose } from '../modules/tickets/ticketManager';
+import { initRifaTimer } from '../modules/rifa/rifaManager';
 import { initStickyCache } from '../modules/sticky/stickyHandler';
 
 // Global invite cache: guildId -> Map<code, InviteData>
@@ -66,5 +67,8 @@ export default {
 
     // Start ticket auto-close timer
     initAutoClose(client);
+
+    // Start rifa countdown timer
+    initRifaTimer(client);
   },
 };

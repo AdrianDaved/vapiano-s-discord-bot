@@ -23,6 +23,7 @@ loggingRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
     select: {
       loggingEnabled: true,
       modLogChannelId: true,
+      warnLogChannelId: true,
       messageLogChannelId: true,
       joinLeaveLogChannelId: true,
       auditLogChannelId: true,

@@ -56,11 +56,14 @@ export default function ConfirmDialog({
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    // Focus the cancel button on open (safer default than confirm)
-    confirmRef.current?.parentElement?.querySelector<HTMLElement>('button:first-of-type')?.focus();
-
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
+
+  // Initial focus — only when the dialog opens, not on every parent re-render
+  useEffect(() => {
+    if (!open) return;
+    confirmRef.current?.parentElement?.querySelector<HTMLElement>('button:first-of-type')?.focus();
+  }, [open]); // ← intentionally excludes onClose to prevent focus theft on parent re-renders
 
   if (!open) return null;
 

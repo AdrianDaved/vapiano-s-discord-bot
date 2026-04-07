@@ -78,7 +78,10 @@ export default function GuildSelect() {
               {withBot.map((guild) => (
                 <button
                   key={guild.id}
-                  onClick={() => navigate(`/guild/${guild.id}`)}
+                  onClick={() => {
+                    localStorage.setItem('selectedGuild', JSON.stringify({ id: guild.id, name: guild.name, icon: guild.icon }));
+                    navigate(`/guild/${guild.id}`);
+                  }}
                   className="w-full flex items-center gap-4 p-4 bg-discord-light hover:bg-discord-lighter rounded-xl transition-colors group"
                 >
                   {guild.icon ? (
@@ -134,7 +137,7 @@ export default function GuildSelect() {
                     <p className="text-xs text-discord-muted/60">Bot aun no agregado</p>
                   </div>
                   <a
-                    href={`https://discord.com/oauth2/authorize?client_id=${import.meta.env.VITE_CLIENT_ID || ''}&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}`}
+                    href={`https://discord.com/oauth2/authorize?client_id=${import.meta.env.VITE_CLIENT_ID}&permissions=8&scope=bot`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-discord-blurple hover:bg-discord-blurple/80 text-white transition-colors"

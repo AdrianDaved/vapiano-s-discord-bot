@@ -5,7 +5,8 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 import prisma from "../../../database/client";
-import { getGuildConfig, sendModLog } from "../../utils";
+import { getGuildConfig } from "../../utils";
+import { pendingBans } from "../../modules/moderation/pendingBans";
 
 export default {
   data: new SlashCommandBuilder()
@@ -29,7 +30,7 @@ export default {
 
     const member = interaction.guild!.members.cache.get(user.id);
     if (member && !member.bannable) {
-      await interaction.reply({ content: "No puedo banear a este usuario (jerarquía de roles).", ephemeral: true });
+      await interaction.reply({ content: "No puedo banear a este usuario (jerarquía de roles).", flags: 64 });
       return;
     }
 
@@ -48,33 +49,20 @@ export default {
       // DMs cerrados
     }
 
+    // Register before banning so guildBanAdd can attribute the correct moderator and log it
+    pendingBans.set(user.id, { guildId: interaction.guildId!, moderatorId: interaction.user.id, reason });
+    setTimeout(() => pendingBans.delete(user.id), 10_000);
+
     await interaction.guild!.members.ban(user.id, { reason });
 
     await prisma.modAction.create({
       data: { guildId, userId: user.id, moderatorId: interaction.user.id, action: "ban", reason },
     });
 
-    const embed = new EmbedBuilder()
-      .setColor(0xed4245)
-      .setAuthor({
-        name: interaction.guild!.name,
-        iconURL: interaction.guild!.iconURL({ size: 64 }) ?? undefined,
-      })
-      .setTitle("🚨 USUARIO BANEADO")
-      .setDescription(`**${user.username}** ha sido expulsado permanentemente del servidor.`)
-      .setThumbnail(user.displayAvatarURL({ size: 256 }))
-      .addFields(
-        { name: "👤 Usuario", value: `<@${user.id}> \`${user.username}\``, inline: true },
-        { name: "🛡️ Moderador", value: `<@${interaction.user.id}>`, inline: true },
-        { name: "\u200b", value: "\u200b", inline: true },
-        { name: "📋 Razón", value: `\`\`\`${reason}\`\`\`` },
-      )
-      .setFooter({ text: `ID del usuario: ${user.id}` })
-      .setTimestamp();
-
-    await interaction.reply({ embeds: [embed] });
-
-    const config = await getGuildConfig(guildId);
-    await sendModLog(interaction, config, embed);
+    // Simple confirmation — the full log embed is sent by guildBanAdd event
+    await interaction.reply({
+      content: `✅ **${user.username}** ha sido baneado. Razón: \`${reason}\``,
+      flags: 64,
+    });
   },
 };

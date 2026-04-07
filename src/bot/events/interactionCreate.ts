@@ -25,7 +25,10 @@ import {
 import { handleReactionRoleButton } from "../modules/moderation/reactionRoles";
 import { handlePollVote } from "../modules/automation/polls";
 import { handleGiveawayButton } from "../modules/giveaway/giveawayManager";
+import { handleRifaJoin, handleRifaTicket, handleRifaPanelTicket } from "../modules/rifa/rifaManager";
+import { handleInterestCreate, INTEREST_BUTTON_CUSTOM_ID } from "../modules/interest/interestHandler";
 import prisma from "../../database/client";
+import { sendAudit } from "../modules/audit/auditLogger";
 
 export default {
   name: Events.InteractionCreate,
@@ -106,6 +109,29 @@ export default {
 
       try {
         await command.execute(interaction);
+
+        // Audit: log command execution
+        if (interaction.guildId) {
+          try {
+            const opts = interaction.options.data
+              .map((o: any) => `${o.name}: ${o.value ?? '[subcomando]'}`)
+              .join(', ');
+            const { EmbedBuilder: EB } = await import('discord.js');
+            const auditEmbed = new EB()
+              .setColor(0x5865f2)
+              .setTitle('⌨️ Comando ejecutado')
+              .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
+              .addFields(
+                { name: '📋 Comando', value: `\`/${interaction.commandName}\``, inline: true },
+                { name: '👤 Usuario',  value: `<@${interaction.user.id}>`, inline: true },
+                { name: '📢 Canal',    value: `<#${interaction.channelId}>`, inline: true },
+                ...(opts ? [{ name: '⚙️ Opciones', value: opts.slice(0, 1024) }] : []),
+              )
+              .setFooter({ text: `ID: ${interaction.user.id}` })
+              .setTimestamp();
+            await sendAudit(interaction.guildId, auditEmbed, client as any);
+          } catch { /* ignore audit errors */ }
+        }
       } catch (err) {
         logger.error(`Error executing /${command.data.name}: ${err}`);
         const reply = { content: "Ocurrió un error al ejecutar este comando.", ephemeral: true };
@@ -134,6 +160,10 @@ export default {
         else if (customId.startsWith("rr_")) await handleReactionRoleButton(interaction);
         else if (customId.startsWith("poll_")) await handlePollVote(interaction);
         else if (customId === "giveaway_enter") await handleGiveawayButton(interaction);
+        else if (customId.startsWith("rifa_join_")) await handleRifaJoin(interaction);
+        else if (customId.startsWith("rifa_ticket_")) await handleRifaTicket(interaction);
+        else if (customId.startsWith("rifa_panel_ticket_")) await handleRifaPanelTicket(interaction);
+        else if (customId === INTEREST_BUTTON_CUSTOM_ID) await handleInterestCreate(interaction);
         else if (customId.startsWith("suggest_up_") || customId.startsWith("suggest_down_")) await handleSuggestionVote(interaction);
       } catch (err) {
         logger.error(`Error handling button ${customId}: ${err}`);

@@ -7,34 +7,48 @@ body {
   font-family: 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #111214;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #1e1f22;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #4e5058;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #6d6f78;
+  background: #5865f2;
 }
 
-/* Smooth transitions */
+/* Sidebar navigation */
 .sidebar-link {
-  @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-discord-muted hover:text-discord-white hover:bg-discord-lighter transition-all duration-200;
+  @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-discord-muted hover:text-discord-white hover:bg-white/5 transition-all duration-150 font-medium;
 }
 .sidebar-link.active {
-  @apply text-discord-white bg-discord-blurple/20 text-discord-blurple;
+  @apply text-white bg-discord-blurple/20 !important;
+  color: #5865f2 !important;
+}
+.sidebar-link.active svg {
+  color: #5865f2;
 }
 
-/* Card style */
+/* Card styles */
 .card {
-  @apply bg-discord-light rounded-xl p-6 border border-discord-lighter/50;
+  @apply bg-discord-light rounded-2xl p-6 border border-white/5;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
+  transition: box-shadow 0.15s ease;
+}
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,.4), 0 1px 3px rgba(0,0,0,.3);
+}
+.card-sm {
+  @apply bg-discord-light rounded-xl p-4 border border-white/5;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
 }
 
 /* Toggle switch */
@@ -49,4 +63,88 @@ body {
 }
 .toggle-knob {
   @apply inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200;
+  box-shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #5865f2 0%, #eb459e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Badge styles */
+.badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold;
+}
+.badge-green  { @apply bg-discord-green/15 text-discord-green; }
+.badge-red    { @apply bg-discord-red/15 text-discord-red; }
+.badge-yellow { @apply bg-discord-yellow/15 text-discord-yellow; }
+.badge-blue   { @apply bg-discord-blurple/15 text-discord-blurple; }
+.badge-purple { @apply bg-discord-fuchsia/15 text-discord-fuchsia; }
+.badge-gray   { @apply bg-white/10 text-discord-muted; }
+
+/* Stat card accent variants */
+.stat-accent-blue   { background: linear-gradient(135deg, rgba(88,101,242,.12) 0%, rgba(88,101,242,.04) 100%); border-color: rgba(88,101,242,.2); }
+.stat-accent-green  { background: linear-gradient(135deg, rgba(87,242,135,.12) 0%, rgba(87,242,135,.04) 100%); border-color: rgba(87,242,135,.2); }
+.stat-accent-yellow { background: linear-gradient(135deg, rgba(254,231,92,.12) 0%, rgba(254,231,92,.04) 100%); border-color: rgba(254,231,92,.2); }
+.stat-accent-pink   { background: linear-gradient(135deg, rgba(235,69,158,.12) 0%, rgba(235,69,158,.04) 100%); border-color: rgba(235,69,158,.2); }
+.stat-accent-red    { background: linear-gradient(135deg, rgba(237,66,69,.12) 0%, rgba(237,66,69,.04) 100%); border-color: rgba(237,66,69,.2); }
+
+/* Glow icon */
+.icon-glow-blue   { @apply p-3 rounded-xl bg-discord-blurple/15 text-discord-blurple; }
+.icon-glow-green  { @apply p-3 rounded-xl bg-discord-green/15 text-discord-green; }
+.icon-glow-yellow { @apply p-3 rounded-xl bg-discord-yellow/15 text-discord-yellow; }
+.icon-glow-pink   { @apply p-3 rounded-xl bg-discord-fuchsia/15 text-discord-fuchsia; }
+.icon-glow-red    { @apply p-3 rounded-xl bg-discord-red/15 text-discord-red; }
+
+/* Table styles */
+.data-table {
+  @apply w-full text-sm;
+}
+.data-table th {
+  @apply text-xs font-semibold uppercase tracking-wider text-discord-muted pb-3 text-left;
+}
+.data-table td {
+  @apply py-3 text-discord-white border-t border-white/5;
+}
+.data-table tr:hover td {
+  background: rgba(255,255,255,0.02);
+}
+
+/* Page header */
+.page-header {
+  @apply mb-8;
+}
+.page-header h1 {
+  @apply text-2xl font-bold text-discord-white;
+}
+.page-header p {
+  @apply text-discord-muted mt-1 text-sm;
+}
+
+/* Input focus glow */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(88,101,242,.4);
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 0.2s ease forwards;
+}
+
+/* Pulse dot */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse-dot {
+  @apply w-2 h-2 rounded-full bg-discord-green;
+  animation: pulseDot 2s infinite;
 }

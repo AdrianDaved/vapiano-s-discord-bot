@@ -63,7 +63,7 @@ export default {
     if (channelId) {
       const resolved = await interaction.guild?.channels.fetch(channelId).catch(() => null);
       if (!resolved || !('send' in resolved)) {
-        await interaction.reply({ content: `No encontré un canal de texto con la ID \`${channelId}\`.`, ephemeral: true });
+        await interaction.reply({ content: `No encontré un canal de texto con la ID \`${channelId}\`.`, flags: 64 });
         return;
       }
       channel = resolved as GuildTextBasedChannel;
@@ -72,12 +72,12 @@ export default {
     }
 
     if (!message && files.length === 0) {
-      await interaction.reply({ content: 'Debes proporcionar un mensaje, al menos una imagen, o ambos.', ephemeral: true });
+      await interaction.reply({ content: 'Debes proporcionar un mensaje, al menos una imagen, o ambos.', flags: 64 });
       return;
     }
 
     if (!channel || !('send' in channel)) {
-      await interaction.reply({ content: 'Canal inválido.', ephemeral: true });
+      await interaction.reply({ content: 'Canal inválido.', flags: 64 });
       return;
     }
 
@@ -88,7 +88,7 @@ export default {
 
     await interaction.reply({
       content: `Mensaje enviado a <#${channel.id}>.`,
-      ephemeral: true,
+      flags: 64,
     });
   },
 };

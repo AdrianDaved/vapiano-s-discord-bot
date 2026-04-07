@@ -5,6 +5,7 @@ import { getGuildConfig, replaceTemplateVars } from '../utils';
 import { generateWelcomeImage } from '../modules/welcome/welcomeImage';
 import prisma from '../../database/client';
 import logger from '../../shared/logger';
+import { sendAudit } from '../modules/audit/auditLogger';
 
 export default {
   name: Events.GuildMemberAdd,
@@ -156,5 +157,21 @@ export default {
         logger.error(`[Log] Error sending join log: ${err}`);
       }
     }
+
+    // ── Audit log ────────────────────────────────────────────
+    try {
+      const auditEmbed = new EmbedBuilder()
+        .setColor(0x57f287)
+        .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL() })
+        .setTitle('📥 Miembro se unió')
+        .addFields(
+          { name: '👤 Usuario',        value: `<@${member.id}> \`${member.user.username}\``, inline: true },
+          { name: '📅 Cuenta creada',  value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true },
+          { name: '👥 Total miembros', value: guild.memberCount.toString(), inline: true },
+        )
+        .setFooter({ text: `ID: ${member.id}` })
+        .setTimestamp();
+      await sendAudit(guild.id, auditEmbed, client, config.joinLeaveLogChannelId ?? null);
+    } catch { /* ignore */ }
   },
 };

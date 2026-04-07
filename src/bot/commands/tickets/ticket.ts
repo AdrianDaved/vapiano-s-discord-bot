@@ -146,6 +146,34 @@ export default {
         .setName('nuevo')
         .setDescription('Crear un ticket nuevo por comando')
         .addStringOption((opt) => opt.setName('tema').setDescription('Tema/motivo del ticket'))
+    )
+
+    // ── Hub Store Panel ───────────────────────────
+    .addSubcommand((sub) =>
+      sub
+        .setName('hubstore')
+        .setDescription('Crear el panel de Hub Store con botones de Mediación, Soporte, Verificación OOC y Estafas')
+        .addChannelOption((opt) => opt.setName('canal').setDescription('Canal donde enviar el panel').addChannelTypes(ChannelType.GuildText))
+        .addChannelOption((opt) => opt.setName('canal_transcripcion').setDescription('Canal de Tickets Transcripcion').addChannelTypes(ChannelType.GuildText))
+        .addChannelOption((opt) => opt.setName('categoria_mediacion').setDescription('Categoría Tickets Mediacion').addChannelTypes(ChannelType.GuildCategory))
+        .addChannelOption((opt) => opt.setName('categoria_soporte').setDescription('Categoría Tickets Soporte').addChannelTypes(ChannelType.GuildCategory))
+        .addChannelOption((opt) => opt.setName('categoria_verificacion').setDescription('Categoría Tickets Verificacion').addChannelTypes(ChannelType.GuildCategory))
+        .addChannelOption((opt) => opt.setName('categoria_estafas').setDescription('Categoría Tickets Estafas').addChannelTypes(ChannelType.GuildCategory))
+        .addRoleOption((opt) => opt.setName('rol_staff').setDescription('Rol del staff con acceso a los tickets'))
+    )
+
+    // ── Vapiano Panel ─────────────────────────────
+    .addSubcommand((sub) =>
+      sub
+        .setName('vapiano')
+        .setDescription('Crear el panel de Vapiano con botones de Mediación, Soporte, Verificación OOC y Estafas')
+        .addChannelOption((opt) => opt.setName('canal').setDescription('Canal donde enviar el panel').addChannelTypes(ChannelType.GuildText))
+        .addChannelOption((opt) => opt.setName('canal_transcripcion').setDescription('Canal de Tickets Transcripcion').addChannelTypes(ChannelType.GuildText))
+        .addChannelOption((opt) => opt.setName('categoria_mediacion').setDescription('Categoría Tickets Mediacion').addChannelTypes(ChannelType.GuildCategory))
+        .addChannelOption((opt) => opt.setName('categoria_soporte').setDescription('Categoría Tickets Soporte').addChannelTypes(ChannelType.GuildCategory))
+        .addChannelOption((opt) => opt.setName('categoria_verificacion').setDescription('Categoría Tickets Verificacion').addChannelTypes(ChannelType.GuildCategory))
+        .addChannelOption((opt) => opt.setName('categoria_estafas').setDescription('Categoría Tickets Estafas').addChannelTypes(ChannelType.GuildCategory))
+        .addRoleOption((opt) => opt.setName('rol_staff').setDescription('Rol del staff con acceso a los tickets'))
     ),
 
   module: 'tickets',
@@ -161,7 +189,7 @@ export default {
       // ══════════════════════════════════════════════════════════
       case 'panel': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-          await interaction.reply({ content: 'Necesitas el permiso de **Gestionar servidor**.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso de **Gestionar servidor**.', flags: 64 });
           return;
         }
 
@@ -213,7 +241,7 @@ export default {
 
         await interaction.reply({
           content: `Panel de tickets **${panelName}** creado en <#${channel.id}>.`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }
@@ -228,7 +256,7 @@ export default {
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'Este no es un canal de ticket abierto.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket abierto.', flags: 64 });
           return;
         }
 
@@ -361,7 +389,7 @@ export default {
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', flags: 64 });
           return;
         }
 
@@ -403,7 +431,7 @@ export default {
         });
 
         if (!ticket || ticket.status !== 'closed') {
-          await interaction.reply({ content: 'Este ticket no está cerrado.', ephemeral: true });
+          await interaction.reply({ content: 'Este ticket no está cerrado.', flags: 64 });
           return;
         }
 
@@ -457,12 +485,12 @@ export default {
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', flags: 64 });
           return;
         }
 
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageChannels)) {
-          await interaction.reply({ content: 'Necesitas el permiso de **Gestionar canales** para eliminar tickets.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso de **Gestionar canales** para eliminar tickets.', flags: 64 });
           return;
         }
 
@@ -501,11 +529,11 @@ export default {
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', flags: 64 });
           return;
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: 64 });
 
         const { html, messages } = await generateTranscript(
           interaction.channel as TextChannel,
@@ -534,7 +562,7 @@ export default {
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', flags: 64 });
           return;
         }
 
@@ -575,7 +603,7 @@ export default {
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', flags: 64 });
           return;
         }
 
@@ -612,15 +640,30 @@ export default {
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', flags: 64 });
           return;
         }
 
         if (ticket.claimedBy) {
           await interaction.reply({
             content: `Este ticket ya está asignado a <@${ticket.claimedBy}>.`,
-            ephemeral: true,
+            flags: 64,
           });
+          return;
+        }
+
+        // Only staff can claim tickets
+        const member = interaction.member as GuildMember;
+        const config = await getGuildConfig(guildId);
+        const staffRoleIds = ticket.panel && ticket.panel.staffRoleIds.length > 0
+          ? ticket.panel.staffRoleIds
+          : (config.ticketStaffRoleIds as string[] || []);
+        const isStaff = staffRoleIds.some((id: string) => member.roles.cache.has(id)) ||
+          (ticket.panel?.adminRoleIds as string[] | undefined)?.some((id: string) => member.roles.cache.has(id)) ||
+          interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
+
+        if (!isStaff) {
+          await interaction.reply({ content: 'Solo el staff puede asignarse tickets.', flags: 64 });
           return;
         }
 
@@ -661,17 +704,17 @@ export default {
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', flags: 64 });
           return;
         }
 
         if (!ticket.claimedBy) {
-          await interaction.reply({ content: 'Este ticket no está asignado.', ephemeral: true });
+          await interaction.reply({ content: 'Este ticket no está asignado.', flags: 64 });
           return;
         }
 
         if (ticket.claimedBy !== interaction.user.id && !interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-          await interaction.reply({ content: 'Solo puedes desasignar tickets que tú asignaste o tener el permiso de Gestionar servidor.', ephemeral: true });
+          await interaction.reply({ content: 'Solo puedes desasignar tickets que tú asignaste o tener el permiso de Gestionar servidor.', flags: 64 });
           return;
         }
 
@@ -710,7 +753,7 @@ export default {
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', flags: 64 });
           return;
         }
 
@@ -739,7 +782,7 @@ export default {
         });
 
         if (!ticket) {
-          await interaction.reply({ content: 'Este no es un canal de ticket.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un canal de ticket.', flags: 64 });
           return;
         }
 
@@ -780,7 +823,7 @@ export default {
         });
 
         if (!ticket || ticket.status !== 'open') {
-          await interaction.reply({ content: 'Este no es un ticket abierto.', ephemeral: true });
+          await interaction.reply({ content: 'Este no es un ticket abierto.', flags: 64 });
           return;
         }
 
@@ -792,13 +835,13 @@ export default {
         if (!targetPanel) {
           await interaction.reply({
             content: `No se encontró el panel "${panelName}".`,
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
 
         if (targetPanel.id === ticket.panelId) {
-          await interaction.reply({ content: 'El ticket ya está en este panel.', ephemeral: true });
+          await interaction.reply({ content: 'El ticket ya está en este panel.', flags: 64 });
           return;
         }
 
@@ -861,7 +904,7 @@ export default {
         if (panels.length === 0) {
           await interaction.reply({
             content: 'No hay paneles de tickets configurados. Un admin debe crear uno primero con `/ticket panel`.',
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -878,12 +921,12 @@ export default {
             });
             await interaction.reply({
               content: `Ya tienes un ticket abierto.${existing ? ` <#${existing.channelId}>` : ''}`,
-              ephemeral: true,
+              flags: 64,
             });
             return;
           }
 
-          await interaction.deferReply({ ephemeral: true });
+          await interaction.deferReply({ flags: 64 });
 
           const config = await getGuildConfig(guildId);
           const ticketNumber = (config.ticketCounter || 0) + 1;
@@ -981,9 +1024,97 @@ export default {
           await interaction.reply({
             content: 'Selecciona una categoria de ticket:',
             components: [row],
-            ephemeral: true,
+            flags: 64,
           });
         }
+        break;
+      }
+
+      // ══════════════════════════════════════════════════════════
+      // HUBSTORE — Panel de Hub Store con 4 tipos de ticket
+      // ══════════════════════════════════════════════════════════
+      case 'hubstore':
+      // ══════════════════════════════════════════════════════════
+      // VAPIANO — Panel de Vapiano con 4 tipos de ticket
+      // ══════════════════════════════════════════════════════════
+      case 'vapiano': {
+        if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+          await interaction.reply({ content: 'Necesitas el permiso de **Gestionar servidor**.', flags: 64 });
+          return;
+        }
+
+        const isHubStore = sub === 'hubstore';
+        const prefix = isHubStore ? 'hubstore' : 'vapiano';
+        const panelTitle = isHubStore ? 'Hub Store' : 'Vapiano';
+
+        const targetChannel = (interaction.options.getChannel('canal') || interaction.channel) as TextChannel;
+        const transcriptChannel = interaction.options.getChannel('canal_transcripcion');
+        const catMediacion    = interaction.options.getChannel('categoria_mediacion');
+        const catSoporte      = interaction.options.getChannel('categoria_soporte');
+        const catVerificacion = interaction.options.getChannel('categoria_verificacion');
+        const catEstafas      = interaction.options.getChannel('categoria_estafas');
+        const staffRole = interaction.options.getRole('rol_staff');
+        const staffRoleIds = staffRole ? [staffRole.id] : [];
+
+        const hubTypes = [
+          { name: 'mediacion',        label: 'Mediación',        emoji: '🤝', style: ButtonStyle.Primary,   title: 'Mediación',        categoryId: catMediacion?.id    || null },
+          { name: 'soporte',          label: 'Soporte',          emoji: '🔧', style: ButtonStyle.Secondary, title: 'Soporte',          categoryId: catSoporte?.id      || null },
+          { name: 'verificacion-ooc', label: 'Verificación OOC', emoji: '💰', style: ButtonStyle.Success,   title: 'Verificación OOC', categoryId: catVerificacion?.id || null },
+          { name: 'estafas',          label: 'Estafas',          emoji: '🚨', style: ButtonStyle.Danger,    title: 'Estafas',          categoryId: catEstafas?.id      || null },
+        ];
+
+        // Create one TicketPanel per type
+        const panels = await Promise.all(
+          hubTypes.map((t) =>
+            prisma.ticketPanel.create({
+              data: {
+                guildId,
+                name: `${prefix}-${t.name}`,
+                channelId: targetChannel.id,
+                title: t.title,
+                description: t.title,
+                buttonLabel: t.label,
+                buttonEmoji: t.emoji,
+                categoryId: t.categoryId,
+                staffRoleIds,
+                transcriptChannelId: transcriptChannel?.id || null,
+              },
+            })
+          )
+        );
+
+        const embed = new EmbedBuilder()
+          .setColor(0x2b2d31)
+          .setTitle('SELECCIONAR EL BOTÓN QUE CORRESPONDA A TU CASO')
+          .setDescription(
+            '🤝 **Mediación** – Un miembro del staff actuará como intermediario para que tu compra o venta sea segura.\n\n' +
+            '🔧 **Soporte** – Para dudas o problemas con el marketplace.\n\n' +
+            '💰 **Verificación OOC** – Solicitar rango para poder hacer ventas OOC.\n\n' +
+            '🚨 **Estafas** – Reporta intentos o si ya fuiste estafado.'
+          );
+
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          hubTypes.map((t, i) =>
+            new ButtonBuilder()
+              .setCustomId(`ticket_create_${panels[i].id}`)
+              .setLabel(t.label)
+              .setStyle(t.style)
+              .setEmoji(t.emoji)
+          )
+        );
+
+        const msg = await targetChannel.send({ embeds: [embed], components: [row] });
+
+        await Promise.all(
+          panels.map((p) =>
+            prisma.ticketPanel.update({ where: { id: p.id }, data: { messageId: msg.id } })
+          )
+        );
+
+        await interaction.reply({
+          content: `Panel **${panelTitle}** creado en <#${targetChannel.id}> con 4 tipos de ticket.`,
+          flags: 64,
+        });
         break;
       }
     }

@@ -53,7 +53,7 @@ export default {
         if (!cron.validate(cronExpr)) {
           await interaction.reply({
             content: 'Expresion cron invalida. Ejemplos:\n`0 9 * * *` — todos los dias a las 9:00 AM\n`0 */6 * * *` — cada 6 horas\n`0 0 * * 1` — cada lunes a medianoche',
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -80,7 +80,7 @@ export default {
           .setFooter({ text: 'La tarea se ejecutara dentro de 5 minutos' })
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
 
@@ -91,7 +91,7 @@ export default {
         });
 
         if (scheduled.length === 0) {
-          await interaction.reply({ content: 'No hay mensajes programados.', ephemeral: true });
+          await interaction.reply({ content: 'No hay mensajes programados.', flags: 64 });
           return;
         }
 
@@ -106,7 +106,7 @@ export default {
           .setDescription(lines.join('\n\n'))
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
 
@@ -117,12 +117,12 @@ export default {
         });
 
         if (!msg) {
-          await interaction.reply({ content: 'Mensaje programado no encontrado.', ephemeral: true });
+          await interaction.reply({ content: 'Mensaje programado no encontrado.', flags: 64 });
           return;
         }
 
         await prisma.scheduledMessage.delete({ where: { id: msg.id } });
-        await interaction.reply({ content: `Mensaje programado \`${msg.id.slice(0, 8)}\` eliminado.`, ephemeral: true });
+        await interaction.reply({ content: `Mensaje programado \`${msg.id.slice(0, 8)}\` eliminado.`, flags: 64 });
         break;
       }
 
@@ -133,7 +133,7 @@ export default {
         });
 
         if (!msg) {
-          await interaction.reply({ content: 'Mensaje programado no encontrado.', ephemeral: true });
+          await interaction.reply({ content: 'Mensaje programado no encontrado.', flags: 64 });
           return;
         }
 
@@ -144,7 +144,7 @@ export default {
 
         await interaction.reply({
           content: `El mensaje programado \`${msg.id.slice(0, 8)}\` ahora esta **${!msg.enabled ? 'activado' : 'desactivado'}**.`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }

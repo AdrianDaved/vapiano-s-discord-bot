@@ -5,6 +5,7 @@ import { Events, NonThreadGuildBasedChannel, EmbedBuilder, TextChannel, ChannelT
 import { BotClient } from '../../shared/types';
 import { getGuildConfig } from '../utils';
 import logger from '../../shared/logger';
+import { sendAudit } from '../modules/audit/auditLogger';
 
 const channelTypeNames: Record<number, string> = {
   [ChannelType.GuildText]: 'Texto',
@@ -42,6 +43,7 @@ export default {
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });
+        await sendAudit(channel.guild.id, embed, client, logChannelId);
     } catch (err) {
       logger.error(`[Logging] Error in channelCreate: ${err}`);
     }

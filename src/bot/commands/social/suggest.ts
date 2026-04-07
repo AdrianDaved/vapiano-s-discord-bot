@@ -61,7 +61,7 @@ export default {
         const channel = interaction.guild!.channels.cache.get(channelId) as TextChannel;
 
         if (!channel) {
-          await interaction.reply({ content: 'Canal de sugerencias no configurado. Pide a un admin que lo configure con `/config`.', ephemeral: true });
+          await interaction.reply({ content: 'Canal de sugerencias no configurado. Pide a un admin que lo configure con `/config`.', flags: 64 });
           return;
         }
 
@@ -106,9 +106,9 @@ export default {
         });
 
         if (channelId !== interaction.channelId) {
-          await interaction.reply({ content: `¡Tu sugerencia ha sido enviada en ${channel}!`, ephemeral: true });
+          await interaction.reply({ content: `¡Tu sugerencia ha sido enviada en ${channel}!`, flags: 64 });
         } else {
-          await interaction.reply({ content: '¡Sugerencia enviada!', ephemeral: true });
+          await interaction.reply({ content: '¡Sugerencia enviada!', flags: 64 });
         }
         break;
       }
@@ -117,7 +117,7 @@ export default {
       case 'rechazar':
       case 'implementar': {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-          await interaction.reply({ content: 'Necesitas el permiso **Gestionar Servidor**.', ephemeral: true });
+          await interaction.reply({ content: 'Necesitas el permiso **Gestionar Servidor**.', flags: 64 });
           return;
         }
 
@@ -133,7 +133,7 @@ export default {
         });
 
         if (!suggestion) {
-          await interaction.reply({ content: 'Sugerencia no encontrada.', ephemeral: true });
+          await interaction.reply({ content: 'Sugerencia no encontrada.', flags: 64 });
           return;
         }
 
@@ -191,7 +191,7 @@ export default {
 
         await interaction.reply({
           content: `La sugerencia \`${suggestion.id.slice(0, 8)}\` ha sido **${statusNames[newStatus]}**.`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }
@@ -204,7 +204,7 @@ export default {
         });
 
         if (suggestions.length === 0) {
-          await interaction.reply({ content: 'Aún no hay sugerencias.', ephemeral: true });
+          await interaction.reply({ content: 'Aún no hay sugerencias.', flags: 64 });
           return;
         }
 

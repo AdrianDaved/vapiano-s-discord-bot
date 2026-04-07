@@ -77,7 +77,7 @@ export default {
           )
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
 
@@ -88,7 +88,7 @@ export default {
         });
 
         if (autoResponses.length === 0) {
-          await interaction.reply({ content: 'No hay autorespuestas configuradas.', ephemeral: true });
+          await interaction.reply({ content: 'No hay autorespuestas configuradas.', flags: 64 });
           return;
         }
 
@@ -104,7 +104,7 @@ export default {
           .setFooter({ text: `${autoResponses.length} autorespuesta(s)` })
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         break;
       }
 
@@ -115,12 +115,12 @@ export default {
         });
 
         if (!ar) {
-          await interaction.reply({ content: 'Autorespuesta no encontrada.', ephemeral: true });
+          await interaction.reply({ content: 'Autorespuesta no encontrada.', flags: 64 });
           return;
         }
 
         await prisma.autoResponse.delete({ where: { id: ar.id } });
-        await interaction.reply({ content: `Autorespuesta \`${ar.trigger}\` eliminada.`, ephemeral: true });
+        await interaction.reply({ content: `Autorespuesta \`${ar.trigger}\` eliminada.`, flags: 64 });
         break;
       }
 
@@ -131,7 +131,7 @@ export default {
         });
 
         if (!ar) {
-          await interaction.reply({ content: 'Autorespuesta no encontrada.', ephemeral: true });
+          await interaction.reply({ content: 'Autorespuesta no encontrada.', flags: 64 });
           return;
         }
 
@@ -142,7 +142,7 @@ export default {
 
         await interaction.reply({
           content: `La autorespuesta \`${ar.trigger}\` ahora esta **${!ar.enabled ? 'activada' : 'desactivada'}**.`,
-          ephemeral: true,
+          flags: 64,
         });
         break;
       }

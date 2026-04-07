@@ -34,7 +34,7 @@ export default {
     const targetUser = interaction.options.getUser('usuario');
     const channel = interaction.channel as TextChannel;
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: 64 });
 
     // Fetch messages (fetch extra if filtering by user so we can reach the target count)
     const fetchLimit = targetUser ? Math.min(amount * 5, 100) : amount;

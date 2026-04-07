@@ -127,15 +127,15 @@ export async function handleGiveawayButton(
     });
 
     if ('error' in result) {
-      await interaction.reply({ content: 'Este sorteo ya termino.', ephemeral: true });
+      await interaction.reply({ content: 'Este sorteo ya termino.', flags: 64 });
       return;
     }
 
     await updateEntryCount(interaction, result.count);
     if (result.alreadyEntered) {
-      await interaction.reply({ content: 'Has salido del sorteo.', ephemeral: true });
+      await interaction.reply({ content: 'Has salido del sorteo.', flags: 64 });
     } else {
-      await interaction.reply({ content: '🎉 Te has unido al sorteo! Buena suerte!', ephemeral: true });
+      await interaction.reply({ content: '🎉 Te has unido al sorteo! Buena suerte!', flags: 64 });
     }
   }
 }

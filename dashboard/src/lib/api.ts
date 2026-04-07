@@ -287,6 +287,23 @@ export const logging = {
 };
 
 
+
+// ─── Rifas ───────────────────────────────────────────────────
+export const rifas = {
+  list: (guildId: string, status?: string) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/rifas${status ? '?status=' + status : ''}`),
+  getConfig: (guildId: string) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/rifas/config`),
+  updateConfig: (guildId: string, data: any) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/rifas/config`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deployPanel: (guildId: string, data: any) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/rifas/deploy-panel`, { method: 'POST', body: JSON.stringify(data) }),
+  draw: (guildId: string, id: string) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/rifas/${id}/sortear`, { method: 'POST' }),
+  cancel: (guildId: string, id: string) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/rifas/${id}`, { method: 'DELETE' }),
+};
+
 // ─── Messages ────────────────────────────────────────
 export const messages = {
   send: (guildId: string, data: any) =>

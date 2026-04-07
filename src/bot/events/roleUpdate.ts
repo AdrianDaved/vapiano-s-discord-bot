@@ -5,6 +5,7 @@ import { Events, Role, EmbedBuilder, TextChannel } from 'discord.js';
 import { BotClient } from '../../shared/types';
 import { getGuildConfig } from '../utils';
 import logger from '../../shared/logger';
+import { sendAudit } from '../modules/audit/auditLogger';
 
 export default {
   name: Events.GuildRoleUpdate,
@@ -52,6 +53,7 @@ export default {
         .setTimestamp();
 
       await logChannel.send({ embeds: [embed] });
+        await sendAudit(newRole.guild.id, embed, client, logChannelId);
     } catch (err) {
       logger.error(`[Logging] Error in roleUpdate: ${err}`);
     }

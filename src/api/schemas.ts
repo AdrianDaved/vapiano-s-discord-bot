@@ -135,6 +135,7 @@ export const stickyUpdateSchema = z.object({
 export const loggingUpdateSchema = z.object({
   loggingEnabled: z.boolean().optional(),
   modLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
+  warnLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
   messageLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
   joinLeaveLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
   auditLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
@@ -212,6 +213,9 @@ export const ticketPanelCreateSchema = z.object({
   feedbackEnabled: z.boolean().optional(),
   feedbackMessage: z.string().max(1000).nullable().optional(),
   autoCloseHours: z.number().int().min(0).max(720).optional(),
+  panelAutoRepost: z.boolean().optional(),
+  panelAutoRepostCooldown: z.number().int().min(1).max(300).optional(),
+  panelAutoRepostIgnoreBots: z.boolean().optional(),
 }).strict();
 
 export const ticketPanelUpdateSchema = ticketPanelCreateSchema.partial().omit({ channelId: true }).extend({

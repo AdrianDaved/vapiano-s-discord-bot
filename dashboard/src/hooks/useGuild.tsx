@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { config as configApi, stats as statsApi } from '@/lib/api';
 
@@ -82,18 +82,13 @@ export function GuildProvider({ children }: { children: React.ReactNode }) {
     [guildId]
   );
 
+  const value = useMemo(
+    () => ({ guildId, config, stats: guildStats, loading, error, refreshConfig, updateConfig }),
+    [guildId, config, guildStats, loading, error, refreshConfig, updateConfig],
+  );
+
   return (
-    <GuildContext.Provider
-      value={{
-        guildId,
-        config,
-        stats: guildStats,
-        loading,
-        error,
-        refreshConfig,
-        updateConfig,
-      }}
-    >
+    <GuildContext.Provider value={value}>
       {children}
     </GuildContext.Provider>
   );

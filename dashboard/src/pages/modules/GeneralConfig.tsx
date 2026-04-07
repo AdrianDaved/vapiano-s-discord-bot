@@ -59,6 +59,9 @@ export default function GeneralConfig() {
   const [language, setLanguage] = useState('es');
   const [muteRoleId, setMuteRoleId] = useState('');
 
+  // Guild roles for mute role select
+  const [guildRoles, setGuildRoles] = useState<{ id: string; name: string; color: number }[]>([]);
+
   // Clone state
   const [userGuilds, setUserGuilds] = useState<any[]>([]);
   const [cloneTarget, setCloneTarget] = useState('');
@@ -69,6 +72,11 @@ export default function GeneralConfig() {
     guildsApi.list().then((data: any[]) => {
       setUserGuilds(data.filter((g) => g.botPresent && g.id !== guildId));
     }).catch(() => {});
+  }, [guildId]);
+
+  useEffect(() => {
+    if (!guildId) return;
+    guildsApi.roles(guildId).then(setGuildRoles).catch(() => {});
   }, [guildId]);
 
   useEffect(() => {
@@ -180,12 +188,28 @@ export default function GeneralConfig() {
       {/* System roles */}
       <Card title="Roles del sistema" description="Roles utilizados internamente por el bot" className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="ID del rol de silencio"
-            placeholder="ID del rol (ej. 123456789012345678)"
-            value={muteRoleId}
-            onChange={(e) => setMuteRoleId(e.target.value)}
-          />
+          {guildRoles.length > 0 ? (
+            <div>
+              <p className="block text-sm font-medium text-discord-muted mb-1.5">Rol de silencio</p>
+              <select
+                value={muteRoleId}
+                onChange={(e) => setMuteRoleId(e.target.value)}
+                className="w-full bg-discord-darker border border-discord-lighter/30 rounded-md px-3 py-2 text-sm text-discord-white focus:outline-none focus:border-discord-blurple"
+              >
+                <option value="">Sin rol de silencio</option>
+                {guildRoles.map(r => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <Input
+              label="ID del rol de silencio"
+              placeholder="ID del rol (ej. 123456789012345678)"
+              value={muteRoleId}
+              onChange={(e) => setMuteRoleId(e.target.value)}
+            />
+          )}
         </div>
         <p className="text-xs text-discord-muted mt-2">
           Los roles de entrada automática se configuran en la página de <strong>Bienvenida</strong>.

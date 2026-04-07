@@ -54,11 +54,11 @@ export default {
         });
 
         if (deleted.count === 0) {
-          await interaction.reply({ content: 'No estás AFK.', ephemeral: true });
+          await interaction.reply({ content: 'No estás AFK.', flags: 64 });
           return;
         }
 
-        await interaction.reply({ content: '¡Bienvenido de vuelta! Tu estado AFK ha sido eliminado.', ephemeral: true });
+        await interaction.reply({ content: '¡Bienvenido de vuelta! Tu estado AFK ha sido eliminado.', flags: 64 });
         break;
       }
     }
