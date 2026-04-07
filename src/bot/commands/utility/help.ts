@@ -5,6 +5,9 @@ import {
   ActionRowBuilder,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
+  ButtonBuilder,
+  ButtonStyle,
+  ButtonInteraction,
   ComponentType,
 } from 'discord.js';
 import { BotClient } from '../../../shared/types';
@@ -359,8 +362,7 @@ export default {
         `Bienvenido al centro de ayuda de **${client.user?.username || 'Vapiano Bot'}**.\n\n` +
         `📌 Selecciona un módulo en el **menú de abajo** para ver sus comandos en detalle.\n` +
         `📌 Usa \`/ayuda comando:<nombre>\` para ver subcomandos y detalles de un comando.\n` +
-        `📌 Escribe \`+rep @usuario\` en el chat para dar reputación rápidamente.\n\n` +
-        `💡 **Consejo:** Varios comandos tienen la opción \`mencionar\` para enviar @everyone o @here fuera del embed.`
+        `📌 Escribe \`+rep @usuario\` en el chat para dar reputación rápidamente.`
       )
       .addFields(fields)
       .setFooter({ text: `${client.commands.size} comandos en ${sortedModules.length} módulos • Selecciona un módulo ↓` })
@@ -378,16 +380,30 @@ export default {
         }))
       );
 
-    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
-    const reply = await interaction.reply({ embeds: [mainEmbed], components: [row] });
+    const menuRow = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
+
+    const backButton = new ButtonBuilder()
+      .setCustomId('ayuda_back')
+      .setLabel('← Inicio')
+      .setStyle(ButtonStyle.Secondary);
+    const backRow = new ActionRowBuilder<ButtonBuilder>().addComponents(backButton);
+
+    const reply = await interaction.reply({ embeds: [mainEmbed], components: [menuRow] });
 
     const collector = reply.createMessageComponentCollector({
-      componentType: ComponentType.StringSelect,
       time: 180_000,
       filter: (i) => i.user.id === interaction.user.id,
     });
 
-    collector.on('collect', async (menuInteraction: StringSelectMenuInteraction) => {
+    collector.on('collect', async (i: StringSelectMenuInteraction | ButtonInteraction) => {
+      // Back button → show main embed
+      if (i.isButton() && i.customId === 'ayuda_back') {
+        await (i as ButtonInteraction).update({ embeds: [mainEmbed], components: [menuRow] });
+        return;
+      }
+      if (!i.isStringSelectMenu()) return;
+
+      const menuInteraction = i as StringSelectMenuInteraction;
       const selectedMod = menuInteraction.values[0];
       const cmds = modules[selectedMod];
       if (!cmds) return;
@@ -417,11 +433,12 @@ export default {
         .setFooter({ text: 'Usa /ayuda comando:<nombre> para más detalles' })
         .setTimestamp();
 
-      await menuInteraction.update({ embeds: [moduleEmbed], components: [row] });
+      await menuInteraction.update({ embeds: [moduleEmbed], components: [menuRow, backRow] });
     });
 
     collector.on('end', () => {
       selectMenu.setDisabled(true);
+      backButton.setDisabled(true);
       reply.edit({ components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)] }).catch(() => {});
     });
   },
