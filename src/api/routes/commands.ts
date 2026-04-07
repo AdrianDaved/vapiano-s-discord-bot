@@ -157,9 +157,10 @@ const updateSchema = z.object({
   roleIds:  z.array(z.string().regex(/^\d{17,20}$/)).optional(),
 });
 
-commandsRouter.patch('/:command(*)', asyncHandler(async (req: AuthRequest, res: Response) => {
+commandsRouter.patch('*', asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
-  const command = req.params.command as string;
+  const raw = req.path.startsWith('/') ? req.path.slice(1) : req.path;
+  const command = decodeURIComponent(raw);
   const body = updateSchema.parse(req.body);
 
   const perm = await prisma.commandPermission.upsert({

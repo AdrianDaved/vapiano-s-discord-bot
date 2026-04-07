@@ -21,7 +21,7 @@ interface CachedGuilds {
 }
 
 const guildAccessCache = new Map<string, CachedGuilds>();
-const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 // Clean expired entries every 5 minutes
 setInterval(() => {
@@ -60,7 +60,9 @@ export async function fetchUserGuilds(userId: string, accessToken: string): Prom
     if (!retryResponse.ok) {
       const errBody = await retryResponse.text().catch(() => 'unknown');
       logger.error(`Guild fetch retry failed: ${retryResponse.status}: ${errBody}`);
-      return null;
+      // Serve stale cache if available rather than failing
+      const stale = guildAccessCache.get(cacheKey);
+      return stale ? stale.guilds : null;
     }
 
     const guilds = await retryResponse.json() as any[];

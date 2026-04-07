@@ -42,7 +42,9 @@ export default function Commands() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(['moderation','utility','social','automation','tickets','reputation','invites','config','backup'].map(m => [m, true]))
+  );
   const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>({});
   const [search, setSearch] = useState('');
 
