@@ -8,6 +8,7 @@ import {
   ComponentType,
 } from 'discord.js';
 import { BotClient } from '../../../shared/types';
+import prisma from '../../../database/client';
 import { moduleColor } from '../../utils';
 
 const moduleEmojis: Record<string, string> = {
@@ -245,6 +246,39 @@ export default {
     const client = interaction.client as BotClient;
     const specificCommand = interaction.options.getString('comando');
 
+    // ── Permission filtering ────────────────────────────────────────────────
+    const isAdmin = interaction.memberPermissions?.has('Administrator') ?? false;
+    const memberRoles: Set<string> = new Set(
+      (interaction.member as any)?.roles?.cache?.keys?.() ?? []
+    );
+
+    // Load command permissions from DB (only if in a guild)
+    const permMap: Record<string, { disabled: boolean; roleIds: string[] }> = {};
+    if (interaction.guildId) {
+      const stored = await prisma.commandPermission.findMany({ where: { guildId: interaction.guildId } });
+      for (const p of stored) permMap[p.command] = { disabled: p.disabled, roleIds: p.roleIds };
+    }
+
+    // Returns true if user can access a given command key (e.g. "ban" or "reputacion ranking")
+    function canUse(cmdKey: string): boolean {
+      if (isAdmin) return true;
+      const perm = permMap[cmdKey];
+      if (perm?.disabled) return false;
+      // No config or empty roleIds = admin only by default
+      if (!perm || perm.roleIds.length === 0) return false;
+      return perm.roleIds.some(rid => memberRoles.has(rid));
+    }
+
+    // Returns true if user can access the parent command or any of its subcommands
+    function canUseCommand(cmdName: string): boolean {
+      if (canUse(cmdName)) return true;
+      const details = commandDetails[cmdName];
+      if (details?.subs) {
+        return Object.keys(details.subs).some(sub => canUse(cmdName + ' ' + sub));
+      }
+      return false;
+    }
+
     if (specificCommand) {
       const cmdName = specificCommand.toLowerCase().replace('/', '');
       const command = client.commands.get(cmdName);
@@ -284,9 +318,10 @@ export default {
       return;
     }
 
-    // Organizar comandos por módulo
+    // Organizar comandos por módulo — filtrar por permisos del usuario
     const modules: Record<string, { name: string; description: string }[]> = {};
     for (const [, cmd] of client.commands) {
+      if (!canUseCommand(cmd.data.name)) continue; // skip if user can't access any subcommand
       const mod = cmd.module || 'utility';
       if (!modules[mod]) modules[mod] = [];
       modules[mod].push({ name: `/${cmd.data.name}`, description: cmd.data.description });
@@ -364,6 +399,8 @@ export default {
         commandLines.push(`**${cmd.name}** — ${details?.desc || cmd.description}`);
         if (details?.subs) {
           for (const [sub, subDesc] of Object.entries(details.subs)) {
+            // Only show subcommands the user can access
+            if (!canUse(cmdName + ' ' + sub) && !isAdmin) continue;
             commandLines.push(`  ╰ \`${cmd.name} ${sub}\` — ${subDesc}`);
           }
         }
