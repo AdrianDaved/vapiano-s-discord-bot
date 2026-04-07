@@ -211,7 +211,7 @@ export default function Commands() {
                   {!cmd.disabled && roles.length > 0 && (
                     <div className="mt-3">
                       <p className="text-xs text-gray-500 mb-2">
-                        Roles permitidos <span className="text-gray-600">(sin selección = todos pueden usarlo)</span>
+                        Roles permitidos <span className="text-gray-600">(sin selección = solo administradores)</span>
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {roles.map(role => {
