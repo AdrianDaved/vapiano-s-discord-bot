@@ -30,6 +30,22 @@ import { handleInterestCreate, INTEREST_BUTTON_CUSTOM_ID } from "../modules/inte
 import prisma from "../../database/client";
 import { sendAudit } from "../modules/audit/auditLogger";
 
+
+// ── Command-level permission cache (30s TTL) ─────────────────────────────────
+const cmdPermCache = new Map<string, { data: any; expiresAt: number }>();
+const CMD_PERM_TTL = 30_000;
+
+async function getCmdPerm(guildId: string, command: string) {
+  const key = `${guildId}:${command}`;
+  const cached = cmdPermCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.data;
+  const data = await prisma.commandPermission.findUnique({
+    where: { guildId_command: { guildId, command } },
+  });
+  cmdPermCache.set(key, { data, expiresAt: Date.now() + CMD_PERM_TTL });
+  return data;
+}
+
 export default {
   name: Events.InteractionCreate,
   async execute(interaction: Interaction, client: BotClient) {
@@ -103,6 +119,24 @@ export default {
               });
               return;
             }
+          }
+        }
+      }
+
+      // Command-level permission check (from dashboard)
+      if (interaction.guildId) {
+        const cmdPerm = await getCmdPerm(interaction.guildId, interaction.commandName);
+        if (cmdPerm?.disabled) {
+          await interaction.reply({ content: 'Este comando está desactivado en este servidor.', ephemeral: true });
+          return;
+        }
+        if (cmdPerm?.roleIds?.length > 0 && interaction.member) {
+          const memberRoles = (interaction.member as any).roles?.cache ?? new Map();
+          const isAdmin = (interaction.memberPermissions as any)?.has('Administrator') ?? false;
+          if (!isAdmin && !cmdPerm.roleIds.some((rid: string) => memberRoles.has(rid))) {
+            const roleList = cmdPerm.roleIds.map((id: string) => `<@&${id}>`).join(', ');
+            await interaction.reply({ content: `Solo pueden usar este comando: ${roleList}`, ephemeral: true });
+            return;
           }
         }
       }

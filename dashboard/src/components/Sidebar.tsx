@@ -59,6 +59,7 @@ const modules = [
   { path: '/logging', icon: ScrollText, label: 'Registros' },
   { path: '/backups', icon: Database, label: 'Copias de seguridad' },
   { path: '/migration', icon: ArrowLeftRight, label: 'Migración' },
+  { path: '/commands', icon: Shield, label: 'Comandos' },
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {

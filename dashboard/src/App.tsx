@@ -30,7 +30,8 @@ import StickyMessages from '@/pages/modules/StickyMessages';
 import Logging from '@/pages/modules/Logging';
 import Rifas from '@/pages/modules/Rifas';
 import MessageSender from '@/pages/modules/MessageSender';
-import Migration from '@/pages/modules/Migration';
+import Migration from '@/pages/modules/Migration'
+import Commands from '@/pages/modules/Commands';
 
 /** Wrapper that redirects to /login when user is not authenticated */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -85,6 +86,7 @@ function AppRoutes() {
         <Route path="automation" element={<Automation />} />
         <Route path="backups" element={<Backups />} />
         <Route path="migration" element={<Migration />} />
+              <Route path="commands" element={<Commands />} />
         <Route path="reputation" element={<Reputation />} />
         <Route path="giveaways" element={<Giveaways />} />
         <Route path="suggestions" element={<Suggestions />} />

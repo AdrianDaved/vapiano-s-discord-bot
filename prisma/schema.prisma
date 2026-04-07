@@ -114,6 +114,7 @@ model GuildConfig {
   reputations   Reputation[]
   giveaways     Giveaway[]
   rifas          Rifa[]
+  commandPermissions CommandPermission[]
   suggestions   Suggestion[]
   starboardEntries StarboardEntry[]
   afkStatuses    AfkStatus[]
@@ -544,4 +545,18 @@ model Rifa {
   @@index([guildId])
   @@index([endsAt])
   @@map("rifas")
+}
+
+// ─── Command Permissions ──────────────────────────────────────
+model CommandPermission {
+  id        String      @id @default(uuid())
+  guildId   String
+  guild     GuildConfig @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  command   String
+  roleIds   String[]    @default([])
+  disabled  Boolean     @default(false)
+  updatedAt DateTime    @updatedAt @default(now())
+
+  @@unique([guildId, command])
+  @@map("command_permissions")
 }
