@@ -47,6 +47,7 @@ export const ALL_COMMANDS: CommandEntry[] = [
   { name: 'verificacion',                  module: 'moderation', description: 'Verificar a un usuario manualmente' },
   { name: 'hackeado',                      module: 'moderation', description: 'Aislar cuenta comprometida y borrar spam' },
   // ── Utility ─────────────────────────────────────────────────────────────────
+  { name: 'perfil', module: 'utility', description: 'Perfil de un miembro: rep, invitaciones, historial' },
   { name: 'ayuda',                         module: 'utility', description: 'Centro de ayuda del bot' },
   { name: 'anunciar',                      module: 'utility', description: 'Enviar anuncio con embed' },
   { name: 'embed enviar', parent: 'embed', subcommand: 'enviar', module: 'utility', description: 'Enviar embed personalizado' },

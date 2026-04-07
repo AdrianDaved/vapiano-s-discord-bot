@@ -75,6 +75,9 @@ const commandDetails: Record<string, { desc: string; subs?: Record<string, strin
   },
 
   // ─── Utilidades ─────────────────────────────────────────────────────────
+  perfil: {
+    desc: 'Ver el perfil completo de un miembro: rep global, posición en ranking, invitaciones, rol más alto y últimas reps recibidas. Botones para ver el historial completo paginado de reps recibidas y dadas.',
+  },
   ayuda: {
     desc: 'Centro de ayuda interactivo con todos los módulos y comandos del bot.',
   },
