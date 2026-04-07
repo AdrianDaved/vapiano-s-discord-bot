@@ -69,14 +69,6 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
     `\`${bar}\``,
   ].join('\n');
 
-  // ── Trust indicators ─────────────────────────────────────────────────────
-  const checks: string[] = [];
-  checks.push(accountDays >= 365 ? '✅ Cuenta mayor a 1 año' : accountDays >= 30 ? '⚠️ Cuenta reciente (<1 año)' : '🔴 Cuenta muy nueva (<30 días)');
-  checks.push(joinedDays  >= 180 ? '✅ En el servidor +6 meses' : joinedDays >= 30 ? '⚠️ Menos de 6 meses' : '🔴 Entró hace menos de 30 días');
-  checks.push(repServer   >= 10  ? '✅ Buena reputación en este server' : repServer >= 1 ? '⚠️ Poca reputación en este server' : '⚪ Sin rep en este server');
-  checks.push(warnings    === 0  ? '✅ Sin advertencias' : warnings <= 2 ? `⚠️ ${warnings} advertencia${warnings > 1 ? 's' : ''}` : `🔴 ${warnings} advertencias`);
-  checks.push(inviteCount >= 3   ? '✅ Ha invitado miembros' : '⚪ Sin invitaciones registradas');
-
   // ── Last reps preview ────────────────────────────────────────────────────
   const repLines = lastReps.length > 0
     ? lastReps.map(r => {
@@ -126,12 +118,6 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
         name: '⚠️ Advertencias',
         value: warnings === 0 ? '*Ninguna*' : `**${warnings}**`,
         inline: true,
-      },
-      SEP,
-      {
-        name: '🔍 Indicadores de confianza',
-        value: checks.join('\n'),
-        inline: false,
       },
       SEP,
       {
