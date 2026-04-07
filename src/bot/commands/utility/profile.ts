@@ -86,8 +86,8 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
       iconURL: target.user.displayAvatarURL({ size: 128 }),
     })
     .setThumbnail(target.user.displayAvatarURL({ size: 256 }))
-    .setDescription(repDesc)
     .addFields(
+      { name: '⭐ Reputación', value: repDesc, inline: false },
       SEP,
       {
         name: '🔗 Invitaciones',
