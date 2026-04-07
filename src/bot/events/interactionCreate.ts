@@ -125,7 +125,13 @@ export default {
 
       // Command-level permission check (from dashboard)
       if (interaction.guildId) {
-        const cmdPerm = await getCmdPerm(interaction.guildId, interaction.commandName);
+        // Check subcommand-level permission first, then fall back to parent command
+        let subCmdName: string | null = null;
+        try { subCmdName = interaction.options.getSubcommand(false); } catch {}
+        const cmdKey = subCmdName ? interaction.commandName + ' ' + subCmdName : interaction.commandName;
+        let cmdPerm = await getCmdPerm(interaction.guildId, cmdKey);
+        // If no specific subcommand config, fall back to parent command config
+        if (!cmdPerm && subCmdName) cmdPerm = await getCmdPerm(interaction.guildId, interaction.commandName);
         if (cmdPerm?.disabled) {
           await interaction.reply({ content: 'Este comando está desactivado en este servidor.', ephemeral: true });
           return;

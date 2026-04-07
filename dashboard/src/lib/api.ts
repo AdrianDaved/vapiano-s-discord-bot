@@ -318,7 +318,7 @@ export const commandsApi = {
   list: (guildId: string) =>
     apiFetch(`${API_BASE}/guilds/${guildId}/commands`),
   update: (guildId: string, command: string, data: { disabled?: boolean; roleIds?: string[] }) =>
-    apiFetch(`${API_BASE}/guilds/${guildId}/commands/${command}`, {
+    apiFetch(`${API_BASE}/guilds/${guildId}/commands/${encodeURIComponent(command)}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
