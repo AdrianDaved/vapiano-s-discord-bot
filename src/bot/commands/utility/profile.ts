@@ -35,10 +35,12 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
   const guildId = target.guild.id;
 
   // Parallel data fetch
-  const [repTotal, repGiven, repRank, inviteCount, lastReps] = await Promise.all([
+  const [repTotal, repGiven, repRank, repServer, warnings, inviteCount, lastReps] = await Promise.all([
     getGlobalRep(userId),
     getGlobalGiven(userId),
     getGlobalRank(userId),
+    prisma.reputation.count({ where: { guildId, userId } }),
+    prisma.warning.count({ where: { guildId, userId } }),
     prisma.invite.count({ where: { guildId, inviterId: userId, fake: false, left: false } }),
     prisma.reputation.findMany({
       where: { guildId: { in: LINKED_GUILD_IDS }, userId },
@@ -55,20 +57,27 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
     .first();
 
   const color = highestRole?.color || 0x5865f2;
-  const joinedTs  = target.joinedAt ? Math.floor(target.joinedAt.getTime() / 1000) : null;
-  const accountTs = Math.floor(target.user.createdTimestamp / 1000);
-  const joinedDaysAgo = joinedTs
-    ? Math.floor((Date.now() / 1000 - joinedTs) / 86400)
-    : null;
+  const joinedTs   = target.joinedAt ? Math.floor(target.joinedAt.getTime() / 1000) : null;
+  const accountTs  = Math.floor(target.user.createdTimestamp / 1000);
+  const joinedDays = joinedTs ? Math.floor((Date.now() / 1000 - joinedTs) / 86400) : 0;
+  const accountDays = Math.floor((Date.now() - target.user.createdTimestamp) / 86_400_000);
 
-  // Rep description block
+  // ── Rep block ────────────────────────────────────────────────────────────
   const bar = progressBar(repTotal, Math.max(repTotal, 50));
   const repDesc = [
     `✦ **${repTotal}** recibidas  ·  **${repGiven}** dadas` + (repRank > 0 ? `  ·  **#${repRank}** global` : ''),
     `\`${bar}\``,
   ].join('\n');
 
-  // Last reps preview
+  // ── Trust indicators ─────────────────────────────────────────────────────
+  const checks: string[] = [];
+  checks.push(accountDays >= 365 ? '✅ Cuenta mayor a 1 año' : accountDays >= 30 ? '⚠️ Cuenta reciente (<1 año)' : '🔴 Cuenta muy nueva (<30 días)');
+  checks.push(joinedDays  >= 180 ? '✅ En el servidor +6 meses' : joinedDays >= 30 ? '⚠️ Menos de 6 meses' : '🔴 Entró hace menos de 30 días');
+  checks.push(repServer   >= 10  ? '✅ Buena reputación en este server' : repServer >= 1 ? '⚠️ Poca reputación en este server' : '⚪ Sin rep en este server');
+  checks.push(warnings    === 0  ? '✅ Sin advertencias' : warnings <= 2 ? `⚠️ ${warnings} advertencia${warnings > 1 ? 's' : ''}` : `🔴 ${warnings} advertencias`);
+  checks.push(inviteCount >= 3   ? '✅ Ha invitado miembros' : '⚪ Sin invitaciones registradas');
+
+  // ── Last reps preview ────────────────────────────────────────────────────
   const repLines = lastReps.length > 0
     ? lastReps.map(r => {
         const reason = r.reason ? `"${r.reason}"` : '*sin razón*';
@@ -100,15 +109,29 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
       },
       {
         name: '🗓️ En el servidor',
-        value: joinedTs
-          ? `**${joinedDaysAgo}d** · <t:${joinedTs}:D>`
-          : '*Desconocido*',
+        value: joinedTs ? `**${joinedDays}d** · <t:${joinedTs}:D>` : '*Desconocido*',
         inline: true,
       },
       {
         name: '📅 Cuenta de Discord',
         value: `<t:${accountTs}:D>`,
         inline: true,
+      },
+      {
+        name: '⭐ Rep en este server',
+        value: `**${repServer}** recibidas`,
+        inline: true,
+      },
+      {
+        name: '⚠️ Advertencias',
+        value: warnings === 0 ? '*Ninguna*' : `**${warnings}**`,
+        inline: true,
+      },
+      SEP,
+      {
+        name: '🔍 Indicadores de confianza',
+        value: checks.join('\n'),
+        inline: false,
       },
       SEP,
       {
