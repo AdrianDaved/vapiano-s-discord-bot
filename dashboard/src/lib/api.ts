@@ -322,4 +322,6 @@ export const commandsApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+  sync: (guildId: string) =>
+    apiFetch(API_BASE + '/guilds/' + guildId + '/commands/sync', { method: 'POST' }),
 };

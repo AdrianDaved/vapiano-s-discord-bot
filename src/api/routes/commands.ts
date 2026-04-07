@@ -170,27 +170,64 @@ commandsRouter.patch('*', asyncHandler(async (req: AuthRequest, res: Response) =
     create: { guildId, command, disabled: body.disabled ?? false, roleIds: body.roleIds ?? [] },
   });
 
-  // Sync with Discord native permissions (best-effort, uses bearer token)
-  try {
-    const appId = process.env.CLIENT_ID!;
-    const botRest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
-    // Use parent command name for Discord-level permission sync
-    const discordCmdName = command.split(' ')[0];
-    const guildCmds = await botRest.get(Routes.applicationGuildCommands(appId, guildId)) as any[];
-    const discordCmd = guildCmds.find((c: any) => c.name === discordCmdName);
-
-    if (discordCmd && req.user?.accessToken) {
-      const userRest = new REST({ version: '10', authPrefix: 'Bearer' }).setToken(req.user.accessToken);
-      const roleIds: string[] = body.roleIds ?? perm.roleIds ?? [];
-      const permissions = roleIds.map((id: string) => ({ id, type: 1, permission: true }));
-      await userRest.put(
-        Routes.applicationCommandPermissions(appId, guildId, discordCmd.id),
-        { body: { permissions } },
-      );
-    }
-  } catch (err) {
-    console.error('Discord permission sync failed:', err);
+  // Bulk sync ALL command permissions with Discord using bearer token
+  if (req.user?.accessToken) {
+    syncDiscordPermissions(guildId, req.user.accessToken).catch(err =>
+      console.error('[Discord sync]', err?.message ?? err)
+    );
   }
 
   res.json(perm);
 }));
+
+// POST /api/guilds/:guildId/commands/sync — manual full sync trigger
+commandsRouter.post('/sync', asyncHandler(async (req: AuthRequest, res: Response) => {
+  const guildId = req.params.guildId as string;
+  if (!req.user?.accessToken) {
+    res.status(401).json({ error: 'Bearer token required' });
+    return;
+  }
+  await syncDiscordPermissions(guildId, req.user.accessToken);
+  res.json({ ok: true });
+}));
+
+async function syncDiscordPermissions(guildId: string, bearerToken: string): Promise<void> {
+  const appId   = process.env.CLIENT_ID!;
+  const botRest  = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
+  const userRest = new REST({ version: '10', authPrefix: 'Bearer' }).setToken(bearerToken);
+
+  // Fetch Discord guild commands (need their IDs)
+  const guildCmds = await botRest.get(Routes.applicationGuildCommands(appId, guildId)) as any[];
+  const cmdIdMap: Record<string, string> = Object.fromEntries(
+    guildCmds.map((c: any) => [c.name as string, c.id as string])
+  );
+
+  // Fetch all saved permissions from DB
+  const allPerms = await prisma.commandPermission.findMany({ where: { guildId } });
+
+  // Build bulk permissions body — one entry per PARENT command
+  const seen = new Set<string>();
+  const bulkBody: { id: string; permissions: { id: string; type: number; permission: boolean }[] }[] = [];
+
+  for (const p of allPerms) {
+    const parentName = p.command.split(' ')[0];
+    if (seen.has(parentName)) continue;
+    seen.add(parentName);
+
+    const cmdId = cmdIdMap[parentName];
+    if (!cmdId) continue;
+
+    // Collect roleIds from all subcommands of this parent OR the parent itself
+    const related = allPerms.filter(x => x.command.split(' ')[0] === parentName && !x.disabled);
+    const roleIds = [...new Set(related.flatMap(x => x.roleIds))];
+    if (roleIds.length === 0) continue;
+
+    bulkBody.push({
+      id: cmdId,
+      permissions: roleIds.map(id => ({ id, type: 1, permission: true })),
+    });
+  }
+
+  // Send bulk update (requires Bearer token with applications.commands.permissions.update)
+  await userRest.put(Routes.guildApplicationCommandsPermissions(appId, guildId), { body: bulkBody });
+}

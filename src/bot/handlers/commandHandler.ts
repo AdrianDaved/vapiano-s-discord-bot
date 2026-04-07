@@ -51,7 +51,11 @@ export async function loadCommands(client: BotClient): Promise<void> {
  */
 export async function deployCommands(client: BotClient): Promise<void> {
   const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
-const commands = client.commands.map((cmd) => cmd.data.toJSON());
+const commands = client.commands.map((cmd) => {
+    const json = cmd.data.toJSON();
+    json.default_member_permissions = "0";
+    return json;
+  });
 
   try {
     logger.info(`Deploying ${commands.length} slash commands...`);

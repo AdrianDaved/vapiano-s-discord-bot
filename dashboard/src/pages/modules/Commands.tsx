@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useGuild } from '@/hooks/useGuild';
 import { commandsApi, guilds as guildsApi } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Shield, ChevronDown, ChevronUp, Search, ChevronRight } from 'lucide-react';
+import { Shield, ChevronDown, ChevronUp, Search, ChevronRight, RefreshCw } from 'lucide-react';
 
 interface CommandConfig {
   name: string;
@@ -42,6 +42,7 @@ export default function Commands() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(['moderation','utility','social','automation','tickets','reputation','invites','config','backup'].map(m => [m, true]))
   );
@@ -78,6 +79,19 @@ export default function Commands() {
       toast.error('Error al guardar');
     } finally {
       setSaving(null);
+    }
+  };
+
+  const syncDiscord = async () => {
+    if (!guildId) return;
+    setSyncing(true);
+    try {
+      await commandsApi.sync(guildId);
+      toast.success('Permisos sincronizados con Discord');
+    } catch {
+      toast.error('Error al sincronizar — vuelve a iniciar sesion en el dashboard');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -191,10 +205,18 @@ export default function Commands() {
         <div className="p-2 bg-indigo-500/10 rounded-lg">
           <Shield className="w-6 h-6 text-indigo-400" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-bold text-white">Permisos de Comandos</h1>
           <p className="text-sm text-gray-400">Activa, desactiva o restringe cada comando por rol</p>
         </div>
+        <button
+          onClick={syncDiscord}
+          disabled={syncing}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-xl text-sm hover:bg-indigo-500/20 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={"w-4 h-4" + (syncing ? ' animate-spin' : '')} />
+          {syncing ? 'Sincronizando...' : 'Sincronizar Discord'}
+        </button>
       </div>
 
       {/* Stats */}
