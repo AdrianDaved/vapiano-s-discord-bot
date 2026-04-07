@@ -55,17 +55,28 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
     .first();
 
   const color = highestRole?.color || 0x5865f2;
-  const joinedDaysAgo = target.joinedAt
-    ? Math.floor((Date.now() - target.joinedAt.getTime()) / 86_400_000)
+  const joinedTs  = target.joinedAt ? Math.floor(target.joinedAt.getTime() / 1000) : null;
+  const accountTs = Math.floor(target.user.createdTimestamp / 1000);
+  const joinedDaysAgo = joinedTs
+    ? Math.floor((Date.now() / 1000 - joinedTs) / 86400)
     : null;
 
-  // Last 3 reps preview
-  const repPreview = lastReps.length > 0
+  // Rep description block
+  const bar = progressBar(repTotal, Math.max(repTotal, 50));
+  const rankLine = repRank > 0 ? `> 🏆 Puesto **#${repRank}** en el ranking global` : '';
+  const repDesc = [
+    `> ⭐ **${repTotal}** recibidas  ·  💝 **${repGiven}** dadas`,
+    rankLine,
+    `> \`${bar}\``,
+  ].filter(Boolean).join('\n');
+
+  // Last reps preview
+  const repLines = lastReps.length > 0
     ? lastReps.map(r => {
-        const reason = r.reason ? `"${r.reason}"` : '_sin razón_';
-        return `⭐ <@${r.giverId}> — ${reason} • ${timeAgo(r.createdAt)}`;
+        const reason = r.reason ? `*"${r.reason}"*` : '*sin razón*';
+        return `> ⭐ <@${r.giverId}> — ${reason} · ${timeAgo(r.createdAt)}`;
       }).join('\n')
-    : '_Aún no tiene reps recibidas_';
+    : '> *Aún no tiene reps recibidas*';
 
   const embed = new EmbedBuilder()
     .setColor(color)
@@ -74,41 +85,36 @@ async function buildProfileEmbed(target: GuildMember, requesterId: string) {
       iconURL: target.user.displayAvatarURL({ size: 128 }),
     })
     .setThumbnail(target.user.displayAvatarURL({ size: 256 }))
+    .setDescription(repDesc)
     .addFields(
-      {
-        name: '⭐ Reputación',
-        value: [
-          `**${repTotal}** recibidas  •  **${repGiven}** dadas`,
-          repRank > 0 ? `🏆 Posición global: **#${repRank}**` : '',
-          `\`${progressBar(repTotal, Math.max(repTotal, 50))}\``,
-        ].filter(Boolean).join('\n'),
-        inline: false,
-      },
+      { name: '\u200b', value: '\u200b', inline: false },
       {
         name: '📨 Invitaciones',
-        value: `**${inviteCount}** miembros invitados`,
+        value: `**${inviteCount}** miembros`,
         inline: true,
       },
       {
         name: '👑 Rol más alto',
-        value: highestRole ? `<@&${highestRole.id}>` : '_Ninguno_',
+        value: highestRole ? `<@&${highestRole.id}>` : '*Ninguno*',
         inline: true,
       },
       {
         name: '📅 En el servidor',
-        value: joinedDaysAgo !== null
-          ? `**${joinedDaysAgo}** días\n<t:${Math.floor((target.joinedAt!.getTime()) / 1000)}:D>`
-          : '_Desconocido_',
+        value: joinedTs
+          ? `**${joinedDaysAgo}d** · <t:${joinedTs}:D>`
+          : '*Desconocido*',
         inline: true,
       },
       {
-        name: '🎂 Cuenta de Discord',
-        value: `<t:${Math.floor(target.user.createdTimestamp / 1000)}:D>`,
+        name: '🎂 Cuenta creada',
+        value: `<t:${accountTs}:D>`,
         inline: true,
       },
+      { name: '\u200b', value: '\u200b', inline: true },
+      { name: '\u200b', value: '\u200b', inline: true },
       {
-        name: `💬 Últimas reps recibidas`,
-        value: repPreview,
+        name: '💬 Últimas reps recibidas',
+        value: repLines,
         inline: false,
       },
     )
