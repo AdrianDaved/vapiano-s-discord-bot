@@ -130,16 +130,19 @@ export default {
           await interaction.reply({ content: 'Este comando está desactivado en este servidor.', ephemeral: true });
           return;
         }
-        if (cmdPerm && interaction.member) {
+        if (interaction.member) {
           const memberRoles = (interaction.member as any).roles?.cache ?? new Map();
           const isAdmin = (interaction.memberPermissions as any)?.has('Administrator') ?? false;
-          if (cmdPerm.roleIds?.length > 0) {
-            if (!isAdmin && !cmdPerm.roleIds.some((rid: string) => memberRoles.has(rid))) {
-              const roleList = cmdPerm.roleIds.map((id: string) => `<@&${id}>`).join(', ');
+          const allowedRoles: string[] = cmdPerm?.roleIds ?? [];
+          if (allowedRoles.length > 0) {
+            // Roles configurados: solo esos roles o admins
+            if (!isAdmin && !allowedRoles.some((rid: string) => memberRoles.has(rid))) {
+              const roleList = allowedRoles.map((id: string) => `<@&${id}>`).join(', ');
               await interaction.reply({ content: `Solo pueden usar este comando: ${roleList}`, ephemeral: true });
               return;
             }
           } else {
+            // Sin roles configurados: solo administradores por defecto
             if (!isAdmin) {
               await interaction.reply({ content: 'Este comando solo puede ser usado por administradores.', ephemeral: true });
               return;
