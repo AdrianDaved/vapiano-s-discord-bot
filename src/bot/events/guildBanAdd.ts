@@ -12,7 +12,7 @@ const BAN_LOG_CHANNEL_IDS = ['1420854487945445499', '1483931180423184514'];
 
 // Cross-ban: when a ban fires in guild A, also ban in guild B
 const LINKED_GUILD: Record<string, string> = {
-  '1107335281620820079': '1420045220325625898', // Vapiano  <-> HubStore
+  '1107335281620820079': '1420045220325625898', // HubStore <-> Vapiano
   '1420045220325625898': '1107335281620820079',
 };
 
@@ -43,7 +43,7 @@ export default {
       pendingBans.delete(user.id);
       logger.info(`[BanLog] Resolved moderator from pendingBans: ${moderatorId}`);
     } else {
-      // Fallback: audit log (bot-executed bans show bot as executor — best-effort only)
+      // Fallback: audit log
       try {
         await new Promise(r => setTimeout(r, 1200));
         const logs  = await guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.MemberBanAdd });
@@ -57,7 +57,14 @@ export default {
 
     const modMention = moderatorId ? `<@${moderatorId}>` : 'Desconocido';
 
-    // ── 2. Build the embed (identical for both channels) ─────
+    // ── 2. Fetch full user profile to get banner ──────────────
+    let bannerUrl: string | null = null;
+    try {
+      const fullUser = await client.users.fetch(user.id, { force: true });
+      bannerUrl = fullUser.bannerURL({ size: 512 }) ?? null;
+    } catch { /* no banner available */ }
+
+    // ── 3. Build the embed ────────────────────────────────────
     const embed = new EmbedBuilder()
       .setColor(0xed4245)
       .setAuthor({ name: guild.name, iconURL: guild.iconURL({ size: 64 }) ?? undefined })
@@ -74,14 +81,14 @@ export default {
       .setFooter({ text: `ID del usuario: ${user.id}` })
       .setTimestamp();
 
-    // ── 3. Send to BOTH fixed log channels (skip duplicates) ──
-    // Collect channel IDs already posted (to avoid double-post)
+    if (bannerUrl) embed.setImage(bannerUrl);
+
+    // ── 4. Send to BOTH fixed log channels ───────────────────
     const postedTo = new Set<string>();
 
     for (const channelId of BAN_LOG_CHANNEL_IDS) {
       if (postedTo.has(channelId)) continue;
 
-      // Find the channel in any guild the bot is in
       let ch: TextChannel | null = null;
       for (const g of client.guilds.cache.values()) {
         const found = g.channels.cache.get(channelId);
@@ -106,12 +113,9 @@ export default {
       }
     }
 
-    // ── 4. Cross-ban in the linked server ─────────────────────
+    // ── 5. Cross-ban in the linked server ─────────────────────
     const otherGuildId = LINKED_GUILD[guild.id];
-    if (!otherGuildId) {
-      logger.info(`[BanLog] No linked guild for ${guild.id}`);
-      return;
-    }
+    if (!otherGuildId) return;
 
     const otherGuild = client.guilds.cache.get(otherGuildId);
     if (!otherGuild) {
@@ -131,7 +135,6 @@ export default {
           });
           logger.info(`[BanLog] Cross-banned ${user.tag} in ${otherGuild.name}`);
         } finally {
-          // Remove after a short delay to let the echo event fire and be caught
           setTimeout(() => crossBanningNow.delete(user.id), 5000);
         }
       }
