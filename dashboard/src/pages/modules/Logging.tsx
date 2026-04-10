@@ -24,6 +24,7 @@ export default function Logging() {
   const [joinLeaveLogChannelId, setJoinLeaveLogChannelId] = useState('');
   const [auditLogChannelId, setAuditLogChannelId] = useState('');
   const [voiceLogChannelId, setVoiceLogChannelId] = useState('');
+  const [verificationLogChannelId, setVerificationLogChannelId] = useState('');
 
   useEffect(() => {
     if (!guildId) return;
@@ -41,6 +42,7 @@ export default function Logging() {
         setJoinLeaveLogChannelId(data.joinLeaveLogChannelId ?? '');
         setAuditLogChannelId(data.auditLogChannelId ?? '');
         setVoiceLogChannelId(data.voiceLogChannelId ?? '');
+        setVerificationLogChannelId(data.verificationLogChannelId ?? '');
         setGuildChannels(channels);
       })
       .catch((err) => setError(err.message || 'No se pudo cargar la configuracion de registros'))
@@ -58,6 +60,7 @@ export default function Logging() {
         joinLeaveLogChannelId: joinLeaveLogChannelId || null,
         auditLogChannelId: auditLogChannelId || null,
         voiceLogChannelId: voiceLogChannelId || null,
+        verificationLogChannelId: verificationLogChannelId || null,
       });
       toast.success('Configuracion de registros guardada');
     } catch {
@@ -212,7 +215,26 @@ export default function Logging() {
           </div>
         </Card>
 
-        <div className="flex justify-end">
+
+        {/* Verificación */}
+        <Card title="Verificación" description="Canal donde se registran las verificaciones realizadas con /verificacion">
+          <div className="mt-3 space-y-1">
+            <ChannelSelect
+              label="Canal de registro de verificación"
+              description="Logs del comando /verificacion (ID del usuario, supa y transcripción)"
+              channels={guildChannels}
+              value={verificationLogChannelId}
+              onChange={setVerificationLogChannelId}
+            />
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {['verificacion'].map(ev => (
+                <span key={ev} className="text-xs px-2 py-0.5 rounded-full bg-discord-green/10 text-discord-green border border-discord-green/20">{ev}</span>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+                <div className="flex justify-end">
           <Button onClick={save} loading={saving}>Guardar cambios</Button>
         </div>
       </div>

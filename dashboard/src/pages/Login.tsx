@@ -1,4 +1,3 @@
-import { Bot } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Button from '@/components/Button';
 
@@ -9,8 +8,12 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-discord-darker">
       <div className="text-center max-w-md mx-auto px-4">
         {/* Logo */}
-        <div className="mx-auto w-20 h-20 rounded-2xl bg-discord-blurple flex items-center justify-center mb-6">
-          <Bot size={40} className="text-white" />
+        <div className="mx-auto w-24 h-24 rounded-full overflow-hidden mb-6 ring-4 ring-discord-blurple/40">
+          <img
+            src="https://cdn.discordapp.com/avatars/1482419113094811658/a_72072c38b6feed34273f2259ae177d01.gif"
+            alt="Vapiano Bot"
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <h1 className="text-3xl font-bold text-discord-white mb-2">Vapiano Bot</h1>

@@ -58,6 +58,7 @@ model GuildConfig {
   joinLeaveLogChannelId String?
   auditLogChannelId   String? // server changes: roles, channels, etc.
   voiceLogChannelId   String? // voice activity logging
+  verificationLogChannelId String? // log channel for /verificacion command
   muteRoleId          String?
 
   // Tickets

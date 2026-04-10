@@ -140,6 +140,7 @@ export const loggingUpdateSchema = z.object({
   joinLeaveLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
   auditLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
   voiceLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
+  verificationLogChannelId: z.union([snowflakeRequired, z.literal(''), z.null()]).optional(),
 }).strict();
 
 // ─── Automation ──────────────────────────────────────────

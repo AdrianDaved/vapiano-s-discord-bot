@@ -28,6 +28,7 @@ loggingRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
       joinLeaveLogChannelId: true,
       auditLogChannelId: true,
       voiceLogChannelId: true,
+      verificationLogChannelId: true,
     },
   });
 

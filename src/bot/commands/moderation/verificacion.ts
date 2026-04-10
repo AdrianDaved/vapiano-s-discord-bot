@@ -120,7 +120,7 @@ export default {
     }
 
     // Enviar al canal de logs de verificación
-    const logChannelId = config.modLogChannelId || "1449265811624820797";
+    const logChannelId = (config as any).verificationLogChannelId || "1489032975852241068";
     if (!logChannelId) return;
 
     const logChannel = guild.channels.cache.get(logChannelId) as TextChannel | undefined;
@@ -130,7 +130,8 @@ export default {
     }
 
     // Mensaje con ID buscable
-    await logChannel.send(`🔍 ID: ${member.user.id} — ${member.user.tag}`).catch(() => {});
+    const supa = member.nickname || member.user.username;
+    await logChannel.send(`🔍 ID: \`${member.user.id}\` | Supa: **${supa}** | Tag: ${member.user.tag}`).catch(() => {});
 
     // Embed de log
     const logEmbed = new EmbedBuilder()
