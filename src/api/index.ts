@@ -27,6 +27,7 @@ import { loggingRouter } from './routes/logging';
 import { messagesRouter } from './routes/messages';
 import { rifasRouter } from './routes/rifas';
 import { commandsRouter } from './routes/commands';
+import { levelsRouter } from "./routes/levels";
 
 dotenv.config();
 
@@ -106,6 +107,7 @@ app.use('/api/guilds/:guildId/logging', loggingRouter);
 app.use('/api/guilds/:guildId/messages', messagesRouter);
 app.use('/api/guilds/:guildId/rifas', rifasRouter);
 app.use('/api/guilds/:guildId/commands', commandsRouter);
+app.use('/api/guilds/:guildId/levels', levelsRouter);
 
 // Health check
 app.get('/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

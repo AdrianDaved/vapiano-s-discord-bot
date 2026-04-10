@@ -10,6 +10,7 @@ import { initReminderTimer } from '../modules/utility/reminderTimer';
 import { initAutoClose } from '../modules/tickets/ticketManager';
 import { initRifaTimer } from '../modules/rifa/rifaManager';
 import { initStickyCache } from '../modules/sticky/stickyHandler';
+import { startStatsTimer } from '../modules/stats/statsChannels';
 
 // Global invite cache: guildId -> Map<code, InviteData>
 export const inviteCache = new Map<string, Map<string, InviteData>>();
@@ -70,5 +71,8 @@ export default {
 
     // Start rifa countdown timer
     initRifaTimer(client);
+
+    // Start server stats channel updater
+    startStatsTimer(client);
   },
 };

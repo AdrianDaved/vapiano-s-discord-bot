@@ -59,9 +59,18 @@ model GuildConfig {
   auditLogChannelId   String? // server changes: roles, channels, etc.
   voiceLogChannelId   String? // voice activity logging
   verificationLogChannelId String? // log channel for /verificacion command
-  darRangoAccessMessage String? // Custom DM for Access role
-  darRangoVipMessage    String? // Custom DM for VIP role
-  darRangoDefaultMessage String? // Custom DM for other roles
+  darRangoRoles         Json?   // [{id,pattern,emoji,message}] dynamic role patterns
+  // ─── Levels/XP ─────────────────────────────
+  levelsEnabled         Boolean  @default(false)
+  xpPerMessage          Int      @default(15)
+  xpCooldownSeconds     Int      @default(60)
+  levelUpChannelId      String?
+  levelUpMessage        String?  // "¡{user} subió al nivel {level}!"
+  levelRoles            Json?    // [{level:Int, roleId:String}]
+  levelIgnoredChannels  String[] @default([])
+  levelIgnoredRoles     String[] @default([])
+  // ─── Server Stats Channels ─────────────────
+  statsChannels         Json?    // [{id,channelId,type,format}]
   muteRoleId          String?
 
   // Tickets
@@ -119,6 +128,7 @@ model GuildConfig {
   giveaways     Giveaway[]
   rifas          Rifa[]
   commandPermissions CommandPermission[]
+  memberLevels       MemberLevel[]
   suggestions   Suggestion[]
   starboardEntries StarboardEntry[]
   afkStatuses    AfkStatus[]
@@ -563,4 +573,20 @@ model CommandPermission {
 
   @@unique([guildId, command])
   @@map("command_permissions")
+}
+
+// ─── Member Levels / XP ──────────────────────────────────────
+model MemberLevel {
+  id        String      @id @default(cuid())
+  userId    String
+  guildId   String
+  guild     GuildConfig @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  xp        Int         @default(0)
+  level     Int         @default(0)
+  messages  Int         @default(0)
+  updatedAt DateTime    @updatedAt @default(now())
+
+  @@unique([userId, guildId])
+  @@index([guildId, xp(sort: Desc)])
+  @@map("member_levels")
 }

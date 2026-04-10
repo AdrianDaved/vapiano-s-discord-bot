@@ -25,8 +25,20 @@ function buildDmMessage(template: string, roleName: string, userId: string): str
   return `<@${userId}> ` + template.replace(/\{rol\}/g, roleName);
 }
 
+interface DarRangoRole { id: string; pattern: string; emoji?: string; message?: string; }
+
 function getDmMessage(roleName: string, userId: string, config: any): string {
   const name = roleName.toLowerCase();
+  // Check dynamic darRangoRoles patterns first
+  const customRoles = (config as any).darRangoRoles as DarRangoRole[] | undefined;
+  if (customRoles) {
+    for (const entry of customRoles) {
+      if (entry.pattern && name.includes(entry.pattern.toLowerCase()) && entry.message) {
+        return buildDmMessage(entry.message, roleName, userId);
+      }
+    }
+  }
+  // Legacy fallback
   if (name.includes("access")) {
     return buildDmMessage((config as any).darRangoAccessMessage || DEFAULT_ACCESS_MSG, roleName, userId);
   }
@@ -34,6 +46,19 @@ function getDmMessage(roleName: string, userId: string, config: any): string {
     return buildDmMessage((config as any).darRangoVipMessage || DEFAULT_VIP_MSG, roleName, userId);
   }
   return buildDmMessage((config as any).darRangoDefaultMessage || DEFAULT_MSG, roleName, userId);
+}
+
+function getRoleEmoji(roleName: string, config: any): string {
+  const name = roleName.toLowerCase();
+  const customRoles = (config as any).darRangoRoles as DarRangoRole[] | undefined;
+  if (customRoles) {
+    for (const entry of customRoles) {
+      if (entry.pattern && name.includes(entry.pattern.toLowerCase()) && entry.emoji) {
+        return entry.emoji;
+      }
+    }
+  }
+  return "🎖";
 }
 
 export default {
