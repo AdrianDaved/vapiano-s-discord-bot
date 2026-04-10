@@ -74,8 +74,6 @@ export default function DarRango() {
         <Card title="Canal de registro" description="Canal donde se envían los logs de /dar-rango con ID, supa y transcripción">
           <div className="mt-3">
             <ChannelSelect
-              label="Canal de logs"
-              description="Destino del registro de verificaciones"
               channels={channels}
               value={logChannelId}
               onChange={setLogChannelId}
