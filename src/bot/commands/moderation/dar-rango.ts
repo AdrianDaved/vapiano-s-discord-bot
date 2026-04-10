@@ -17,31 +17,23 @@ import logger from "../../../shared/logger";
 import { fetchChannelMessages, generateHtmlTranscript } from "../../modules/tickets/ticketManager";
 import { getGuildConfig } from "../../utils";
 
-/** Devuelve el mensaje DM personalizado según el nombre del rol */
-function getDmMessage(roleName: string, userId: string): string {
+const DEFAULT_ACCESS_MSG = "¡Felicidades! 🎉\n\nAhora tienes el rango **{rol}**.\n\nYa puedes hacer tus **publicaciones OOC** en los canales correspondientes.";
+const DEFAULT_VIP_MSG    = "¡Felicidades! ⭐\n\nAhora tienes el rango **{rol}**.\n\nYa puedes acceder a los **canales VIP** exclusivos y usar el **@everyone moderadamente**.";
+const DEFAULT_MSG        = "¡Felicidades! 🎉\n\nSe te ha asignado el rango **{rol}**.\n\nDisfruta de tus nuevos privilegios.";
+
+function buildDmMessage(template: string, roleName: string, userId: string): string {
+  return `<@${userId}> ` + template.replace(/\{rol\}/g, roleName);
+}
+
+function getDmMessage(roleName: string, userId: string, config: any): string {
   const name = roleName.toLowerCase();
-
   if (name.includes("access")) {
-    return (
-      `<@${userId}> ¡Felicidades! 🎉\n\n` +
-      `Ahora tienes el rango **${roleName}**.\n\n` +
-      `Ya puedes hacer tus **publicaciones OOC** en los canales correspondientes.`
-    );
+    return buildDmMessage((config as any).darRangoAccessMessage || DEFAULT_ACCESS_MSG, roleName, userId);
   }
-
   if (name.includes("vip")) {
-    return (
-      `<@${userId}> ¡Felicidades! ⭐\n\n` +
-      `Ahora tienes el rango **${roleName}**.\n\n` +
-      `Ya puedes acceder a los **canales VIP** exclusivos y usar el **@everyone moderadamente**.`
-    );
+    return buildDmMessage((config as any).darRangoVipMessage || DEFAULT_VIP_MSG, roleName, userId);
   }
-
-  return (
-    `<@${userId}> ¡Felicidades! 🎉\n\n` +
-    `Se te ha asignado el rango **${roleName}**.\n\n` +
-    `Disfruta de tus nuevos privilegios.`
-  );
+  return buildDmMessage((config as any).darRangoDefaultMessage || DEFAULT_MSG, roleName, userId);
 }
 
 export default {
@@ -96,7 +88,7 @@ export default {
 
     // Enviar DM personalizado según el rol
     try {
-      const dmMessage = getDmMessage(role.name, member.user.id);
+      const dmMessage = getDmMessage(role.name, member.user.id, config);
       const dmEmbed = new EmbedBuilder()
         .setColor(role.color || 0x57f287)
         .setTitle(`🎖️ ¡Nuevo rango en ${guild.name}!`)
@@ -126,14 +118,14 @@ export default {
     await interaction.editReply({ embeds: [confirmEmbed] });
 
     // Anuncio público en el canal (si se solicitó)
+    const channel = interaction.channel as TextChannel;
     if (anunciar) {
-      const channel = interaction.channel as TextChannel;
       const announceEmbed = new EmbedBuilder()
         .setColor(role.color || 0x57f287)
         .setTitle(`🎖️ ¡Nuevo rango asignado!`)
         .setDescription(
           `${member} ha recibido el rango ${role}.\n\n` +
-          getDmMessage(role.name, member.user.id)
+          getDmMessage(role.name, member.user.id, config)
         )
         .setThumbnail(member.user.displayAvatarURL())
         .setTimestamp();
@@ -142,9 +134,7 @@ export default {
     }
 
     // Generar transcripción del canal actual
-    const channel = interaction.channel as TextChannel;
     let htmlContent: string | null = null;
-
     try {
       const messages = await fetchChannelMessages(channel);
       htmlContent = generateHtmlTranscript(messages, {

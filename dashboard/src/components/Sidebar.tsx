@@ -21,6 +21,7 @@ import {
   Send,
   ArrowLeftRight,
   X,
+  Medal,
 } from 'lucide-react';
 import { useAuth, getAvatarUrl } from '@/hooks/useAuth';
 
@@ -60,6 +61,7 @@ const modules = [
   { path: '/backups', icon: Database, label: 'Copias de seguridad' },
   { path: '/migration', icon: ArrowLeftRight, label: 'Migración' },
   { path: '/commands', icon: Shield, label: 'Comandos' },
+  { path: '/dar-rango', icon: Medal, label: 'Dar Rango' },
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {

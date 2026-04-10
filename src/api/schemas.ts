@@ -72,6 +72,9 @@ export const configUpdateSchema = z.object({
 
   // Arrays
   joinRoleIds: snowflakeArray,
+  darRangoAccessMessage: z.string().max(1000).optional().nullable(),
+  darRangoVipMessage: z.string().max(1000).optional().nullable(),
+  darRangoDefaultMessage: z.string().max(1000).optional().nullable(),
   ticketStaffRoleIds: snowflakeArray,
   antiLinksWhitelist: z.array(z.string().max(200)).optional(),
   blacklistedWords: z.array(z.string().max(100)).optional(),

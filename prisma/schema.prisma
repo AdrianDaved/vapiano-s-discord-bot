@@ -59,6 +59,9 @@ model GuildConfig {
   auditLogChannelId   String? // server changes: roles, channels, etc.
   voiceLogChannelId   String? // voice activity logging
   verificationLogChannelId String? // log channel for /verificacion command
+  darRangoAccessMessage String? // Custom DM for Access role
+  darRangoVipMessage    String? // Custom DM for VIP role
+  darRangoDefaultMessage String? // Custom DM for other roles
   muteRoleId          String?
 
   // Tickets

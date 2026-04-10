@@ -32,6 +32,7 @@ import Rifas from '@/pages/modules/Rifas';
 import MessageSender from '@/pages/modules/MessageSender';
 import Migration from '@/pages/modules/Migration'
 import Commands from '@/pages/modules/Commands';
+import DarRango from '@/pages/modules/DarRango';
 
 /** Wrapper that redirects to /login when user is not authenticated */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -97,6 +98,7 @@ function AppRoutes() {
         <Route path="logging" element={<Logging />} />
         <Route path="messages" element={<MessageSender />} />
         <Route path="rifas" element={<Rifas />} />
+        <Route path="dar-rango" element={<DarRango />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 

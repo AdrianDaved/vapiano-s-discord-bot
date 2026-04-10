@@ -1,19 +1,30 @@
-import { useAuth } from '@/hooks/useAuth';
-import Button from '@/components/Button';
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import Button from "@/components/Button";
+
+const BOT_AVATAR = "https://cdn.discordapp.com/avatars/1482419113094811658/a_72072c38b6feed34273f2259ae177d01.gif";
 
 export default function Login() {
   const { login } = useAuth();
+  const [imgFailed, setImgFailed] = useState(false);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-discord-darker">
       <div className="text-center max-w-md mx-auto px-4">
-        {/* Logo */}
-        <div className="mx-auto w-24 h-24 rounded-full overflow-hidden mb-6 ring-4 ring-discord-blurple/40">
-          <img
-            src="https://cdn.discordapp.com/avatars/1482419113094811658/a_72072c38b6feed34273f2259ae177d01.gif"
-            alt="Vapiano Bot"
-            className="w-full h-full object-cover"
-          />
+        {/* Bot avatar */}
+        <div className="mx-auto w-28 h-28 rounded-full overflow-hidden mb-6 ring-4 ring-discord-blurple/50 shadow-lg shadow-discord-blurple/20">
+          {!imgFailed ? (
+            <img
+              src={BOT_AVATAR}
+              alt="Vapiano Bot"
+              className="w-full h-full object-cover"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <div className="w-full h-full bg-discord-blurple flex items-center justify-center text-white text-3xl font-bold">
+              V
+            </div>
+          )}
         </div>
 
         <h1 className="text-3xl font-bold text-discord-white mb-2">Vapiano Bot</h1>
@@ -21,12 +32,17 @@ export default function Login() {
           Inicia sesion con tu cuenta de Discord para administrar tus servidores
         </p>
 
-        <Button onClick={login} size="lg" className="w-full">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
+        <button
+          onClick={login}
+          className="w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-95 shadow-lg"
+          style={{ backgroundColor: "#5865F2" }}
+        >
+          {/* Discord logo SVG - clean version */}
+          <svg width="22" height="22" viewBox="0 0 127.14 96.36" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
           </svg>
           Iniciar sesion con Discord
-        </Button>
+        </button>
 
         <p className="text-xs text-discord-muted mt-6">
           Solo pedimos acceso a tu perfil basico y lista de servidores.
