@@ -44,7 +44,7 @@ export const ALL_COMMANDS: CommandEntry[] = [
   { name: 'rol todos',  parent: 'rol', subcommand: 'todos',  module: 'moderation', description: 'Dar/quitar rol a todos los miembros' },
   { name: 'rol info',   parent: 'rol', subcommand: 'info',   module: 'moderation', description: 'Info de un rol' },
   { name: 'modolento',                     module: 'moderation', description: 'Activar modo lento en un canal' },
-  { name: 'verificacion',                  module: 'moderation', description: 'Verificar a un usuario manualmente' },
+  { name: 'dar-rango',                      module: 'moderation', description: 'Asignar un rango/rol a un usuario con DM personalizado' },
   { name: 'hackeado',                      module: 'moderation', description: 'Aislar cuenta comprometida y borrar spam' },
   // ── Utility ─────────────────────────────────────────────────────────────────
   { name: 'perfil', module: 'utility', description: 'Perfil de un miembro: rep, invitaciones, historial' },

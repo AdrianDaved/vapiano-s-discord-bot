@@ -73,8 +73,8 @@ const commandDetails: Record<string, { desc: string; subs?: Record<string, strin
   modolento: {
     desc: 'Establecer o quitar el modo lento de un canal (0 = desactivar).',
   },
-  verificacion: {
-    desc: 'Verificar un usuario: asigna rol de verificado, anuncia y puede guardar transcripción.',
+  'dar-rango': {
+    desc: 'Asigna un rango (Access, VIP u otro) a un usuario, envía DM personalizado según el rol y guarda la transcripción del canal.',
   },
 
   // ─── Utilidades ─────────────────────────────────────────────────────────
