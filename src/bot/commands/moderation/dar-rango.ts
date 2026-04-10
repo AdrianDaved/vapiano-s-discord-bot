@@ -52,6 +52,12 @@ export default {
         .setName("anunciar")
         .setDescription("¿Mostrar anuncio público en este canal mencionando al usuario?")
         .setRequired(false)
+    )
+    .addBooleanOption((opt) =>
+      opt
+        .setName("enviar-dm")
+        .setDescription("¿Enviar mensaje privado (DM) al usuario? (por defecto: Sí)")
+        .setRequired(false)
     ),
   module: "moderation",
 
@@ -70,6 +76,7 @@ export default {
     const member = target as import("discord.js").GuildMember;
     const roleOption = interaction.options.getRole("rol", true);
     const anunciar = interaction.options.getBoolean("anunciar") ?? false;
+    const enviarDm = interaction.options.getBoolean("enviar-dm") ?? true;
     const role = guild.roles.cache.get(roleOption.id);
 
     if (!role) {
@@ -86,8 +93,8 @@ export default {
       return;
     }
 
-    // Enviar DM personalizado según el rol
-    try {
+    // Enviar DM personalizado según el rol (si se solicitó)
+    if (enviarDm) try {
       const dmMessage = getDmMessage(role.name, member.user.id, config);
       const dmEmbed = new EmbedBuilder()
         .setColor(role.color || 0x57f287)
