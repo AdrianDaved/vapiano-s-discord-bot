@@ -18,32 +18,29 @@ import { fetchChannelMessages, generateHtmlTranscript } from "../../modules/tick
 import { getGuildConfig } from "../../utils";
 
 /** Devuelve el mensaje DM personalizado según el nombre del rol */
-function getDmMessage(roleName: string, guildName: string): string {
+function getDmMessage(roleName: string, userId: string): string {
   const name = roleName.toLowerCase();
 
   if (name.includes("access")) {
     return (
-      `¡Bienvenido/a! 🎉\n\n` +
-      `Ahora tienes el rango **${roleName}** en **${guildName}**.\n\n` +
-      `Ya puedes hacer tus **publicaciones OOC** en los canales correspondientes. ` +
-      `Recuerda seguir siempre las reglas del servidor y mantener un ambiente respetuoso. 📢`
+      `<@${userId}> ¡Bienvenido/a! 🎉\n\n` +
+      `Ahora tienes el rango **${roleName}**.\n\n` +
+      `Ya puedes hacer tus **publicaciones OOC** en los canales correspondientes.`
     );
   }
 
   if (name.includes("vip")) {
     return (
-      `¡Felicidades! ⭐\n\n` +
-      `Ahora tienes el rango **${roleName}** en **${guildName}**.\n\n` +
-      `Ya puedes acceder a los **canales VIP** exclusivos y usar el **@everyone moderadamente**. ` +
-      `Recuerda no abusar de este privilegio — úsalo con responsabilidad. 👑`
+      `<@${userId}> ¡Felicidades! ⭐\n\n` +
+      `Ahora tienes el rango **${roleName}**.\n\n` +
+      `Ya puedes acceder a los **canales VIP** exclusivos y usar el **@everyone moderadamente**.`
     );
   }
 
-  // Genérico para cualquier otro rol
   return (
-    `¡Felicidades! 🎉\n\n` +
-    `Se te ha asignado el rango **${roleName}** en **${guildName}**.\n\n` +
-    `Disfruta de tus nuevos privilegios y recuerda siempre seguir las reglas del servidor.`
+    `<@${userId}> ¡Felicidades! 🎉\n\n` +
+    `Se te ha asignado el rango **${roleName}**.\n\n` +
+    `Disfruta de tus nuevos privilegios.`
   );
 }
 
@@ -57,11 +54,17 @@ export default {
     )
     .addRoleOption((opt) =>
       opt.setName("rol").setDescription("Rol a asignar").setRequired(true)
+    )
+    .addBooleanOption((opt) =>
+      opt
+        .setName("anunciar")
+        .setDescription("¿Mostrar anuncio público en este canal mencionando al usuario?")
+        .setRequired(false)
     ),
   module: "moderation",
 
   async execute(interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply();
+    await interaction.deferReply({ flags: 64 });
 
     const guild = interaction.guild!;
     const config = await getGuildConfig(guild.id);
@@ -74,6 +77,7 @@ export default {
 
     const member = target as import("discord.js").GuildMember;
     const roleOption = interaction.options.getRole("rol", true);
+    const anunciar = interaction.options.getBoolean("anunciar") ?? false;
     const role = guild.roles.cache.get(roleOption.id);
 
     if (!role) {
@@ -92,7 +96,7 @@ export default {
 
     // Enviar DM personalizado según el rol
     try {
-      const dmMessage = getDmMessage(role.name, guild.name);
+      const dmMessage = getDmMessage(role.name, member.user.id);
       const dmEmbed = new EmbedBuilder()
         .setColor(role.color || 0x57f287)
         .setTitle(`🎖️ ¡Nuevo rango en ${guild.name}!`)
@@ -105,7 +109,7 @@ export default {
       logger.warn(`[DarRango] No se pudo enviar DM a ${member.user.tag} (DMs cerrados)`);
     }
 
-    // Confirmación en el canal
+    // Confirmación privada al moderador
     const confirmEmbed = new EmbedBuilder()
       .setColor(role.color || 0x57f287)
       .setTitle("🎖️ Rango asignado")
@@ -120,6 +124,22 @@ export default {
       .setTimestamp();
 
     await interaction.editReply({ embeds: [confirmEmbed] });
+
+    // Anuncio público en el canal (si se solicitó)
+    if (anunciar) {
+      const channel = interaction.channel as TextChannel;
+      const announceEmbed = new EmbedBuilder()
+        .setColor(role.color || 0x57f287)
+        .setTitle(`🎖️ ¡Nuevo rango asignado!`)
+        .setDescription(
+          `${member} ha recibido el rango ${role}.\n\n` +
+          getDmMessage(role.name, member.user.id)
+        )
+        .setThumbnail(member.user.displayAvatarURL())
+        .setTimestamp();
+
+      await channel.send({ embeds: [announceEmbed] }).catch(() => {});
+    }
 
     // Generar transcripción del canal actual
     const channel = interaction.channel as TextChannel;
