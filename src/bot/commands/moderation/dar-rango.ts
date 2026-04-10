@@ -23,7 +23,7 @@ function getDmMessage(roleName: string, userId: string): string {
 
   if (name.includes("access")) {
     return (
-      `<@${userId}> ¡Bienvenido/a! 🎉\n\n` +
+      `<@${userId}> ¡Felicidades! 🎉\n\n` +
       `Ahora tienes el rango **${roleName}**.\n\n` +
       `Ya puedes hacer tus **publicaciones OOC** en los canales correspondientes.`
     );
