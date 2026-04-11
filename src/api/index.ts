@@ -48,13 +48,19 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      // Production Vite build emits no inline scripts and no eval usage, so
+      // we can keep scriptSrc locked to 'self'. React still inlines styles via
+      // the `style` prop, so styleSrc keeps 'unsafe-inline'.
+      scriptSrc: ["'self'"],
       styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:', 'http:'],
-      connectSrc: ["'self'", 'https:', 'http:'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://discord.com', 'https://cdn.discordapp.com'],
       fontSrc: ["'self'", 'https:', 'data:'],
       objectSrc: ["'none'"],
       frameSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'", 'https://discord.com'],
       upgradeInsecureRequests: null,
     },
   },
