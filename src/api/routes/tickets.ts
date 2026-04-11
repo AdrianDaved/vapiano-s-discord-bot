@@ -1,15 +1,11 @@
-import { Router, Response } from 'express';
+import { Response } from 'express';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { createGuildRouter, requireAuth, requireGuildAccess, checkGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, checkGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { ticketPanelCreateSchema, ticketPanelUpdateSchema, ticketUpdateSchema } from '../schemas';
+import { buildPanelMessage } from '../../shared/ticketPanelMessage';
 import prisma from '../../database/client';
-
-const BUTTON_STYLE: Record<string, number> = {
-  Primary: 1, Secondary: 2, Success: 3, Danger: 4,
-  primary: 1, secondary: 2, success: 3, danger: 4,
-};
 
 const botRest = () => new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
 
@@ -43,43 +39,18 @@ async function assertChannelInGuild(channelId: string, expectedGuildId: string):
 }
 
 
-// ─── Helper: sync Discord message when a panel is updated ────────────────────
+/**
+ * Re-render the Discord message for a panel group from the latest DB state.
+ * Used after a panel update so the buttons/embed in Discord stay in sync.
+ */
 async function syncDiscordMessage(channelId: string, messageId: string, guildId: string): Promise<void> {
-  // Find all panels sharing the same messageId
   const siblings = await prisma.ticketPanel.findMany({
     where: { guildId, messageId, channelId },
     orderBy: { createdAt: 'asc' },
   });
   if (siblings.length === 0) return;
 
-  const buttons = siblings.map((p) => {
-    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
-    const component: Record<string, unknown> = {
-      type: 2, style,
-      label: p.buttonLabel || p.name,
-      custom_id: `ticket_create_${p.id}`,
-    };
-    if (p.buttonEmoji) {
-      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
-      if (customMatch) component.emoji = { name: customMatch[1], id: customMatch[2] };
-      else component.emoji = { name: p.buttonEmoji };
-    }
-    return component;
-  });
-
-  const first = siblings[0];
-  const colorHex = (first.groupEmbedColor || '#5865F2').replace('#', '');
-  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
-
-  const payload: Record<string, unknown> = {
-    embeds: [{
-      title: first.groupEmbedTitle || 'Sistema de Tickets',
-      description: first.groupEmbedDescription || '',
-      color: colorInt,
-    }],
-    components: [{ type: 1, components: buttons }],
-  };
-
+  const payload = buildPanelMessage(siblings);
   await botRest().patch(Routes.channelMessage(channelId, messageId), { body: payload });
 }
 
@@ -287,41 +258,9 @@ ticketsRouter.post('/panels/deploy', asyncHandler(async (req: AuthRequest, res: 
   // Build ordered list matching panelIds order
   const ordered = panelIds.map((id: string) => panels.find((p) => p.id === id)).filter(Boolean) as typeof panels;
 
-  // Parse embed color
-  const colorHex = (embedColor || '#5865F2').replace('#', '');
-  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
-
-  // Build Discord message payload
-  const buttons = ordered.map((p) => {
-    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
-    const component: Record<string, unknown> = {
-      type: 2,
-      style,
-      label: p.buttonLabel || p.name,
-      custom_id: `ticket_create_${p.id}`,
-    };
-    if (p.buttonEmoji) {
-      // Custom emoji format: <:name:id> or unicode
-      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
-      if (customMatch) {
-        component.emoji = { name: customMatch[1], id: customMatch[2] };
-      } else {
-        component.emoji = { name: p.buttonEmoji };
-      }
-    }
-    return component;
-  });
-
-  const payload: Record<string, unknown> = {
-    embeds: [
-      {
-        title: embedTitle || 'Sistema de Tickets',
-        description: embedDescription || 'Selecciona el botón que corresponda a tu caso.',
-        color: colorInt,
-      },
-    ],
-    components: [{ type: 1, components: buttons }],
-  };
+  // Build payload using the shared builder so deploy / sync / panelRepost
+  // all stay in lockstep.
+  const payload = buildPanelMessage(ordered, { embedTitle, embedDescription, embedColor });
 
   let messageId: string;
   try {
@@ -458,29 +397,8 @@ ticketsRouter.post('/panels/cross-deploy', asyncHandler(async (req: AuthRequest,
     )
   );
 
-  // Build and send Discord message to target guild channel
-  const colorHex = (embedColor || copies[0].groupEmbedColor || '#5865F2').replace('#', '');
-  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
-
-  const buttons = copies.map((p) => {
-    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
-    const component: Record<string, unknown> = {
-      type: 2, style,
-      label: p.buttonLabel || p.name,
-      custom_id: `ticket_create_${p.id}`,
-    };
-    if (p.buttonEmoji) {
-      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
-      if (customMatch) component.emoji = { name: customMatch[1], id: customMatch[2] };
-      else component.emoji = { name: p.buttonEmoji };
-    }
-    return component;
-  });
-
-  const payload = {
-    embeds: [{ title: embedTitle || copies[0].groupEmbedTitle || 'Sistema de Tickets', description: embedDescription || copies[0].groupEmbedDescription || '', color: colorInt }],
-    components: [{ type: 1, components: buttons }],
-  };
+  // Build the Discord message via the shared builder.
+  const payload = buildPanelMessage(copies, { embedTitle, embedDescription, embedColor });
 
   let msg: { id: string };
   try {
