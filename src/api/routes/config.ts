@@ -1,11 +1,13 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest, fetchUserGuilds } from '../middleware/auth';
+import { requireAuth, requireGuildAccess, checkGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { configUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
 
-// Fields grouped by section for cloning — matched to actual GuildConfig schema fields
-const CLONE_SECTIONS: Record<string, string[]> = {
+// Fields grouped by section for cloning — matched to actual GuildConfig schema fields.
+// `as const` gives us a literal-typed array we can derive the section enum from
+// and Zod-validate against at runtime.
+const CLONE_SECTIONS = {
   general: ['prefix', 'language', 'muteRoleId'],
   welcome: [
     'welcomeEnabled', 'welcomeChannelId', 'welcomeMessage', 'welcomeImageEnabled',
@@ -30,7 +32,12 @@ const CLONE_SECTIONS: Record<string, string[]> = {
     'ticketStaffRoleIds', 'ticketTranscriptChannelId',
     'ticketCloseConfirmation', 'ticketDMTranscript',
   ],
-};
+} as const satisfies Record<string, readonly string[]>;
+
+type CloneSection = keyof typeof CLONE_SECTIONS;
+const VALID_SECTIONS = new Set<string>(Object.keys(CLONE_SECTIONS));
+// Fields that must never be copied from source to target (source-specific state)
+const EXCLUDED_FIELDS = new Set<string>(['ticketCounter']);
 
 export const configRouter = Router({ mergeParams: true });
 
@@ -64,39 +71,45 @@ configRouter.post('/clone', asyncHandler(async (req: AuthRequest, res: Response)
   const sourceGuildId = req.params.guildId as string;
   const { targetGuildId, sections } = req.body;
 
-  if (!targetGuildId || !Array.isArray(sections) || sections.length === 0) {
-    res.status(400).json({ error: 'targetGuildId y sections son requeridos' });
+  // Strict input validation
+  if (
+    typeof targetGuildId !== 'string' ||
+    !/^\d{17,20}$/.test(targetGuildId) ||
+    !Array.isArray(sections) ||
+    sections.length === 0 ||
+    !sections.every((s: unknown): s is CloneSection => typeof s === 'string' && VALID_SECTIONS.has(s))
+  ) {
+    res.status(400).json({
+      error: 'targetGuildId (snowflake) and sections[] are required; sections must be one of: ' + [...VALID_SECTIONS].join(', '),
+    });
+    return;
+  }
+  if (targetGuildId === sourceGuildId) {
+    res.status(400).json({ error: 'Source and target guild must be different' });
     return;
   }
 
-  // Verify user has access to target guild
-  const userGuilds = await fetchUserGuilds(req.user!.id, req.user!.accessToken);
-  const targetGuild = userGuilds?.find((g: any) => g.id === targetGuildId);
-  if (!targetGuild) {
-    res.status(403).json({ error: 'No tienes acceso al servidor destino' });
-    return;
-  }
-  const perms = BigInt(targetGuild.permissions);
-  if (!targetGuild.owner && (perms & BigInt(0x20)) === BigInt(0) && (perms & BigInt(0x8)) === BigInt(0)) {
-    res.status(403).json({ error: 'No tienes permisos de gestión en el servidor destino' });
+  // Reuse the same access check as the middleware
+  const access = await checkGuildAccess(req.user!, targetGuildId);
+  if (!access.ok) {
+    res.status(access.status).json({ error: access.error });
     return;
   }
 
-  // Get source config
   const source = await prisma.guildConfig.findUnique({ where: { id: sourceGuildId } });
   if (!source) {
     res.status(404).json({ error: 'Configuración origen no encontrada' });
     return;
   }
 
-  // Build data to copy based on selected sections
-  const data: Record<string, any> = {};
-  for (const section of sections) {
-    const fields = CLONE_SECTIONS[section] || [];
-    for (const field of fields) {
-      if ((source as any)[field] !== undefined) {
-        data[field] = (source as any)[field];
-      }
+  // Build data to copy based on selected sections. Every field name is known
+  // at compile-time via CLONE_SECTIONS, so no untrusted key lookups.
+  const data: Record<string, unknown> = {};
+  for (const section of sections as CloneSection[]) {
+    for (const field of CLONE_SECTIONS[section]) {
+      if (EXCLUDED_FIELDS.has(field)) continue;
+      const value = (source as unknown as Record<string, unknown>)[field];
+      if (value !== undefined) data[field] = value;
     }
   }
 
@@ -104,10 +117,6 @@ configRouter.post('/clone', asyncHandler(async (req: AuthRequest, res: Response)
     res.status(400).json({ error: 'No hay campos para clonar' });
     return;
   }
-
-  // Remove fields that should not be cloned (IDs specific to source guild)
-  const excludeFields = ['ticketCounter'];
-  for (const f of excludeFields) delete data[f];
 
   await prisma.guildConfig.upsert({
     where: { id: targetGuildId },
