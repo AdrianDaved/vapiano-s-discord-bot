@@ -1,63 +1,60 @@
-import { Router, Response } from 'express';
+import { Response } from 'express';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, checkGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { ticketPanelCreateSchema, ticketPanelUpdateSchema, ticketUpdateSchema } from '../schemas';
+import { buildPanelMessage } from '../../shared/ticketPanelMessage';
 import prisma from '../../database/client';
 
-const BUTTON_STYLE: Record<string, number> = {
-  Primary: 1, Secondary: 2, Success: 3, Danger: 4,
-  primary: 1, secondary: 2, success: 3, danger: 4,
-};
+const botRest = () => new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
+
+/**
+ * Assert that `channelId` is a text-compatible channel inside `expectedGuildId`
+ * from the bot's perspective. Without this, a user with Manage Guild on guild A
+ * could pass a channelId belonging to guild B (where the bot is also a member)
+ * and the deploy endpoints would happily post there.
+ */
+async function assertChannelInGuild(channelId: string, expectedGuildId: string): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
+  try {
+    const channel = await botRest().get(Routes.channel(channelId)) as { id: string; guild_id?: string; type: number };
+    if (!channel.guild_id || channel.guild_id !== expectedGuildId) {
+      return { ok: false, status: 403, error: 'Channel does not belong to the target guild' };
+    }
+    // Text-compatible channel types: 0 (text), 5 (announcement), 11/12 (threads), 15 (forum post target)
+    const textLike = new Set([0, 5, 11, 12, 15]);
+    if (!textLike.has(channel.type)) {
+      return { ok: false, status: 400, error: 'Channel is not a text channel' };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    if (err?.status === 404 || err?.rawError?.code === 10003) {
+      return { ok: false, status: 404, error: 'Channel not found' };
+    }
+    if (err?.status === 403 || err?.rawError?.code === 50001) {
+      return { ok: false, status: 403, error: 'Bot cannot access this channel' };
+    }
+    return { ok: false, status: 502, error: 'Failed to verify channel' };
+  }
+}
 
 
-// ─── Helper: sync Discord message when a panel is updated ────────────────────
+/**
+ * Re-render the Discord message for a panel group from the latest DB state.
+ * Used after a panel update so the buttons/embed in Discord stay in sync.
+ */
 async function syncDiscordMessage(channelId: string, messageId: string, guildId: string): Promise<void> {
-  // Find all panels sharing the same messageId
   const siblings = await prisma.ticketPanel.findMany({
     where: { guildId, messageId, channelId },
     orderBy: { createdAt: 'asc' },
   });
   if (siblings.length === 0) return;
 
-  const buttons = siblings.map((p) => {
-    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
-    const component: Record<string, unknown> = {
-      type: 2, style,
-      label: p.buttonLabel || p.name,
-      custom_id: `ticket_create_${p.id}`,
-    };
-    if (p.buttonEmoji) {
-      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
-      if (customMatch) component.emoji = { name: customMatch[1], id: customMatch[2] };
-      else component.emoji = { name: p.buttonEmoji };
-    }
-    return component;
-  });
-
-  const first = siblings[0];
-  const colorHex = (first.groupEmbedColor || '#5865F2').replace('#', '');
-  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
-
-  const payload: Record<string, unknown> = {
-    embeds: [{
-      title: first.groupEmbedTitle || 'Sistema de Tickets',
-      description: first.groupEmbedDescription || '',
-      color: colorInt,
-    }],
-    components: [{ type: 1, components: buttons }],
-  };
-
-  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
-  await rest.patch(Routes.channelMessage(channelId, messageId), { body: payload });
+  const payload = buildPanelMessage(siblings);
+  await botRest().patch(Routes.channelMessage(channelId, messageId), { body: payload });
 }
 
-export const ticketsRouter = Router({ mergeParams: true });
-
-ticketsRouter.use(requireAuth as any);
-ticketsRouter.use(requireGuildAccess as any);
-
+export const ticketsRouter = createGuildRouter();
 // ═══════════════════════════════════════════════════════════
 // TICKETS — LIST + STATS (literal routes first)
 // ═══════════════════════════════════════════════════════════
@@ -169,7 +166,7 @@ ticketsRouter.get('/panels/:id', asyncHandler(async (req: AuthRequest, res: Resp
 /**
  * POST /api/guilds/:guildId/tickets/panels — Create a panel
  */
-ticketsRouter.post('/panels', validate(ticketPanelCreateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+ticketsRouter.post('/panels', validate(ticketPanelCreateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const data = req.body;
 
@@ -190,7 +187,7 @@ ticketsRouter.post('/panels', validate(ticketPanelCreateSchema) as any, asyncHan
 /**
  * PATCH /api/guilds/:guildId/tickets/panels/:id — Update a panel
  */
-ticketsRouter.patch('/panels/:id', validate(ticketPanelUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+ticketsRouter.patch('/panels/:id', validate(ticketPanelUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id, guildId } = req.params;
   const data = req.body;
 
@@ -226,12 +223,26 @@ ticketsRouter.post('/panels/deploy', asyncHandler(async (req: AuthRequest, res: 
   const guildId = req.params.guildId as string;
   const { channelId, embedTitle, embedDescription, embedColor, panelIds } = req.body;
 
-  if (!channelId || !Array.isArray(panelIds) || panelIds.length === 0) {
-    res.status(400).json({ error: 'channelId and at least one panelId are required' });
+  if (
+    typeof channelId !== 'string' ||
+    !/^\d{17,20}$/.test(channelId) ||
+    !Array.isArray(panelIds) ||
+    panelIds.length === 0 ||
+    !panelIds.every((id) => typeof id === 'string')
+  ) {
+    res.status(400).json({ error: 'channelId (snowflake) and panelIds[] are required' });
     return;
   }
   if (panelIds.length > 5) {
     res.status(400).json({ error: 'Maximum 5 buttons per panel message' });
+    return;
+  }
+
+  // Verify the channel actually lives in this guild (prevents posting into a
+  // channel of a different guild by guessing its id).
+  const channelCheck = await assertChannelInGuild(channelId, guildId);
+  if (!channelCheck.ok) {
+    res.status(channelCheck.status).json({ error: channelCheck.error });
     return;
   }
 
@@ -247,47 +258,13 @@ ticketsRouter.post('/panels/deploy', asyncHandler(async (req: AuthRequest, res: 
   // Build ordered list matching panelIds order
   const ordered = panelIds.map((id: string) => panels.find((p) => p.id === id)).filter(Boolean) as typeof panels;
 
-  // Parse embed color
-  const colorHex = (embedColor || '#5865F2').replace('#', '');
-  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
-
-  // Build Discord message payload
-  const buttons = ordered.map((p) => {
-    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
-    const component: Record<string, unknown> = {
-      type: 2,
-      style,
-      label: p.buttonLabel || p.name,
-      custom_id: `ticket_create_${p.id}`,
-    };
-    if (p.buttonEmoji) {
-      // Custom emoji format: <:name:id> or unicode
-      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
-      if (customMatch) {
-        component.emoji = { name: customMatch[1], id: customMatch[2] };
-      } else {
-        component.emoji = { name: p.buttonEmoji };
-      }
-    }
-    return component;
-  });
-
-  const payload: Record<string, unknown> = {
-    embeds: [
-      {
-        title: embedTitle || 'Sistema de Tickets',
-        description: embedDescription || 'Selecciona el botón que corresponda a tu caso.',
-        color: colorInt,
-      },
-    ],
-    components: [{ type: 1, components: buttons }],
-  };
-
-  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
+  // Build payload using the shared builder so deploy / sync / panelRepost
+  // all stay in lockstep.
+  const payload = buildPanelMessage(ordered, { embedTitle, embedDescription, embedColor });
 
   let messageId: string;
   try {
-    const msg = await rest.post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
+    const msg = await botRest().post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
     messageId = msg.id;
   } catch (err: any) {
     const discordMsg = err?.rawError?.message || err?.message || 'Discord API error';
@@ -336,12 +313,43 @@ ticketsRouter.post('/panels/cross-deploy', asyncHandler(async (req: AuthRequest,
   const srcGuildId = req.params.guildId as string;
   const { sourcePanelIds, targetGuildId, channelId, embedTitle, embedDescription, embedColor } = req.body;
 
-  if (!targetGuildId || !channelId || !Array.isArray(sourcePanelIds) || sourcePanelIds.length === 0) {
-    res.status(400).json({ error: 'targetGuildId, channelId, and sourcePanelIds are required' });
+  // Shape validation
+  if (
+    typeof targetGuildId !== 'string' ||
+    typeof channelId !== 'string' ||
+    !Array.isArray(sourcePanelIds) ||
+    sourcePanelIds.length === 0 ||
+    !sourcePanelIds.every((id) => typeof id === 'string')
+  ) {
+    res.status(400).json({ error: 'targetGuildId, channelId, and sourcePanelIds[] are required' });
+    return;
+  }
+  // Discord snowflake IDs are 17–20 digits
+  const snowflake = /^\d{17,20}$/;
+  if (!snowflake.test(targetGuildId) || !snowflake.test(channelId)) {
+    res.status(400).json({ error: 'Invalid targetGuildId or channelId' });
+    return;
+  }
+  if (targetGuildId === srcGuildId) {
+    res.status(400).json({ error: 'Use the regular deploy endpoint when target guild equals source guild' });
     return;
   }
   if (sourcePanelIds.length > 5) {
     res.status(400).json({ error: 'Maximum 5 buttons per panel message' });
+    return;
+  }
+
+  // AUTH: user must have Manage Guild on the TARGET guild too, not just the source
+  const access = await checkGuildAccess(req.user!, targetGuildId);
+  if (!access.ok) {
+    res.status(access.status).json({ error: access.error });
+    return;
+  }
+
+  // Verify channelId belongs to targetGuildId (not some other guild the bot is in)
+  const channelCheck = await assertChannelInGuild(channelId, targetGuildId);
+  if (!channelCheck.ok) {
+    res.status(channelCheck.status).json({ error: channelCheck.error });
     return;
   }
 
@@ -389,32 +397,20 @@ ticketsRouter.post('/panels/cross-deploy', asyncHandler(async (req: AuthRequest,
     )
   );
 
-  // Build and send Discord message to target guild channel
-  const colorHex = (embedColor || copies[0].groupEmbedColor || '#5865F2').replace('#', '');
-  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
+  // Build the Discord message via the shared builder.
+  const payload = buildPanelMessage(copies, { embedTitle, embedDescription, embedColor });
 
-  const buttons = copies.map((p) => {
-    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
-    const component: Record<string, unknown> = {
-      type: 2, style,
-      label: p.buttonLabel || p.name,
-      custom_id: `ticket_create_${p.id}`,
-    };
-    if (p.buttonEmoji) {
-      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
-      if (customMatch) component.emoji = { name: customMatch[1], id: customMatch[2] };
-      else component.emoji = { name: p.buttonEmoji };
-    }
-    return component;
-  });
-
-  const payload = {
-    embeds: [{ title: embedTitle || copies[0].groupEmbedTitle || 'Sistema de Tickets', description: embedDescription || copies[0].groupEmbedDescription || '', color: colorInt }],
-    components: [{ type: 1, components: buttons }],
-  };
-
-  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
-  const msg = await rest.post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
+  let msg: { id: string };
+  try {
+    msg = await botRest().post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
+  } catch (err: any) {
+    // Roll back the just-created copies so the target guild isn't left with
+    // orphan panel rows pointing at a message that never got sent.
+    await prisma.ticketPanel.deleteMany({ where: { id: { in: copies.map((c) => c.id) } } });
+    const discordMsg = err?.rawError?.message || err?.message || 'Discord API error';
+    res.status(502).json({ error: `No se pudo enviar el mensaje: ${discordMsg}` });
+    return;
+  }
 
   await prisma.ticketPanel.updateMany({
     where: { id: { in: copies.map((c) => c.id) } },
@@ -569,7 +565,7 @@ ticketsRouter.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) =
 /**
  * PATCH /api/guilds/:guildId/tickets/:id — Update ticket (priority, topic, status)
  */
-ticketsRouter.patch('/:id', validate(ticketUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+ticketsRouter.patch('/:id', validate(ticketUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string;
   const guildId = req.params.guildId as string;
   const { priority, topic, status } = req.body;

@@ -1,13 +1,9 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 import prisma from '../../database/client';
 
-export const invitesRouter = Router({ mergeParams: true });
-
-invitesRouter.use(requireAuth as any);
-invitesRouter.use(requireGuildAccess as any);
-
+export const invitesRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/invites — Get invite stats
  */

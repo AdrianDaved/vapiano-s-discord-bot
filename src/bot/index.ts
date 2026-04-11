@@ -75,12 +75,27 @@ async function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-process.on('unhandledRejection', (err) => {
-  logger.error(`Unhandled rejection: ${err}`);
-});
+// Fatal-error handlers: log, release resources, and exit so the process
+// manager (PM2) can restart us cleanly. Continuing with partial state after
+// an unhandled rejection or uncaught exception leaves the bot in an
+// unpredictable state and silently drops timers and DB connections.
+let isExiting = false;
+async function fatalExit(kind: string, err: unknown): Promise<never> {
+  if (isExiting) process.exit(1);
+  isExiting = true;
+  logger.error(`${kind}: ${err instanceof Error ? err.stack || err.message : String(err)}`);
+  try {
+    const { clearAllTimers } = await import('./modules/timerRegistry');
+    clearAllTimers();
+    await prisma.$disconnect().catch(() => {});
+    client.destroy();
+  } catch {
+    // ignore cleanup failures — we're already crashing
+  }
+  process.exit(1);
+}
 
-process.on('uncaughtException', (err) => {
-  logger.error(`Uncaught exception: ${err}`);
-});
+process.on('unhandledRejection', (err) => { void fatalExit('Unhandled rejection', err); });
+process.on('uncaughtException', (err) => { void fatalExit('Uncaught exception', err); });
 
 main();

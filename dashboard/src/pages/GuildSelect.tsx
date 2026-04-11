@@ -36,7 +36,7 @@ export default function GuildSelect() {
   useEffect(() => {
     guildsApi
       .list()
-      .then((data) => setGuildList(data.guilds || data))
+      .then((data) => setGuildList(data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

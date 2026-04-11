@@ -1,12 +1,10 @@
-import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { Response } from 'express';
+import { createGuildRouter, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 import prisma from '../../database/client';
 import { filledCount } from '../../bot/modules/rifa/rifaManager';
 
-export const rifasRouter = Router({ mergeParams: true });
-rifasRouter.use(requireAuth as any);
-rifasRouter.use(requireGuildAccess as any);
+export const rifasRouter = createGuildRouter();
 
 // ── GET /rifas — list rifas ──────────────────────────────────
 rifasRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {

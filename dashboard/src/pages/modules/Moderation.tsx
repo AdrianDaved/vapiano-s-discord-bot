@@ -61,8 +61,8 @@ export default function Moderation() {
       modApi.warnings(guildId).catch(() => []),
     ])
       .then(([acts, warns]) => {
-        setActions(acts.actions || acts);
-        setWarnings(warns.warnings || warns);
+        setActions(acts);
+        setWarnings(warns);
       })
       .finally(() => setLoading(false));
   }, [guildId]);

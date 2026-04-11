@@ -2,16 +2,12 @@
  * Welcome/Farewell API routes — Manage welcome and farewell settings.
  */
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { welcomeUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
 
-export const welcomeRouter = Router({ mergeParams: true });
-
-welcomeRouter.use(requireAuth as any);
-welcomeRouter.use(requireGuildAccess as any);
-
+export const welcomeRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/welcome — Get welcome/farewell settings
  */
@@ -38,7 +34,7 @@ welcomeRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
 /**
  * PATCH /api/guilds/:guildId/welcome — Update welcome/farewell settings
  */
-welcomeRouter.patch('/', validate(welcomeUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+welcomeRouter.patch('/', validate(welcomeUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const data = req.body;
 

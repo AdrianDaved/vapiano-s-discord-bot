@@ -13,6 +13,7 @@ import {
 } from 'discord.js';
 import prisma from '../../../database/client';
 import { getGuildConfig } from '../../utils';
+import { cryptoSample } from '../../../shared/random';
 import logger from '../../../shared/logger';
 import { registerInterval } from '../timerRegistry';
 
@@ -172,8 +173,7 @@ export async function drawWinners(
   if (!rifa || rifa.ended || rifa.cancelled) return;
 
   const real = rifa.participants.filter((p) => p !== '');
-  const shuffled = [...real].sort(() => Math.random() - 0.5);
-  const winners = shuffled.slice(0, Math.min(rifa.winnersCount, shuffled.length));
+  const winners = cryptoSample(real, rifa.winnersCount);
 
   const updated = await prisma.rifa.update({
     where: { id: rifaId },

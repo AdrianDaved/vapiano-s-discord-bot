@@ -1,13 +1,9 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 import prisma from '../../database/client';
 
-export const moderationRouter = Router({ mergeParams: true });
-
-moderationRouter.use(requireAuth as any);
-moderationRouter.use(requireGuildAccess as any);
-
+export const moderationRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/moderation/actions — Get mod actions
  */

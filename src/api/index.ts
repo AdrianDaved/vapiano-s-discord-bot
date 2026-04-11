@@ -48,13 +48,19 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      // Production Vite build emits no inline scripts and no eval usage, so
+      // we can keep scriptSrc locked to 'self'. React still inlines styles via
+      // the `style` prop, so styleSrc keeps 'unsafe-inline'.
+      scriptSrc: ["'self'"],
       styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:', 'http:'],
-      connectSrc: ["'self'", 'https:', 'http:'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://discord.com', 'https://cdn.discordapp.com'],
       fontSrc: ["'self'", 'https:', 'data:'],
       objectSrc: ["'none'"],
       frameSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'", 'https://discord.com'],
       upgradeInsecureRequests: null,
     },
   },
@@ -66,15 +72,18 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '512kb' }));
 app.use(cookieParser());
+const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
   secret: process.env.SESSION_SECRET!,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: isProd,
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'lax',
+    // Shorter lifetime: the session now only holds the ephemeral OAuth state
+    // and the one-shot JWT exchange, not long-lived login state.
+    maxAge: 10 * 60 * 1000, // 10 minutes
+    sameSite: isProd ? 'none' : 'lax',
   },
 }));
 
@@ -83,10 +92,22 @@ app.use(rateLimit({
   windowMs: 60 * 1000,
   max: 100,
   message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 }));
 
+// Dedicated stricter limiter for auth routes — login/callback are the most
+// abusable endpoints (OAuth replay, Discord API enumeration).
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'Too many authentication attempts, please wait a minute.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // ─── Routes ──────────────────────────────────────────────
-app.use('/auth', authRouter);
+app.use('/auth', authLimiter, authRouter);
 app.use('/api/guilds', guildsRouter);
 app.use('/api/guilds/:guildId/config', configRouter);
 app.use('/api/guilds/:guildId/invites', invitesRouter);

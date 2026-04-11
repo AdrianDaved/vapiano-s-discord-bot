@@ -33,7 +33,7 @@ export default function Backups() {
     if (!guildId) return;
     backupsApi
       .list(guildId)
-      .then((data) => setBackupList(data.backups || data))
+      .then((data) => setBackupList(data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [guildId]);

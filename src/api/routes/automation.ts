@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import {
   autoResponseCreateSchema,
@@ -9,11 +9,7 @@ import {
 } from '../schemas';
 import prisma from '../../database/client';
 
-export const automationRouter = Router({ mergeParams: true });
-
-automationRouter.use(requireAuth as any);
-automationRouter.use(requireGuildAccess as any);
-
+export const automationRouter = createGuildRouter();
 // ─── Auto-Responses ──────────────────────────────────────
 
 /**
@@ -33,7 +29,7 @@ automationRouter.get('/responses', asyncHandler(async (req: AuthRequest, res: Re
 /**
  * POST /api/guilds/:guildId/automation/responses — Create auto-response
  */
-automationRouter.post('/responses', validate(autoResponseCreateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+automationRouter.post('/responses', validate(autoResponseCreateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const { trigger, response, matchType, enabled } = req.body;
 
@@ -53,7 +49,7 @@ automationRouter.post('/responses', validate(autoResponseCreateSchema) as any, a
 /**
  * PATCH /api/guilds/:guildId/automation/responses/:id — Update auto-response
  */
-automationRouter.patch('/responses/:id', validate(autoResponseUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+automationRouter.patch('/responses/:id', validate(autoResponseUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 
   const ar = await prisma.autoResponse.update({ where: { id: id as string }, data: req.body });
@@ -89,7 +85,7 @@ automationRouter.get('/scheduled', asyncHandler(async (req: AuthRequest, res: Re
 /**
  * POST /api/guilds/:guildId/automation/scheduled — Create scheduled message
  */
-automationRouter.post('/scheduled', validate(scheduledMessageCreateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+automationRouter.post('/scheduled', validate(scheduledMessageCreateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const { channelId, message, cron, enabled } = req.body;
 
@@ -103,7 +99,7 @@ automationRouter.post('/scheduled', validate(scheduledMessageCreateSchema) as an
 /**
  * PATCH /api/guilds/:guildId/automation/scheduled/:id — Update scheduled message
  */
-automationRouter.patch('/scheduled/:id', validate(scheduledMessageUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+automationRouter.patch('/scheduled/:id', validate(scheduledMessageUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 
   const msg = await prisma.scheduledMessage.update({ where: { id: id as string }, data: req.body });

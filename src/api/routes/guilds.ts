@@ -9,9 +9,11 @@ const channelsCache = new Map<string, { data: any[]; expiresAt: number }>();
 const rolesCache = new Map<string, { data: any[]; expiresAt: number }>();
 const CHANNELS_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
+// guildsRouter is mounted at /api/guilds (no :guildId), so it can't use
+// createGuildRouter — only requireAuth is global; routes that need a guild
+// id apply requireGuildAccess inline.
 export const guildsRouter = Router();
-
-guildsRouter.use(requireAuth as any);
+guildsRouter.use(requireAuth);
 
 /**
  * GET /api/guilds — List guilds where the user has management permissions
@@ -57,7 +59,7 @@ guildsRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
 /**
  * GET /api/guilds/:guildId/channels — List channels and categories from Discord
  */
-guildsRouter.get('/:guildId/channels', requireAuth as any, requireGuildAccess as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+guildsRouter.get('/:guildId/channels', requireAuth, requireGuildAccess, asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
 
   const cached = channelsCache.get(guildId);
@@ -81,7 +83,7 @@ guildsRouter.get('/:guildId/channels', requireAuth as any, requireGuildAccess as
 /**
  * GET /api/guilds/:guildId/roles — List roles from Discord
  */
-guildsRouter.get('/:guildId/roles', requireAuth as any, requireGuildAccess as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+guildsRouter.get('/:guildId/roles', requireAuth, requireGuildAccess, asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
 
   const cached = rolesCache.get(guildId);
