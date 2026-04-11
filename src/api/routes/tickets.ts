@@ -11,6 +11,37 @@ const BUTTON_STYLE: Record<string, number> = {
   primary: 1, secondary: 2, success: 3, danger: 4,
 };
 
+const botRest = () => new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
+
+/**
+ * Assert that `channelId` is a text-compatible channel inside `expectedGuildId`
+ * from the bot's perspective. Without this, a user with Manage Guild on guild A
+ * could pass a channelId belonging to guild B (where the bot is also a member)
+ * and the deploy endpoints would happily post there.
+ */
+async function assertChannelInGuild(channelId: string, expectedGuildId: string): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
+  try {
+    const channel = await botRest().get(Routes.channel(channelId)) as { id: string; guild_id?: string; type: number };
+    if (!channel.guild_id || channel.guild_id !== expectedGuildId) {
+      return { ok: false, status: 403, error: 'Channel does not belong to the target guild' };
+    }
+    // Text-compatible channel types: 0 (text), 5 (announcement), 11/12 (threads), 15 (forum post target)
+    const textLike = new Set([0, 5, 11, 12, 15]);
+    if (!textLike.has(channel.type)) {
+      return { ok: false, status: 400, error: 'Channel is not a text channel' };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    if (err?.status === 404 || err?.rawError?.code === 10003) {
+      return { ok: false, status: 404, error: 'Channel not found' };
+    }
+    if (err?.status === 403 || err?.rawError?.code === 50001) {
+      return { ok: false, status: 403, error: 'Bot cannot access this channel' };
+    }
+    return { ok: false, status: 502, error: 'Failed to verify channel' };
+  }
+}
+
 
 // ─── Helper: sync Discord message when a panel is updated ────────────────────
 async function syncDiscordMessage(channelId: string, messageId: string, guildId: string): Promise<void> {
@@ -49,8 +80,7 @@ async function syncDiscordMessage(channelId: string, messageId: string, guildId:
     components: [{ type: 1, components: buttons }],
   };
 
-  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
-  await rest.patch(Routes.channelMessage(channelId, messageId), { body: payload });
+  await botRest().patch(Routes.channelMessage(channelId, messageId), { body: payload });
 }
 
 export const ticketsRouter = Router({ mergeParams: true });
@@ -226,12 +256,26 @@ ticketsRouter.post('/panels/deploy', asyncHandler(async (req: AuthRequest, res: 
   const guildId = req.params.guildId as string;
   const { channelId, embedTitle, embedDescription, embedColor, panelIds } = req.body;
 
-  if (!channelId || !Array.isArray(panelIds) || panelIds.length === 0) {
-    res.status(400).json({ error: 'channelId and at least one panelId are required' });
+  if (
+    typeof channelId !== 'string' ||
+    !/^\d{17,20}$/.test(channelId) ||
+    !Array.isArray(panelIds) ||
+    panelIds.length === 0 ||
+    !panelIds.every((id) => typeof id === 'string')
+  ) {
+    res.status(400).json({ error: 'channelId (snowflake) and panelIds[] are required' });
     return;
   }
   if (panelIds.length > 5) {
     res.status(400).json({ error: 'Maximum 5 buttons per panel message' });
+    return;
+  }
+
+  // Verify the channel actually lives in this guild (prevents posting into a
+  // channel of a different guild by guessing its id).
+  const channelCheck = await assertChannelInGuild(channelId, guildId);
+  if (!channelCheck.ok) {
+    res.status(channelCheck.status).json({ error: channelCheck.error });
     return;
   }
 
@@ -283,11 +327,9 @@ ticketsRouter.post('/panels/deploy', asyncHandler(async (req: AuthRequest, res: 
     components: [{ type: 1, components: buttons }],
   };
 
-  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
-
   let messageId: string;
   try {
-    const msg = await rest.post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
+    const msg = await botRest().post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
     messageId = msg.id;
   } catch (err: any) {
     const discordMsg = err?.rawError?.message || err?.message || 'Discord API error';
@@ -369,6 +411,13 @@ ticketsRouter.post('/panels/cross-deploy', asyncHandler(async (req: AuthRequest,
     return;
   }
 
+  // Verify channelId belongs to targetGuildId (not some other guild the bot is in)
+  const channelCheck = await assertChannelInGuild(channelId, targetGuildId);
+  if (!channelCheck.ok) {
+    res.status(channelCheck.status).json({ error: channelCheck.error });
+    return;
+  }
+
   // Fetch source panels
   const sourcePanels = await prisma.ticketPanel.findMany({
     where: { id: { in: sourcePanelIds }, guildId: srcGuildId },
@@ -437,8 +486,17 @@ ticketsRouter.post('/panels/cross-deploy', asyncHandler(async (req: AuthRequest,
     components: [{ type: 1, components: buttons }],
   };
 
-  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
-  const msg = await rest.post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
+  let msg: { id: string };
+  try {
+    msg = await botRest().post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
+  } catch (err: any) {
+    // Roll back the just-created copies so the target guild isn't left with
+    // orphan panel rows pointing at a message that never got sent.
+    await prisma.ticketPanel.deleteMany({ where: { id: { in: copies.map((c) => c.id) } } });
+    const discordMsg = err?.rawError?.message || err?.message || 'Discord API error';
+    res.status(502).json({ error: `No se pudo enviar el mensaje: ${discordMsg}` });
+    return;
+  }
 
   await prisma.ticketPanel.updateMany({
     where: { id: { in: copies.map((c) => c.id) } },
