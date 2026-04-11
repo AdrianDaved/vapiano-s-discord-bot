@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 import prisma from '../../database/client';
 
@@ -36,11 +36,7 @@ async function getDiscordStats(guildId: string) {
   return result;
 }
 
-export const statsRouter = Router({ mergeParams: true });
-
-statsRouter.use(requireAuth as any);
-statsRouter.use(requireGuildAccess as any);
-
+export const statsRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/stats — Get guild statistics overview
  * Returns flat fields that match what Dashboard.tsx expects

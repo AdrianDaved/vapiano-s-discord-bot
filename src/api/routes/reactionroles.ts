@@ -2,16 +2,12 @@
  * Reaction Roles API routes — Manage reaction/button role configurations.
  */
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { reactionRoleCreateSchema, reactionRoleUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
 
-export const reactionRolesRouter = Router({ mergeParams: true });
-
-reactionRolesRouter.use(requireAuth as any);
-reactionRolesRouter.use(requireGuildAccess as any);
-
+export const reactionRolesRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/reactionroles — List all reaction role configs
  */
@@ -29,7 +25,7 @@ reactionRolesRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response
 /**
  * POST /api/guilds/:guildId/reactionroles — Create a new reaction role
  */
-reactionRolesRouter.post('/', validate(reactionRoleCreateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+reactionRolesRouter.post('/', validate(reactionRoleCreateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const { channelId, messageId, emoji, roleId, type } = req.body;
 
@@ -68,7 +64,7 @@ reactionRolesRouter.delete('/:id', asyncHandler(async (req: AuthRequest, res: Re
 /**
  * PATCH /api/guilds/:guildId/reactionroles/:id — Update a reaction role
  */
-reactionRolesRouter.patch('/:id', validate(reactionRoleUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+reactionRolesRouter.patch('/:id', validate(reactionRoleUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const id = req.params.id as string;
 

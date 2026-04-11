@@ -5,14 +5,10 @@
 import { Router, Response } from 'express';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 
-export const messagesRouter = Router({ mergeParams: true });
-
-messagesRouter.use(requireAuth as any);
-messagesRouter.use(requireGuildAccess as any);
-
+export const messagesRouter = createGuildRouter();
 /** Parse a hex color string into a number. Returns default blurple on failure. */
 function resolveColor(hex?: string): number {
   if (!hex) return 0x5865f2;

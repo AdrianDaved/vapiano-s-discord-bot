@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, checkGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, checkGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { configUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
@@ -39,11 +39,7 @@ const VALID_SECTIONS = new Set<string>(Object.keys(CLONE_SECTIONS));
 // Fields that must never be copied from source to target (source-specific state)
 const EXCLUDED_FIELDS = new Set<string>(['ticketCounter']);
 
-export const configRouter = Router({ mergeParams: true });
-
-configRouter.use(requireAuth as any);
-configRouter.use(requireGuildAccess as any);
-
+export const configRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/config — Get guild configuration
  */
@@ -127,7 +123,7 @@ configRouter.post('/clone', asyncHandler(async (req: AuthRequest, res: Response)
   res.json({ success: true, cloned: Object.keys(data).length, targetGuildId });
 }) as any);
 
-configRouter.patch('/', validate(configUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+configRouter.patch('/', validate(configUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
 
   // req.body is already validated and stripped of unknown fields by zod .strict()

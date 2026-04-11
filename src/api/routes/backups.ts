@@ -1,13 +1,9 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 import prisma from '../../database/client';
 
-export const backupsRouter = Router({ mergeParams: true });
-
-backupsRouter.use(requireAuth as any);
-backupsRouter.use(requireGuildAccess as any);
-
+export const backupsRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/backups — List backups
  */

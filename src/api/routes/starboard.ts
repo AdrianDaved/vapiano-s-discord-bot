@@ -2,16 +2,12 @@
  * Starboard API routes — Manage starboard entries for a guild.
  */
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { starboardSettingsSchema } from '../schemas';
 import prisma from '../../database/client';
 
-export const starboardRouter = Router({ mergeParams: true });
-
-starboardRouter.use(requireAuth as any);
-starboardRouter.use(requireGuildAccess as any);
-
+export const starboardRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/starboard — List starboard entries
  */
@@ -56,7 +52,7 @@ starboardRouter.get('/settings', asyncHandler(async (req: AuthRequest, res: Resp
 /**
  * PATCH /api/guilds/:guildId/starboard/settings — Update starboard settings
  */
-starboardRouter.patch('/settings', validate(starboardSettingsSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+starboardRouter.patch('/settings', validate(starboardSettingsSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const data = req.body;
 

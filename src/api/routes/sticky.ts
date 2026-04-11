@@ -2,16 +2,12 @@
  * Sticky Messages API routes — Manage sticky message configurations.
  */
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { stickyCreateSchema, stickyUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
 
-export const stickyRouter = Router({ mergeParams: true });
-
-stickyRouter.use(requireAuth as any);
-stickyRouter.use(requireGuildAccess as any);
-
+export const stickyRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/sticky — List all sticky messages
  */
@@ -48,7 +44,7 @@ stickyRouter.get('/:channelId', asyncHandler(async (req: AuthRequest, res: Respo
 /**
  * POST /api/guilds/:guildId/sticky — Create or update a sticky message
  */
-stickyRouter.post('/', validate(stickyCreateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+stickyRouter.post('/', validate(stickyCreateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const { channelId, title, description, color, enabled } = req.body;
   const userId = (req as any).user?.id || 'dashboard';
@@ -78,7 +74,7 @@ stickyRouter.post('/', validate(stickyCreateSchema) as any, asyncHandler(async (
 /**
  * PATCH /api/guilds/:guildId/sticky/:channelId — Update a sticky message
  */
-stickyRouter.patch('/:channelId', validate(stickyUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+stickyRouter.patch('/:channelId', validate(stickyUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const channelId = req.params.channelId as string;
 

@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { requireAuth, requireGuildAccess, checkGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, checkGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { ticketPanelCreateSchema, ticketPanelUpdateSchema, ticketUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
@@ -83,11 +83,7 @@ async function syncDiscordMessage(channelId: string, messageId: string, guildId:
   await botRest().patch(Routes.channelMessage(channelId, messageId), { body: payload });
 }
 
-export const ticketsRouter = Router({ mergeParams: true });
-
-ticketsRouter.use(requireAuth as any);
-ticketsRouter.use(requireGuildAccess as any);
-
+export const ticketsRouter = createGuildRouter();
 // ═══════════════════════════════════════════════════════════
 // TICKETS — LIST + STATS (literal routes first)
 // ═══════════════════════════════════════════════════════════
@@ -199,7 +195,7 @@ ticketsRouter.get('/panels/:id', asyncHandler(async (req: AuthRequest, res: Resp
 /**
  * POST /api/guilds/:guildId/tickets/panels — Create a panel
  */
-ticketsRouter.post('/panels', validate(ticketPanelCreateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+ticketsRouter.post('/panels', validate(ticketPanelCreateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const data = req.body;
 
@@ -220,7 +216,7 @@ ticketsRouter.post('/panels', validate(ticketPanelCreateSchema) as any, asyncHan
 /**
  * PATCH /api/guilds/:guildId/tickets/panels/:id — Update a panel
  */
-ticketsRouter.patch('/panels/:id', validate(ticketPanelUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+ticketsRouter.patch('/panels/:id', validate(ticketPanelUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id, guildId } = req.params;
   const data = req.body;
 
@@ -651,7 +647,7 @@ ticketsRouter.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) =
 /**
  * PATCH /api/guilds/:guildId/tickets/:id — Update ticket (priority, topic, status)
  */
-ticketsRouter.patch('/:id', validate(ticketUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+ticketsRouter.patch('/:id', validate(ticketUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string;
   const guildId = req.params.guildId as string;
   const { priority, topic, status } = req.body;

@@ -1,13 +1,9 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 import prisma from '../../database/client';
 
-export const giveawaysRouter = Router({ mergeParams: true });
-
-giveawaysRouter.use(requireAuth as any);
-giveawaysRouter.use(requireGuildAccess as any);
-
+export const giveawaysRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/giveaways — List giveaways
  */
@@ -31,11 +27,7 @@ giveawaysRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) =>
 /**
  * GET /api/guilds/:guildId/suggestions — List suggestions
  */
-export const suggestionsRouter = Router({ mergeParams: true });
-
-suggestionsRouter.use(requireAuth as any);
-suggestionsRouter.use(requireGuildAccess as any);
-
+export const suggestionsRouter = createGuildRouter();
 suggestionsRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const status = req.query.status as string | undefined;

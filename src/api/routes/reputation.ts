@@ -1,13 +1,9 @@
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 import prisma from '../../database/client';
 
-export const reputationRouter = Router({ mergeParams: true });
-
-reputationRouter.use(requireAuth as any);
-reputationRouter.use(requireGuildAccess as any);
-
+export const reputationRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/reputation — Get reputation leaderboard
  */

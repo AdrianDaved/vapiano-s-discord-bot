@@ -2,11 +2,10 @@ import { Router, Response } from 'express';
 import { REST, Routes } from 'discord.js';
 import { z } from 'zod';
 import prisma from '../../database/client';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/validate';
 
-export const commandsRouter = Router({ mergeParams: true });
-commandsRouter.use(requireAuth as any, requireGuildAccess as any);
+export const commandsRouter = createGuildRouter();
 
 export interface CommandEntry {
   name: string;       // unique key: "ban" or "mod advertir"

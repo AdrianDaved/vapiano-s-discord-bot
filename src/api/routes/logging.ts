@@ -2,16 +2,12 @@
  * Logging API routes — Manage logging channel configuration.
  */
 import { Router, Response } from 'express';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { createGuildRouter, requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { loggingUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
 
-export const loggingRouter = Router({ mergeParams: true });
-
-loggingRouter.use(requireAuth as any);
-loggingRouter.use(requireGuildAccess as any);
-
+export const loggingRouter = createGuildRouter();
 /**
  * GET /api/guilds/:guildId/logging — Get logging configuration
  */
@@ -38,7 +34,7 @@ loggingRouter.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
 /**
  * PATCH /api/guilds/:guildId/logging — Update logging configuration
  */
-loggingRouter.patch('/', validate(loggingUpdateSchema) as any, asyncHandler(async (req: AuthRequest, res: Response) => {
+loggingRouter.patch('/', validate(loggingUpdateSchema), asyncHandler(async (req: AuthRequest, res: Response) => {
   const guildId = req.params.guildId as string;
   const data = req.body;
 
