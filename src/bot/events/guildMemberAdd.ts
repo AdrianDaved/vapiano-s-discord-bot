@@ -92,7 +92,7 @@ export default {
           if (inviteRecord) {
             try {
               const inviter = await client.users.fetch(inviteRecord.inviterId);
-              inviterTag = inviter.username;
+              inviterTag = `<@${inviter.id}>`;
             } catch { /* ignore */ }
           }
         }
