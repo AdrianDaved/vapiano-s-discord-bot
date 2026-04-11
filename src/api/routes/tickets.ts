@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { requireAuth, requireGuildAccess, AuthRequest } from '../middleware/auth';
+import { requireAuth, requireGuildAccess, checkGuildAccess, AuthRequest } from '../middleware/auth';
 import { asyncHandler, validate } from '../middleware/validate';
 import { ticketPanelCreateSchema, ticketPanelUpdateSchema, ticketUpdateSchema } from '../schemas';
 import prisma from '../../database/client';
@@ -336,12 +336,36 @@ ticketsRouter.post('/panels/cross-deploy', asyncHandler(async (req: AuthRequest,
   const srcGuildId = req.params.guildId as string;
   const { sourcePanelIds, targetGuildId, channelId, embedTitle, embedDescription, embedColor } = req.body;
 
-  if (!targetGuildId || !channelId || !Array.isArray(sourcePanelIds) || sourcePanelIds.length === 0) {
-    res.status(400).json({ error: 'targetGuildId, channelId, and sourcePanelIds are required' });
+  // Shape validation
+  if (
+    typeof targetGuildId !== 'string' ||
+    typeof channelId !== 'string' ||
+    !Array.isArray(sourcePanelIds) ||
+    sourcePanelIds.length === 0 ||
+    !sourcePanelIds.every((id) => typeof id === 'string')
+  ) {
+    res.status(400).json({ error: 'targetGuildId, channelId, and sourcePanelIds[] are required' });
+    return;
+  }
+  // Discord snowflake IDs are 17–20 digits
+  const snowflake = /^\d{17,20}$/;
+  if (!snowflake.test(targetGuildId) || !snowflake.test(channelId)) {
+    res.status(400).json({ error: 'Invalid targetGuildId or channelId' });
+    return;
+  }
+  if (targetGuildId === srcGuildId) {
+    res.status(400).json({ error: 'Use the regular deploy endpoint when target guild equals source guild' });
     return;
   }
   if (sourcePanelIds.length > 5) {
     res.status(400).json({ error: 'Maximum 5 buttons per panel message' });
+    return;
+  }
+
+  // AUTH: user must have Manage Guild on the TARGET guild too, not just the source
+  const access = await checkGuildAccess(req.user!, targetGuildId);
+  if (!access.ok) {
+    res.status(access.status).json({ error: access.error });
     return;
   }
 
