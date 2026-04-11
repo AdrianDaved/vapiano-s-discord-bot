@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction, Router } from 'express';
 import jwt from 'jsonwebtoken';
 import logger from '../../shared/logger';
-import '../types/express'; // module augmentation for Request.user
+// Note: Request.user is augmented in src/api/types/express.d.ts. That file is
+// a pure declaration and is picked up automatically because it sits inside
+// the tsconfig `include` glob — do NOT `import` it, tsc emits the import
+// as `require('../types/express')` at runtime and the .d.ts doesn't produce
+// a .js file, crashing the bot at boot.
 
 /**
  * Backwards-compat alias. Express.Request is augmented with `user` in
