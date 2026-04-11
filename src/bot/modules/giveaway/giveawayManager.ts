@@ -2,6 +2,7 @@ import { Client, TextChannel, EmbedBuilder, ActionRowBuilder, ButtonBuilder, But
 import prisma from '../../../database/client';
 import logger from '../../../shared/logger';
 import { registerInterval } from '../timerRegistry';
+import { cryptoSample } from '../../../shared/random';
 
 /**
  * Initialize the giveaway timer that checks for ended giveaways every 15 seconds.
@@ -81,10 +82,9 @@ export function initGiveawayTimer(client: Client) {
   logger.info('[Giveaway] Timer initialized');
 }
 
-/** Pick random winners from entries */
+/** Pick random winners from entries using a CSPRNG. */
 function pickWinners(entries: string[], count: number): string[] {
-  const shuffled = [...entries].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, Math.min(count, shuffled.length));
+  return cryptoSample(entries, count);
 }
 
 /**
