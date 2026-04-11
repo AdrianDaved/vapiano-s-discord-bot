@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { randomBytes, timingSafeEqual } from 'crypto';
 import logger from '../../shared/logger';
 
 export const authRouter = Router();
@@ -11,14 +12,35 @@ const REDIRECT_URI = process.env.OAUTH2_REDIRECT_URI || 'http://localhost:3001/a
 const DASHBOARD_URL = process.env.DASHBOARD_URL || 'http://localhost:5173';
 
 /**
- * GET /auth/login — Redirect to Discord OAuth2
+ * Constant-time comparison of two hex/ascii strings of equal length.
+ * Returns false for any mismatched length rather than leaking timing info.
+ */
+function safeEqual(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  try {
+    return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * GET /auth/login — Redirect to Discord OAuth2.
+ * Generates a random `state` token, stores it in the session, and includes it
+ * in the authorize URL. The callback verifies it matches — without this,
+ * an attacker could CSRF the login and attach a victim's dashboard session to
+ * the attacker's Discord account (or vice versa).
  */
 authRouter.get('/login', (req: Request, res: Response) => {
+  const state = randomBytes(32).toString('hex');
+  (req.session as any).oauthState = state;
+
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'code',
     scope: 'identify guilds applications.commands.permissions.update',
+    state,
   });
   res.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
 });
@@ -27,9 +49,19 @@ authRouter.get('/login', (req: Request, res: Response) => {
  * GET /auth/callback — Handle OAuth2 callback from Discord
  */
 authRouter.get('/callback', async (req: Request, res: Response) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
   if (!code || typeof code !== 'string') {
     res.redirect(`${DASHBOARD_URL}/login?error=no_code`);
+    return;
+  }
+
+  // Verify the state matches what we put in the session — then invalidate it
+  // so the same state can't be replayed.
+  const expectedState = (req.session as any).oauthState;
+  delete (req.session as any).oauthState;
+  if (typeof state !== 'string' || !expectedState || !safeEqual(state, expectedState)) {
+    logger.warn('OAuth2 callback: state mismatch (possible CSRF)');
+    res.redirect(`${DASHBOARD_URL}/login?error=invalid_state`);
     return;
   }
 
