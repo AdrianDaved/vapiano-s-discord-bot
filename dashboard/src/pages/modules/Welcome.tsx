@@ -16,6 +16,7 @@ const WELCOME_VARS = [
   { tag: '{username}', description: 'Nombre del usuario' },
   { tag: '{server}', description: 'Nombre del servidor' },
   { tag: '{memberCount}', description: 'Total de miembros' },
+  { tag: '{inviter}', description: 'Usuario que invitó (requiere módulo invites)' },
 ];
 
 export default function Welcome() {
