@@ -65,8 +65,8 @@ export default function Automation() {
       autoApi.scheduled(guildId).catch(() => []),
     ])
       .then(([r, s]) => {
-        setResponses(r.responses || r);
-        setScheduled(s.scheduled || s);
+        setResponses(r);
+        setScheduled(s);
       })
       .finally(() => setLoading(false));
   }, [guildId]);

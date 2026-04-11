@@ -25,7 +25,7 @@ export default function Invites() {
     if (!guildId) return;
     invitesApi
       .leaderboard(guildId)
-      .then((data) => setLeaderboard(data.leaderboard || data))
+      .then((data) => setLeaderboard(data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [guildId]);

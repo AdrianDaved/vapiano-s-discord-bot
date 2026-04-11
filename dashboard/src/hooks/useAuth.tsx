@@ -48,7 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     auth
       .getUser()
       .then((data) => {
-        setUser(data.user || data);
+        // Backend /auth/me returns the user object directly (not wrapped).
+        setUser(data);
       })
       .catch(() => {
         setToken(null);
