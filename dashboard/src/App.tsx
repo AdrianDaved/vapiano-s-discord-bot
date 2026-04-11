@@ -33,7 +33,6 @@ import MessageSender from '@/pages/modules/MessageSender';
 import Migration from '@/pages/modules/Migration'
 import Commands from '@/pages/modules/Commands';
 import DarRango from '@/pages/modules/DarRango';
-import Levels from '@/pages/modules/Levels';
 import ServerStats from '@/pages/modules/ServerStats';
 
 /** Wrapper that redirects to /login when user is not authenticated */
@@ -101,7 +100,6 @@ function AppRoutes() {
         <Route path="messages" element={<MessageSender />} />
         <Route path="rifas" element={<Rifas />} />
         <Route path="dar-rango" element={<DarRango />} />
-        <Route path="levels" element={<Levels />} />
         <Route path="server-stats" element={<ServerStats />} />
         <Route path="*" element={<NotFound />} />
       </Route>

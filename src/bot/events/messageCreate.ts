@@ -7,7 +7,6 @@ import { processStickyMessage } from '../modules/sticky/stickyHandler';
 import prisma from '../../database/client';
 import { getGlobalRep } from '../modules/reputation/globalRep';
 import logger from '../../shared/logger';
-import { addXp } from '../modules/levels/xpManager';
 
 // Prevent concurrent reposts in the same channel
 const repostingChannels = new Set<string>();
@@ -191,41 +190,6 @@ export default {
       } catch { /* ignore */ }
     }
 
-
-    // --- XP / Levels System ---
-    if (config.levelsEnabled) {
-      try {
-        const ignored = (config as any).levelIgnoredChannels as string[] | undefined;
-        const ignoredRoles = (config as any).levelIgnoredRoles as string[] | undefined;
-        const isIgnoredChannel = ignored?.includes(message.channel.id);
-        const member = message.member;
-        const isIgnoredRole = ignoredRoles && member
-          ? member.roles.cache.some((r) => ignoredRoles.includes(r.id))
-          : false;
-
-        if (!isIgnoredChannel && !isIgnoredRole) {
-          const xpAmount = (config as any).xpPerMessage ?? 15;
-          const cooldown = (config as any).xpCooldownSeconds ?? 60;
-          const result = await addXp(message.author.id, message.guild.id, xpAmount, cooldown);
-
-          if (result?.leveledUp) {
-            const levelUpChannelId = (config as any).levelUpChannelId as string | undefined;
-            const rawMsg = (config as any).levelUpMessage as string | undefined;
-            const levelMsg = (rawMsg ?? '🎉 {user} subio al nivel **{level}**!')
-              .replace('{user}', `<@${message.author.id}>`)
-              .replace('{level}', String(result.newLevel));
-
-            const targetChannelId = levelUpChannelId || message.channel.id;
-            const ch = message.guild.channels.cache.get(targetChannelId) as TextChannel | undefined;
-            if (ch) {
-              await ch.send({ content: levelMsg });
-            }
-          }
-        }
-      } catch (err) {
-        logger.error('XP system error:', err);
-      }
-    }
 
     // --- Sticky Messages ---
     // Re-send sticky message if this channel has one (runs last, after all other checks)
