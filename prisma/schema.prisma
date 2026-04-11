@@ -270,6 +270,9 @@ model TicketPanel {
   description String   @default("Click the button below to create a ticket.")
   embedColor  String   @default("#5865F2") // hex color for panel embed
   footerText  String?
+  groupEmbedTitle       String?
+  groupEmbedDescription String?
+  groupEmbedColor       String?
 
   // Button / Dropdown styling
   buttonLabel String   @default("Create Ticket")

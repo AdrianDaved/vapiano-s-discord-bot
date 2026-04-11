@@ -11,6 +11,48 @@ const BUTTON_STYLE: Record<string, number> = {
   primary: 1, secondary: 2, success: 3, danger: 4,
 };
 
+
+// ─── Helper: sync Discord message when a panel is updated ────────────────────
+async function syncDiscordMessage(channelId: string, messageId: string, guildId: string): Promise<void> {
+  // Find all panels sharing the same messageId
+  const siblings = await prisma.ticketPanel.findMany({
+    where: { guildId, messageId, channelId },
+    orderBy: { createdAt: 'asc' },
+  });
+  if (siblings.length === 0) return;
+
+  const buttons = siblings.map((p) => {
+    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
+    const component: Record<string, unknown> = {
+      type: 2, style,
+      label: p.buttonLabel || p.name,
+      custom_id: `ticket_create_${p.id}`,
+    };
+    if (p.buttonEmoji) {
+      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
+      if (customMatch) component.emoji = { name: customMatch[1], id: customMatch[2] };
+      else component.emoji = { name: p.buttonEmoji };
+    }
+    return component;
+  });
+
+  const first = siblings[0];
+  const colorHex = (first.groupEmbedColor || '#5865F2').replace('#', '');
+  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
+
+  const payload: Record<string, unknown> = {
+    embeds: [{
+      title: first.groupEmbedTitle || 'Sistema de Tickets',
+      description: first.groupEmbedDescription || '',
+      color: colorInt,
+    }],
+    components: [{ type: 1, components: buttons }],
+  };
+
+  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
+  await rest.patch(Routes.channelMessage(channelId, messageId), { body: payload });
+}
+
 export const ticketsRouter = Router({ mergeParams: true });
 
 ticketsRouter.use(requireAuth as any);
@@ -162,6 +204,17 @@ ticketsRouter.patch('/panels/:id', validate(ticketPanelUpdateSchema) as any, asy
     data,
     include: { _count: { select: { tickets: true, transcripts: true } } },
   });
+
+  // Auto-edit the Discord message if this panel is deployed
+  if (panel.messageId && panel.channelId && panel.channelId !== '0') {
+    try {
+      await syncDiscordMessage(panel.channelId, panel.messageId, guildId as string);
+    } catch (syncErr) {
+      // Non-fatal: log but don't fail the request
+      console.error('[Tickets] Failed to sync Discord message:', syncErr);
+    }
+  }
+
   res.json(panel);
 }));
 
@@ -245,10 +298,32 @@ ticketsRouter.post('/panels/deploy', asyncHandler(async (req: AuthRequest, res: 
   // Save messageId to all deployed panels
   await prisma.ticketPanel.updateMany({
     where: { id: { in: ordered.map((p) => p.id) } },
-    data: { channelId, messageId },
+    data: {
+      channelId,
+      messageId,
+      groupEmbedTitle: embedTitle || 'Sistema de Tickets',
+      groupEmbedDescription: embedDescription || '',
+      groupEmbedColor: embedColor || '#5865F2',
+    },
   });
 
   res.json({ success: true, messageId, channelId, panelCount: ordered.length });
+}));
+
+
+/**
+ * POST /api/guilds/:guildId/tickets/panels/:id/sync — Force sync Discord message
+ */
+ticketsRouter.post('/panels/:id/sync', asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id, guildId } = req.params;
+  const panel = await prisma.ticketPanel.findUnique({ where: { id: id as string, guildId: guildId as string } });
+  if (!panel) { res.status(404).json({ error: 'Panel not found' }); return; }
+  if (!panel.messageId || !panel.channelId || panel.channelId === '0') {
+    res.status(400).json({ error: 'Panel has not been deployed yet' });
+    return;
+  }
+  await syncDiscordMessage(panel.channelId, panel.messageId, guildId as string);
+  res.json({ success: true });
 }));
 
 /**

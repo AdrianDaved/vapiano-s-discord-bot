@@ -68,6 +68,9 @@ interface TicketPanel {
   panelAutoRepost: boolean;
   panelAutoRepostCooldown: number;
   panelAutoRepostIgnoreBots: boolean;
+  groupEmbedTitle?: string;
+  groupEmbedDescription?: string;
+  groupEmbedColor?: string;
   createdAt: string;
   _count?: { tickets: number; transcripts: number };
 }
@@ -323,6 +326,7 @@ export default function Tickets() {
   const [editingPanelId, setEditingPanelId] = useState<string | null>(null);
   const [panelSection, setPanelSection] = useState<'general' | 'categories' | 'permissions' | 'messages' | 'buttons' | 'transcripts' | 'forms' | 'sticky' | 'advanced'>('general');
   const [savingPanel, setSavingPanel] = useState(false);
+  const [syncingPanel, setSyncingPanel] = useState(false);
 
   // Guild channels + roles cache
   const [guildChannels, setGuildChannels] = useState<{ id: string; name: string; type: number; parentId: string | null }[]>([]);
@@ -462,6 +466,19 @@ export default function Tickets() {
       toast.error(err?.message || 'No se pudo guardar el panel');
     } finally {
       setSavingPanel(false);
+    }
+  };
+
+  const syncPanel = async (id: string) => {
+    if (!guildId) return;
+    setSyncingPanel(true);
+    try {
+      await ticketsApi.syncPanel(guildId, id);
+      toast.success('Mensaje de Discord actualizado');
+    } catch (err: any) {
+      toast.error(err?.message || 'No se pudo sincronizar con Discord');
+    } finally {
+      setSyncingPanel(false);
     }
   };
 
@@ -1117,6 +1134,25 @@ export default function Tickets() {
                 color={editingPanel.embedColor}
                 footerText={editingPanel.footerText}
               />
+              {editingPanelId && (
+                <div className="p-3 rounded-xl bg-discord-darker border border-discord-lighter/20">
+                  <p className="text-xs text-discord-muted mb-3">Embed del grupo (mensaje compartido con otros botones)</p>
+                  <div className="space-y-3">
+                    <input
+                      className="w-full bg-discord-dark border border-discord-lighter/40 rounded-lg px-3 py-2 text-discord-white text-sm focus:outline-none focus:ring-2 focus:ring-discord-blurple/50"
+                      placeholder="Titulo del embed del grupo"
+                      value={(editingPanel as any).groupEmbedTitle || ''}
+                      onChange={(e) => updateField('groupEmbedTitle', e.target.value)}
+                    />
+                    <textarea
+                      className="w-full h-24 bg-discord-dark border border-discord-lighter/40 rounded-lg px-3 py-2 text-discord-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-discord-blurple/50"
+                      placeholder="Descripcion del embed del grupo"
+                      value={(editingPanel as any).groupEmbedDescription || ''}
+                      onChange={(e) => updateField('groupEmbedDescription', e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <Select
                   label="Estilo"
@@ -1617,6 +1653,15 @@ export default function Tickets() {
         {/* Save / Cancel */}
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-discord-lighter">
           <Button variant="secondary" onClick={() => setShowPanelModal(false)}>Cancelar</Button>
+          {editingPanelId && (editingPanel as any).messageId && (editingPanel as any).channelId !== '0' && (
+            <Button
+              onClick={() => syncPanel(editingPanelId)}
+              loading={syncingPanel}
+              variant="secondary"
+            >
+              Sincronizar Discord
+            </Button>
+          )}
           <Button onClick={savePanel} loading={savingPanel}>
             {editingPanelId ? 'Guardar cambios' : 'Crear panel'}
           </Button>
