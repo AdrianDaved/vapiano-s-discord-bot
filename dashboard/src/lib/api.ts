@@ -136,6 +136,11 @@ export const tickets = {
     }),
   deletePanel: (guildId: string, id: string) =>
     apiFetch(`${API_BASE}/guilds/${guildId}/tickets/panels/${id}`, { method: 'DELETE' }),
+  crossDeploy: (guildId: string, body: any) =>
+    apiFetch(`${API_BASE}/guilds/${guildId}/tickets/panels/cross-deploy`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   syncPanel: (guildId: string, id: string) =>
     apiFetch(`${API_BASE}/guilds/${guildId}/tickets/panels/${id}/sync`, { method: 'POST' }),
   deployPanels: (guildId: string, data: { channelId: string; embedTitle: string; embedDescription: string; embedColor: string; panelIds: string[] }) =>

@@ -232,6 +232,9 @@ export const ticketPanelCreateSchema = z.object({
   panelAutoRepost: z.boolean().optional(),
   panelAutoRepostCooldown: z.number().int().min(1).max(300).optional(),
   panelAutoRepostIgnoreBots: z.boolean().optional(),
+  groupEmbedTitle: z.string().max(256).nullable().optional(),
+  groupEmbedDescription: z.string().max(4000).nullable().optional(),
+  groupEmbedColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
 }).strict();
 
 export const ticketPanelUpdateSchema = ticketPanelCreateSchema.partial().omit({ channelId: true }).extend({

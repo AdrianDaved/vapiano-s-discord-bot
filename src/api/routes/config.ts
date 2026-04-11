@@ -25,6 +25,11 @@ const CLONE_SECTIONS: Record<string, string[]> = {
   moderation: ['modLogChannelId', 'warnLogChannelId', 'muteRoleId'],
   suggestions: ['suggestionsEnabled', 'suggestionsChannelId'],
   reputation: ['reputationEnabled', 'repChannelId'],
+  tickets: [
+    'ticketsEnabled', 'ticketCategoryId', 'ticketLogChannelId',
+    'ticketStaffRoleIds', 'ticketTranscriptChannelId',
+    'ticketCloseConfirmation', 'ticketDMTranscript',
+  ],
 };
 
 export const configRouter = Router({ mergeParams: true });

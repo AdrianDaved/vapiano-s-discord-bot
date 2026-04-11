@@ -326,6 +326,104 @@ ticketsRouter.post('/panels/:id/sync', asyncHandler(async (req: AuthRequest, res
   res.json({ success: true });
 }));
 
+
+/**
+ * POST /api/guilds/:guildId/tickets/panels/cross-deploy
+ * Copy panels from this guild to another guild and deploy them there
+ * Body: { sourcePanelIds, targetGuildId, channelId, embedTitle, embedDescription, embedColor }
+ */
+ticketsRouter.post('/panels/cross-deploy', asyncHandler(async (req: AuthRequest, res: Response) => {
+  const srcGuildId = req.params.guildId as string;
+  const { sourcePanelIds, targetGuildId, channelId, embedTitle, embedDescription, embedColor } = req.body;
+
+  if (!targetGuildId || !channelId || !Array.isArray(sourcePanelIds) || sourcePanelIds.length === 0) {
+    res.status(400).json({ error: 'targetGuildId, channelId, and sourcePanelIds are required' });
+    return;
+  }
+  if (sourcePanelIds.length > 5) {
+    res.status(400).json({ error: 'Maximum 5 buttons per panel message' });
+    return;
+  }
+
+  // Fetch source panels
+  const sourcePanels = await prisma.ticketPanel.findMany({
+    where: { id: { in: sourcePanelIds }, guildId: srcGuildId },
+  });
+  if (sourcePanels.length === 0) {
+    res.status(404).json({ error: 'No source panels found' });
+    return;
+  }
+
+  const ordered = sourcePanelIds
+    .map((id: string) => sourcePanels.find((p) => p.id === id))
+    .filter(Boolean) as typeof sourcePanels;
+
+  // Create copies in target guild
+  const copies = await Promise.all(
+    ordered.map((src) =>
+      prisma.ticketPanel.create({
+        data: {
+          guildId: targetGuildId,
+          name: src.name,
+          channelId,
+          title: src.title,
+          description: src.description,
+          embedColor: src.embedColor,
+          footerText: src.footerText,
+          buttonLabel: src.buttonLabel,
+          buttonEmoji: src.buttonEmoji,
+          buttonColor: src.buttonColor,
+          style: src.style,
+          namingPattern: src.namingPattern,
+          ticketLimit: src.ticketLimit,
+          mentionStaff: src.mentionStaff,
+          mentionCreator: src.mentionCreator,
+          welcomeTitle: src.welcomeTitle,
+          welcomeMessage: src.welcomeMessage,
+          welcomeColor: src.welcomeColor,
+          groupEmbedTitle: embedTitle || src.groupEmbedTitle,
+          groupEmbedDescription: embedDescription ?? src.groupEmbedDescription,
+          groupEmbedColor: embedColor || src.groupEmbedColor,
+        },
+      })
+    )
+  );
+
+  // Build and send Discord message to target guild channel
+  const colorHex = (embedColor || copies[0].groupEmbedColor || '#5865F2').replace('#', '');
+  const colorInt = parseInt(colorHex, 16) || 0x5865f2;
+
+  const buttons = copies.map((p) => {
+    const style = BUTTON_STYLE[p.buttonColor] ?? 1;
+    const component: Record<string, unknown> = {
+      type: 2, style,
+      label: p.buttonLabel || p.name,
+      custom_id: `ticket_create_${p.id}`,
+    };
+    if (p.buttonEmoji) {
+      const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
+      if (customMatch) component.emoji = { name: customMatch[1], id: customMatch[2] };
+      else component.emoji = { name: p.buttonEmoji };
+    }
+    return component;
+  });
+
+  const payload = {
+    embeds: [{ title: embedTitle || copies[0].groupEmbedTitle || 'Sistema de Tickets', description: embedDescription || copies[0].groupEmbedDescription || '', color: colorInt }],
+    components: [{ type: 1, components: buttons }],
+  };
+
+  const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN!);
+  const msg = await rest.post(Routes.channelMessages(channelId), { body: payload }) as { id: string };
+
+  await prisma.ticketPanel.updateMany({
+    where: { id: { in: copies.map((c) => c.id) } },
+    data: { messageId: msg.id },
+  });
+
+  res.json({ success: true, messageId: msg.id, panelCount: copies.length, targetGuildId });
+}));
+
 /**
  * DELETE /api/guilds/:guildId/tickets/panels/:id — Delete a panel
  */

@@ -126,16 +126,17 @@ export default {
     // --- Panel Auto-Repost (Sticky Ticket Panel) ---
     if (!repostingChannels.has(message.channelId)) {
       try {
-        const panel = await prisma.ticketPanel.findFirst({
+        // Find the first sticky panel in this channel to get the messageId
+        const trigger = await prisma.ticketPanel.findFirst({
           where: { channelId: message.channelId, guildId: message.guild.id, panelAutoRepost: true, messageId: { not: null } },
         });
-        if (panel && panel.messageId) {
-          // Skip bot messages if configured to do so
-          if (message.author.bot && (panel as any).panelAutoRepostIgnoreBots !== false) {
-            // ignore
+        if (trigger && trigger.messageId) {
+          // Skip bot messages if configured
+          if (message.author.bot && trigger.panelAutoRepostIgnoreBots !== false) {
+            // ignore bots to avoid infinite loops
           } else {
             // Cooldown check (per-channel)
-            const cooldownMs = ((panel as any).panelAutoRepostCooldown ?? 5) * 1000;
+            const cooldownMs = (trigger.panelAutoRepostCooldown ?? 5) * 1000;
             const lastRepost = repostCooldownMap.get(message.channelId) ?? 0;
             if (Date.now() - lastRepost >= cooldownMs) {
               repostingChannels.add(message.channelId);
@@ -143,42 +144,57 @@ export default {
               try {
                 const channel = message.channel as TextChannel;
 
-                // Delete old panel message
-                const oldMsg = await channel.messages.fetch(panel.messageId).catch(() => null);
+                // Fetch ALL panels in the same deployed group (same messageId + channelId)
+                const groupPanels = await prisma.ticketPanel.findMany({
+                  where: { channelId: message.channelId, guildId: message.guild.id, messageId: trigger.messageId },
+                  orderBy: { createdAt: 'asc' },
+                });
+
+                // Delete the old panel message
+                const oldMsg = await channel.messages.fetch(trigger.messageId).catch(() => null);
                 if (oldMsg) await oldMsg.delete().catch(() => {});
 
-                // Rebuild panel embed
-                const colorHex = (panel.embedColor || '#5865F2').replace('#', '');
+                // Build embed using group-level fields (set by deployPanels / syncDiscordMessage)
+                const first = groupPanels[0];
+                const colorHex = (first.groupEmbedColor || first.embedColor || '#5865F2').replace('#', '');
                 const colorInt = parseInt(colorHex, 16) || 0x5865f2;
-                const panelEmbed = new EmbedBuilder().setColor(colorInt);
-                if (panel.title) panelEmbed.setTitle(panel.title);
-                if (panel.description) panelEmbed.setDescription(panel.description);
-                if (panel.footerText) panelEmbed.setFooter({ text: panel.footerText });
+                const panelEmbed = new EmbedBuilder().setColor(colorInt as any);
+                panelEmbed.setTitle(first.groupEmbedTitle || first.title || 'Sistema de Tickets');
+                if (first.groupEmbedDescription || first.description) {
+                  panelEmbed.setDescription(first.groupEmbedDescription || first.description);
+                }
+                if (first.footerText) panelEmbed.setFooter({ text: first.footerText });
 
-                // Build the "open ticket" button (not the in-ticket management row)
-                const buttonLabel = panel.buttonLabel || 'Abrir ticket';
+                // Build one button per panel in the group (preserving order)
                 const buttonColorMap: Record<string, ButtonStyle> = {
-                  Primary: ButtonStyle.Primary,
-                  Secondary: ButtonStyle.Secondary,
-                  Success: ButtonStyle.Success,
-                  Danger: ButtonStyle.Danger,
+                  Primary: ButtonStyle.Primary, primary: ButtonStyle.Primary,
+                  Secondary: ButtonStyle.Secondary, secondary: ButtonStyle.Secondary,
+                  Success: ButtonStyle.Success, success: ButtonStyle.Success,
+                  Danger: ButtonStyle.Danger, danger: ButtonStyle.Danger,
                 };
-                const buttonStyle = buttonColorMap[panel.buttonColor || 'Primary'] ?? ButtonStyle.Primary;
-                const btn = new ButtonBuilder()
-                  .setCustomId(`ticket_create_${panel.id}`)
-                  .setLabel(buttonLabel)
-                  .setStyle(buttonStyle);
-                if (panel.buttonEmoji) btn.setEmoji(panel.buttonEmoji);
-                const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btn);
+                const buttons = groupPanels.map((p) => {
+                  const btn = new ButtonBuilder()
+                    .setCustomId(`ticket_create_${p.id}`)
+                    .setLabel(p.buttonLabel || p.name)
+                    .setStyle(buttonColorMap[p.buttonColor] ?? ButtonStyle.Primary);
+                  if (p.buttonEmoji) {
+                    const customMatch = p.buttonEmoji.match(/^<a?:(\w+):(\d+)>$/);
+                    if (customMatch) btn.setEmoji({ name: customMatch[1], id: customMatch[2] });
+                    else btn.setEmoji(p.buttonEmoji);
+                  }
+                  return btn;
+                });
+                const row = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
 
                 const newMsg = await channel.send({ embeds: [panelEmbed], components: [row] });
 
-                await prisma.ticketPanel.update({
-                  where: { id: panel.id },
+                // Update messageId on ALL panels in the group
+                await prisma.ticketPanel.updateMany({
+                  where: { id: { in: groupPanels.map((p) => p.id) } },
                   data: { messageId: newMsg.id },
                 });
 
-                logger.info(`[PanelRepost] Re-posted panel "${panel.name}" in ${message.channelId}`);
+                logger.info(`[PanelRepost] Re-posted ${groupPanels.length}-button group in ${message.channelId}`);
               } catch (err) {
                 logger.error(`[PanelRepost] Failed to repost panel: ${err}`);
               } finally {

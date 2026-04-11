@@ -18,7 +18,7 @@ import toast from 'react-hot-toast';
 import {
   Ticket, FolderOpen, FolderClosed, Plus, Trash2, FileText,
   Settings, Star, TrendingUp, Edit3, Eye, Download, ChevronLeft, ChevronRight,
-  AlertTriangle, Search, X, Copy,
+  AlertTriangle, Search, X, Copy, Send, Zap,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────
@@ -328,6 +328,18 @@ export default function Tickets() {
   const [savingPanel, setSavingPanel] = useState(false);
   const [syncingPanel, setSyncingPanel] = useState(false);
 
+  // All guilds (for cross-deploy)
+  const [allGuilds, setAllGuilds] = useState<{ id: string; name: string }[]>([]);
+  const [crossDeployGuildId, setCrossDeployGuildId] = useState('');
+  const [crossDeployChannelId, setCrossDeployChannelId] = useState('');
+  const [crossDeployChannels, setCrossDeployChannels] = useState<{ id: string; name: string; type: number; parentId: string | null }[]>([]);
+  const [loadingCrossChannels, setLoadingCrossChannels] = useState(false);
+
+  // Quick Create
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [quickCreate, setQuickCreate] = useState({ buttonLabel: 'Crear ticket', buttonEmoji: '🎫', buttonColor: 'Primary', categoryId: '', welcomeMessage: 'Bienvenido! Describe tu problema.' });
+  const [quickCreating, setQuickCreating] = useState(false);
+
   // Guild channels + roles cache
   const [guildChannels, setGuildChannels] = useState<{ id: string; name: string; type: number; parentId: string | null }[]>([]);
   const [guildRoles, setGuildRoles] = useState<{ id: string; name: string; color: number }[]>([]);
@@ -340,6 +352,14 @@ export default function Tickets() {
   const [deployColor, setDeployColor] = useLocalStorage(`${guildId}-deploy-color`, '#5865F2');
   const [deploySelected, setDeploySelected] = useLocalStorage<string[]>(`${guildId}-deploy-selected`, []);
   const [deploying, setDeploying] = useState(false);
+  const [deploySticky, setDeploySticky] = useLocalStorage(`${guildId}-deploy-sticky`, false);
+  const [deployStickyCooldown, setDeployStickyCooldown] = useLocalStorage(`${guildId}-deploy-sticky-cooldown`, 5);
+  // Deployed panel group editor
+  const [editingDeployedId, setEditingDeployedId] = useState<string | null>(null);
+  const [editDeployedTitle, setEditDeployedTitle] = useState("");
+  const [editDeployedDesc, setEditDeployedDesc] = useState("");
+  const [editDeployedColor, setEditDeployedColor] = useState("#5865F2");
+  const [savingDeployed, setSavingDeployed] = useState(false);
 
   // Transcript viewer
   const [viewingTranscript, setViewingTranscript] = useState<any>(null);
@@ -406,9 +426,11 @@ export default function Tickets() {
       Promise.all([
         guildsApi.channels(guildId).catch(() => []),
         guildsApi.roles(guildId).catch(() => []),
-      ]).then(([channels, roles]) => {
+        guildsApi.list().catch(() => []),
+      ]).then(([channels, roles, guildsData]) => {
         setGuildChannels(channels);
         setGuildRoles(roles);
+        setAllGuilds(guildsData || []);
       });
     }
   }, [tab, fetchTickets, fetchTranscripts, guildId]);
@@ -511,12 +533,54 @@ export default function Tickets() {
         embedColor: deployColor,
         panelIds: deploySelected,
       });
-      toast.success('Panel desplegado en Discord');
+      // Apply sticky to selected panels if enabled
+      if (deploySticky) {
+        await Promise.all(deploySelected.map((id) =>
+          ticketsApi.updatePanel(guildId, id, {
+            panelAutoRepost: true,
+            panelAutoRepostCooldown: deployStickyCooldown,
+            panelAutoRepostIgnoreBots: true,
+          }).catch(() => {})
+        ));
+      } else {
+        await Promise.all(deploySelected.map((id) =>
+          ticketsApi.updatePanel(guildId, id, { panelAutoRepost: false }).catch(() => {})
+        ));
+      }
+      toast.success("Panel desplegado en Discord" + (deploySticky ? " (sticky activado)" : ""));
+      fetchOverview();
       setDeploySelected([]);
     } catch (err: any) {
       toast.error(err.message || 'Error al desplegar el panel');
     } finally {
       setDeploying(false);
+    }
+  };
+
+  const handleSaveDeployed = async (messageId: string) => {
+    if (!guildId) return;
+    setSavingDeployed(true);
+    try {
+      // Find all panels in this deployed group (same messageId)
+      const groupPanels = panels.filter((p) => p.messageId === messageId);
+      if (groupPanels.length === 0) { toast.error("No se encontraron paneles"); return; }
+      // Update groupEmbed fields on all panels in the group
+      await Promise.all(groupPanels.map((p) =>
+        ticketsApi.updatePanel(guildId, p.id, {
+          groupEmbedTitle: editDeployedTitle,
+          groupEmbedDescription: editDeployedDesc,
+          groupEmbedColor: editDeployedColor,
+        })
+      ));
+      // Sync Discord message (uses first panel)
+      await ticketsApi.syncPanel(guildId, groupPanels[0].id);
+      toast.success("Panel actualizado en Discord");
+      setEditingDeployedId(null);
+      fetchOverview();
+    } catch (err: any) {
+      toast.error(err.message || "Error al guardar");
+    } finally {
+      setSavingDeployed(false);
     }
   };
 
@@ -535,12 +599,77 @@ export default function Tickets() {
   const copyPanel = async (panel: TicketPanel) => {
     if (!guildId) return;
     try {
-      const { id: _id, guildId: _gid, createdAt: _ca, _count: _cnt, messageId: _mid, ...panelData } = panel as any;
+      const { id: _id, guildId: _gid, createdAt: _ca, updatedAt: _ua, _count: _cnt, messageId: _mid, groupEmbedTitle: _get, groupEmbedDescription: _ged, groupEmbedColor: _gec, ...panelData } = panel as any;
       const created = await ticketsApi.createPanel(guildId, { ...panelData, name: `Copia de ${panel.name}` });
       setPanels((prev) => [...prev, created]);
       toast.success('Panel duplicado');
     } catch (err: any) {
       toast.error(err.message || 'Error al duplicar');
+    }
+  };
+
+  const handleCrossDeploy = async () => {
+    if (!guildId) return;
+    if (!crossDeployGuildId) { toast.error('Selecciona el servidor destino'); return; }
+    if (!crossDeployChannelId.trim()) { toast.error('Ingresa el canal de destino'); return; }
+    if (deploySelected.length === 0) { toast.error('Selecciona al menos un panel'); return; }
+    if (deploySelected.length > 5) { toast.error('Máximo 5 botones por panel'); return; }
+    setDeploying(true);
+    try {
+      await ticketsApi.crossDeploy(guildId, {
+        targetGuildId: crossDeployGuildId,
+        targetChannelId: crossDeployChannelId.trim(),
+        embedTitle: deployTitle,
+        embedDescription: deployDesc,
+        embedColor: deployColor,
+        panelIds: deploySelected,
+      });
+      toast.success('Paneles enviados al otro servidor');
+      setDeploySelected([]);
+      setCrossDeployChannelId('');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al enviar a otro servidor');
+    } finally {
+      setDeploying(false);
+    }
+  };
+
+  const handleQuickCreate = async () => {
+    if (!guildId) return;
+    setQuickCreating(true);
+    try {
+      const panelData = {
+        ...DEFAULT_PANEL,
+        name: quickCreate.buttonLabel || 'Panel rapido',
+        buttonLabel: quickCreate.buttonLabel,
+        buttonEmoji: quickCreate.buttonEmoji,
+        buttonColor: quickCreate.buttonColor,
+        categoryId: quickCreate.categoryId || undefined,
+        welcomeMessage: quickCreate.welcomeMessage,
+        channelId: '0',
+      };
+      const created = await ticketsApi.createPanel(guildId, panelData);
+      setPanels((prev) => [...prev, created]);
+      setShowQuickCreate(false);
+      setQuickCreate({ buttonLabel: 'Crear ticket', buttonEmoji: '🎫', buttonColor: 'Primary', categoryId: '', welcomeMessage: 'Bienvenido! Describe tu problema.' });
+      toast.success('Panel creado — ahora despliégalo en Discord');
+      fetchOverview();
+    } catch (err: any) {
+      toast.error(err?.message || 'No se pudo crear el panel');
+    } finally {
+      setQuickCreating(false);
+    }
+  };
+
+  // Load channels for cross-deploy target guild
+  const loadCrossChannels = async (targetGuildId: string) => {
+    if (!targetGuildId) { setCrossDeployChannels([]); return; }
+    setLoadingCrossChannels(true);
+    try {
+      const channels = await guildsApi.channels(targetGuildId).catch(() => []);
+      setCrossDeployChannels(channels);
+    } finally {
+      setLoadingCrossChannels(false);
     }
   };
 
@@ -674,9 +803,14 @@ export default function Tickets() {
           title="Paneles de tickets"
           description="Configura paneles con los que los usuarios interactuan para crear tickets"
           action={
-            <Button size="sm" onClick={openNewPanel}>
-              <Plus size={14} /> Nuevo panel
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="secondary" onClick={() => setShowQuickCreate(true)}>
+                <Zap size={14} /> Creación rápida
+              </Button>
+              <Button size="sm" onClick={openNewPanel}>
+                <Plus size={14} /> Nuevo panel
+              </Button>
+            </div>
           }
         >
           {panels.length === 0 ? (
@@ -736,10 +870,52 @@ export default function Tickets() {
           className="mt-6"
         >
           <div className="space-y-4">
+            {/* Target server selector */}
+            {allGuilds.length > 1 && (
+              <div className="p-3 rounded-lg bg-discord-blurple/10 border border-discord-blurple/30">
+                <p className="text-xs font-medium text-discord-blurple mb-2">Servidor destino</p>
+                <Select
+                  label=""
+                  options={[
+                    { value: '', label: `Este servidor (${guildId})` },
+                    ...allGuilds.filter(g => g.id !== guildId).map(g => ({ value: g.id, label: g.name })),
+                  ]}
+                  value={crossDeployGuildId}
+                  onChange={(e) => { setCrossDeployGuildId(e.target.value); setCrossDeployChannelId(''); loadCrossChannels(e.target.value); }}
+                />
+                {crossDeployGuildId && (
+                  <p className="text-xs text-discord-muted mt-1">Los paneles se copiarán al otro servidor y se publicarán allí.</p>
+                )}
+              </div>
+            )}
+
             {/* Channel + colors */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
-                {guildChannels.length > 0 ? (
+                {crossDeployGuildId ? (
+                  loadingCrossChannels ? (
+                    <p className="text-xs text-discord-muted">Cargando canales...</p>
+                  ) : crossDeployChannels.length > 0 ? (
+                    <Select
+                      label="Canal de destino (otro servidor)"
+                      options={[
+                        { value: '', label: 'Seleccionar canal...' },
+                        ...crossDeployChannels
+                          .filter((c) => c.type === 0 || c.type === 5)
+                          .map((c) => ({ value: c.id, label: `#${c.name}` })),
+                      ]}
+                      value={crossDeployChannelId}
+                      onChange={(e) => setCrossDeployChannelId(e.target.value)}
+                    />
+                  ) : (
+                    <Input
+                      label="ID del canal de destino (otro servidor)"
+                      placeholder="Ej. 1107335281620820079"
+                      value={crossDeployChannelId}
+                      onChange={(e) => setCrossDeployChannelId(e.target.value)}
+                    />
+                  )
+                ) : guildChannels.length > 0 ? (
                   <Select
                     label="Canal de destino"
                     options={[
@@ -860,14 +1036,186 @@ export default function Tickets() {
               </div>
             )}
 
-            <div className="flex justify-end">
-              <Button onClick={handleDeploy} loading={deploying} disabled={deploySelected.length === 0 || !deployChannelId.trim()}>
-                Desplegar panel en Discord
-              </Button>
+            {/* Sticky toggle */}
+            {!crossDeployGuildId && (
+              <div className="pt-3 border-t border-discord-lighter/20 space-y-3">
+                <Toggle
+                  label="Panel fijo (sticky)"
+                  description="El panel se borra y se vuelve a publicar al fondo del canal cada vez que alguien mande un mensaje."
+                  enabled={deploySticky}
+                  onChange={setDeploySticky}
+                />
+                {deploySticky && (
+                  <div className="flex items-center gap-4">
+                    <div className="w-52">
+                      <Input
+                        label="Cooldown (segundos)"
+                        type="number"
+                        min={1}
+                        max={300}
+                        value={String(deployStickyCooldown)}
+                        onChange={(e) => setDeployStickyCooldown(Math.max(1, parseInt(e.target.value) || 5))}
+                      />
+                    </div>
+                    <p className="text-xs text-discord-muted mt-5">Recomendado 5-30 s. Los mensajes de bots siempre se ignoran.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              {crossDeployGuildId ? (
+                <Button onClick={handleCrossDeploy} loading={deploying} disabled={deploySelected.length === 0 || !crossDeployChannelId.trim()}>
+                  <Send size={14} /> Enviar a otro servidor
+                </Button>
+              ) : (
+                <Button onClick={handleDeploy} loading={deploying} disabled={deploySelected.length === 0 || !deployChannelId.trim()}>
+                  Desplegar panel en Discord
+                </Button>
+              )}
             </div>
           </div>
         </Card>
       )}
+
+      {/* ═══════ DEPLOYED PANELS EDITOR ═══════ */}
+      {tab === "panels" && (() => {
+        // Group panels by messageId (each group = one deployed Discord message)
+        const deployedGroups = panels
+          .filter((p) => p.messageId)
+          .reduce((acc, p) => {
+            const key = p.messageId!;
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(p);
+            return acc;
+          }, {} as Record<string, typeof panels>);
+        const groups = Object.entries(deployedGroups);
+        if (groups.length === 0) return null;
+        return (
+          <Card
+            title="Paneles desplegados"
+            description="Edita el embed de los paneles que ya estan publicados en Discord"
+            className="mt-6"
+          >
+            <div className="space-y-3 mt-3">
+              {groups.map(([msgId, groupPanels]) => {
+                const first = groupPanels[0];
+                const ch = guildChannels.find((c) => c.id === first.channelId);
+                const isEditing = editingDeployedId === msgId;
+                return (
+                  <div key={msgId} className="rounded-lg border border-discord-lighter/20 bg-discord-darker overflow-hidden">
+                    {/* Header row */}
+                    <div className="flex items-center gap-3 p-3">
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: first.groupEmbedColor || first.embedColor || "#5865F2" }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-discord-white truncate">{first.groupEmbedTitle || first.title}</p>
+                        <p className="text-xs text-discord-muted">
+                          {ch ? `#${ch.name}` : `Canal ${first.channelId}`} &middot; {groupPanels.length} bot{groupPanels.length !== 1 ? "ones" : "on"}: {groupPanels.map((p) => p.buttonLabel || p.name).join(", ")}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        {isEditing ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => setEditingDeployedId(null)}
+                            >Cancelar</Button>
+                            <Button
+                              size="sm"
+                              loading={savingDeployed}
+                              onClick={() => handleSaveDeployed(msgId)}
+                            >Guardar y sincronizar</Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => { syncPanel(groupPanels[0].id); }}
+                            >
+                              <Zap size={13} /> Sincronizar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => {
+                                setEditingDeployedId(msgId);
+                                setEditDeployedTitle(first.groupEmbedTitle || first.title);
+                                setEditDeployedDesc(first.groupEmbedDescription || "");
+                                setEditDeployedColor(first.groupEmbedColor || first.embedColor || "#5865F2");
+                              }}
+                            >
+                              <Edit3 size={13} /> Editar
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {/* Edit form */}
+                    {isEditing && (
+                      <div className="px-3 pb-3 space-y-3 border-t border-discord-lighter/20 pt-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="md:col-span-2">
+                            <Input
+                              label="Titulo del embed"
+                              value={editDeployedTitle}
+                              onChange={(e) => setEditDeployedTitle(e.target.value)}
+                            />
+                          </div>
+                          <ColorInput
+                            label="Color"
+                            value={editDeployedColor}
+                            onChange={setEditDeployedColor}
+                          />
+                        </div>
+                        <Textarea
+                          label="Descripcion del embed"
+                          rows={3}
+                          value={editDeployedDesc}
+                          onChange={(e) => setEditDeployedDesc(e.target.value)}
+                        />
+                        {/* Sticky toggle per deployed group */}
+                        <div className="pt-2 border-t border-discord-lighter/20">
+                          <Toggle
+                            label="Panel fijo (sticky)"
+                            description="Se borra y re-publica al fondo del canal con cada mensaje"
+                            enabled={first.panelAutoRepost ?? false}
+                            onChange={async (v) => {
+                              await Promise.all(groupPanels.map((p) =>
+                                ticketsApi.updatePanel(guildId!, p.id, { panelAutoRepost: v }).catch(() => {})
+                              ));
+                              fetchOverview();
+                            }}
+                          />
+                          {first.panelAutoRepost && (
+                            <div className="mt-2 w-48">
+                              <Input
+                                label="Cooldown (seg)"
+                                type="number"
+                                min={1}
+                                max={300}
+                                value={String(first.panelAutoRepostCooldown ?? 5)}
+                                onChange={async (e) => {
+                                  const val = Math.max(1, parseInt(e.target.value) || 5);
+                                  await Promise.all(groupPanels.map((p) =>
+                                    ticketsApi.updatePanel(guildId!, p.id, { panelAutoRepostCooldown: val }).catch(() => {})
+                                  ));
+                                  fetchOverview();
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        );
+      })()}
 
       {/* ═══════ TICKETS TAB ═══════ */}
       {tab === 'tickets' && (
@@ -1484,7 +1832,36 @@ export default function Tickets() {
                   />
 
                   <div className="space-y-3 mt-3">
-                    <p className="text-sm font-medium text-discord-white">Preguntas (max 5)</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-discord-white">Preguntas (max 5)</p>
+                      <span className="text-xs text-discord-muted">{(editingPanel.formQuestions || []).length}/5</span>
+                    </div>
+                    {/* Discord modal preview */}
+                    {(editingPanel.formQuestions || []).length > 0 && (
+                      <div className="p-3 rounded-lg bg-[#313338] border border-discord-lighter/20">
+                        <p className="text-xs text-discord-muted mb-2 font-medium">Vista previa del formulario en Discord:</p>
+                        <div className="bg-[#2b2d31] rounded-lg p-3 space-y-3">
+                          <p className="text-sm font-semibold text-discord-white">{editingPanel.formTitle || 'Formulario de ticket'}</p>
+                          {(editingPanel.formQuestions || []).map((q, i) => (
+                            <div key={i} className="space-y-1">
+                              <label className="block text-xs font-medium text-discord-white">
+                                {q.label || `Pregunta ${i + 1}`}
+                                {q.required && <span className="text-discord-red ml-1">*</span>}
+                              </label>
+                              {q.style === 'paragraph' ? (
+                                <div className="w-full h-16 bg-[#1e1f22] rounded border border-discord-lighter/30 px-2 py-1">
+                                  <span className="text-xs text-discord-muted/60 italic">{q.placeholder || 'Escribe aquí...'}</span>
+                                </div>
+                              ) : (
+                                <div className="w-full h-8 bg-[#1e1f22] rounded border border-discord-lighter/30 px-2 py-1">
+                                  <span className="text-xs text-discord-muted/60 italic">{q.placeholder || 'Respuesta corta...'}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {(editingPanel.formQuestions || []).map((q, i) => (
                       <div key={i} className="p-3 rounded-lg bg-discord-darker border border-discord-lighter/30 space-y-2">
                         <div className="flex items-center justify-between">
@@ -1665,6 +2042,81 @@ export default function Tickets() {
           <Button onClick={savePanel} loading={savingPanel}>
             {editingPanelId ? 'Guardar cambios' : 'Crear panel'}
           </Button>
+        </div>
+      </Modal>
+
+      {/* ═══════ QUICK CREATE MODAL ═══════ */}
+      <Modal
+        open={showQuickCreate}
+        onClose={() => setShowQuickCreate(false)}
+        title="Creación rápida de panel"
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-4">
+          <div className="p-3 rounded-lg bg-discord-blurple/10 border border-discord-blurple/30">
+            <p className="text-xs text-discord-blurple">Crea un panel con configuración básica en segundos. Luego puedes editarlo para ajustar todos los detalles.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Etiqueta del botón"
+              placeholder="Crear ticket"
+              value={quickCreate.buttonLabel}
+              onChange={(e) => setQuickCreate(prev => ({ ...prev, buttonLabel: e.target.value }))}
+            />
+            <EmojiInput
+              label="Emoji"
+              value={quickCreate.buttonEmoji}
+              onChange={(v) => setQuickCreate(prev => ({ ...prev, buttonEmoji: v }))}
+            />
+          </div>
+          <Select
+            label="Color del botón"
+            options={[
+              { value: 'Primary', label: 'Blurple (Primario)' },
+              { value: 'Secondary', label: 'Gris (Secundario)' },
+              { value: 'Success', label: 'Verde (Éxito)' },
+              { value: 'Danger', label: 'Rojo (Peligro)' },
+            ]}
+            value={quickCreate.buttonColor}
+            onChange={(e) => setQuickCreate(prev => ({ ...prev, buttonColor: e.target.value }))}
+          />
+          <Select
+            label="Categoría de tickets abiertos"
+            options={[
+              { value: '', label: 'Sin categoría' },
+              ...guildChannels.filter((c) => c.type === 4).map((c) => ({ value: c.id, label: c.name })),
+            ]}
+            value={quickCreate.categoryId}
+            onChange={(e) => setQuickCreate(prev => ({ ...prev, categoryId: e.target.value }))}
+          />
+          <Textarea
+            label="Mensaje de bienvenida"
+            placeholder="Bienvenido! Describe tu problema."
+            value={quickCreate.welcomeMessage}
+            onChange={(e) => setQuickCreate(prev => ({ ...prev, welcomeMessage: e.target.value }))}
+            rows={3}
+          />
+          {/* Preview */}
+          <div className="p-3 rounded-lg bg-discord-darker border border-discord-lighter/20">
+            <p className="text-xs text-discord-muted mb-2">Vista previa del botón:</p>
+            <span
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium ${
+                quickCreate.buttonColor === 'Primary' ? 'bg-discord-blurple text-white' :
+                quickCreate.buttonColor === 'Success' ? 'bg-green-600 text-white' :
+                quickCreate.buttonColor === 'Danger' ? 'bg-red-600 text-white' :
+                'bg-discord-lighter text-discord-white'
+              }`}
+            >
+              {quickCreate.buttonEmoji && <span>{quickCreate.buttonEmoji}</span>}
+              {quickCreate.buttonLabel || 'Crear ticket'}
+            </span>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="secondary" onClick={() => setShowQuickCreate(false)}>Cancelar</Button>
+            <Button onClick={handleQuickCreate} loading={quickCreating}>
+              <Zap size={14} /> Crear panel
+            </Button>
+          </div>
         </div>
       </Modal>
 
