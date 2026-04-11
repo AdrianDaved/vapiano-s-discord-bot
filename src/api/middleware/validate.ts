@@ -1,40 +1,37 @@
 /**
- * API Validation & Error Handling Middleware
+ * API validation & error-handling middleware.
  *
- * - asyncHandler: wraps async route handlers to catch errors automatically
- * - validate: zod schema validation middleware for request body
+ * - asyncHandler: wraps async route handlers so a rejected promise becomes
+ *   an Express error instead of an unhandled rejection.
+ * - validate: parses `req.body` against a Zod schema and replaces it with
+ *   the parsed (stripped) result. 400 with structured details on failure.
+ *
+ * Both helpers are typed as `RequestHandler` so callers don't need `as any`
+ * casts at the use site.
  */
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler, Request, Response, NextFunction } from 'express';
 import { ZodSchema, ZodError } from 'zod';
 
-/**
- * Wrap an async route handler so that rejected promises are forwarded
- * to Express's error handler instead of causing unhandled rejections.
- */
 export function asyncHandler(
-  fn: (req: any, res: Response, next: NextFunction) => Promise<any>
-): any {
-  return (req: any, res: Response, next: NextFunction) => {
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
+): RequestHandler {
+  return (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
 }
 
-/**
- * Middleware that validates `req.body` against a Zod schema.
- * Returns 400 with structured error messages on validation failure.
- */
-export function validate(schema: ZodSchema): any {
-  return (req: Request, res: Response, next: NextFunction) => {
+export function validate(schema: ZodSchema): RequestHandler {
+  return (req, res, next) => {
     try {
       req.body = schema.parse(req.body);
       next();
     } catch (err) {
       if (err instanceof ZodError) {
-        const errors = err.issues.map((e) => ({
+        const details = err.issues.map((e) => ({
           path: e.path.join('.'),
           message: e.message,
         }));
-        res.status(400).json({ error: 'Validation failed', details: errors });
+        res.status(400).json({ error: 'Validation failed', details });
         return;
       }
       next(err);

@@ -1,15 +1,17 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, Router } from 'express';
 import jwt from 'jsonwebtoken';
 import logger from '../../shared/logger';
+import '../types/express'; // module augmentation for Request.user
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    username: string;
-    avatar: string;
-    accessToken: string;
-  };
-}
+/**
+ * Backwards-compat alias. Express.Request is augmented with `user` in
+ * `src/api/types/express.d.ts`, so all routes can simply use `Request`. This
+ * alias only exists so existing `AuthRequest` imports keep compiling while
+ * we migrate them off.
+ *
+ * @deprecated import `Request` from 'express' instead.
+ */
+export type AuthRequest = Request;
 
 // ── Guild access cache ──────────────────────────
 // Caches the user's guild list from Discord to avoid rate limits.
@@ -82,9 +84,27 @@ export async function fetchUserGuilds(userId: string, accessToken: string): Prom
 }
 
 /**
+ * Factory for guild-scoped routers. Eliminates the boilerplate
+ *
+ *   const router = Router({ mergeParams: true });
+ *   router.use(requireAuth as any);
+ *   router.use(requireGuildAccess as any);
+ *
+ * that every routes/*.ts file used to copy. The returned router is mounted
+ * under `/api/guilds/:guildId/<feature>`, has both auth checks pre-applied,
+ * and is properly typed so route handlers don't need `as any` casts.
+ */
+export function createGuildRouter(): Router {
+  const router = Router({ mergeParams: true });
+  router.use(requireAuth);
+  router.use(requireGuildAccess);
+  return router;
+}
+
+/**
  * Verify the JWT token from the Authorization header or session cookie.
  */
-export function requireAuth(req: AuthRequest, res: Response, next: NextFunction): void {
+export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const token =
     req.headers.authorization?.replace('Bearer ', '') ||
     req.cookies?.token ||
@@ -96,7 +116,12 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.API_SECRET!) as any;
+    const decoded = jwt.verify(token, process.env.API_SECRET!) as {
+      id: string;
+      username: string;
+      avatar: string;
+      accessToken: string;
+    };
     req.user = {
       id: decoded.id,
       username: decoded.username,
@@ -154,7 +179,7 @@ export async function checkGuildAccess(
  * Check that the user has Manage Guild permission for the requested guild.
  * Must be used after requireAuth and after guildId is available in params.
  */
-export async function requireGuildAccess(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function requireGuildAccess(req: Request, res: Response, next: NextFunction): Promise<void> {
   const guildId = req.params.guildId;
   if (typeof guildId !== 'string' || !guildId) {
     res.status(400).json({ error: 'Guild ID required' });
