@@ -60,7 +60,6 @@ model GuildConfig {
   voiceLogChannelId   String? // voice activity logging
   verificationLogChannelId String? // log channel for /verificacion command
   darRangoRoles         Json?   // [{id,pattern,emoji,message}] dynamic role patterns
-  // ─── Levels/XP ─────────────────────────────
   // ─── Server Stats Channels ─────────────────
   statsChannels         Json?    // [{id,channelId,type,format}]
   muteRoleId          String?
@@ -568,5 +567,3 @@ model CommandPermission {
   @@unique([guildId, command])
   @@map("command_permissions")
 }
-
-// ─── Member Levels / XP ──────────────────────────────────────

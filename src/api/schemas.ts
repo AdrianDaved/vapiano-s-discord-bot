@@ -2,11 +2,20 @@
  * Zod schemas for API request validation.
  */
 import { z } from 'zod';
+import { validate as validateCron } from 'node-cron';
 
 // Snowflake (Discord ID): 17-20 digit string
 const snowflake = z.string().regex(/^\d{17,20}$/, 'Must be a valid Discord ID').nullable().optional();
 const snowflakeRequired = z.string().regex(/^\d{17,20}$/, 'Must be a valid Discord ID');
 const snowflakeArray = z.array(z.string().regex(/^\d{17,20}$/)).optional();
+
+// Cron expression: validated by node-cron so an invalid string can't crash
+// the scheduler at runtime (the previous check was just a length range).
+const cronExpression = z
+  .string()
+  .min(1)
+  .max(100)
+  .refine((s) => validateCron(s), { message: 'Invalid cron expression' });
 
 // ─── Config ──────────────────────────────────────────────
 export const configUpdateSchema = z.object({
@@ -176,14 +185,14 @@ export const autoResponseUpdateSchema = z.object({
 export const scheduledMessageCreateSchema = z.object({
   channelId: snowflakeRequired,
   message: z.string().min(1).max(2000),
-  cron: z.string().min(9).max(100), // Basic cron expression length validation
+  cron: cronExpression,
   enabled: z.boolean().optional().default(true),
 }).strict();
 
 export const scheduledMessageUpdateSchema = z.object({
   channelId: z.string().regex(/^\d{17,20}$/).optional(),
   message: z.string().min(1).max(2000).optional(),
-  cron: z.string().min(9).max(100).optional(),
+  cron: cronExpression.optional(),
   enabled: z.boolean().optional(),
 }).strict();
 
